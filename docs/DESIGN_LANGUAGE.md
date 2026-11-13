@@ -1,6 +1,7 @@
 # Design language (single source of truth for every visual asset)
 
-Status: **draft - to be filled from the first ChatGPT round** (`docs/prompts/STYLE_SYSTEM_PROMPT.md`, not yet written: waiting for the app description).
+Status: **draft - to be filled from the first ChatGPT round** (`docs/prompts/STYLE_SYSTEM_PROMPT.md`, ready to paste).
+Direction already fixed: energetic, calm, trustworthy; open road / horizon / morning air; outdoor-in-sunlight legibility; four packs `trail` (default), `coast`, `ember`, `sunlight` (high-contrast, also the Workout-mode look).
 Every later prompt must restate the decisions below, so icons, backgrounds, illustrations and animations stay one family.
 
 ## To define (owner + first round)
