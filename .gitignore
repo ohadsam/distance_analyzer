@@ -1,0 +1,10 @@
+node_modules/
+.gradle/
+build/
+android/local.properties
+android/app/build/
+*.keystore
+*.jks
+# the shared APK-signing key is committed on purpose (stable updates for a side-loaded personal app; see docs/RELEASING.md)
+!android/app/distance-analyzer.keystore
+.DS_Store

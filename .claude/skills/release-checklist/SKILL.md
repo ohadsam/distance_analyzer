@@ -1,0 +1,74 @@
+---
+name: release-checklist
+description: Run this after implementing any feature or fix in Distance Analyzer (ohadsam/distance_analyzer), before considering the work done. Covers the 5 specialist reviews (architecture, QA, UI/UX + RTL, security, performance), version bump, What's New, user guide, docs, skills, tests, CI as the Android verification gate, and shipping to main. Invoke by name ("run the release checklist") or whenever the user asks to finish/ship/wrap up a change here.
+---
+
+# Release checklist
+
+Distance Analyzer = one **vanilla-JS web app** (`web/`, no build step, no runtime dependencies) used two ways:
+a **PWA** on GitHub Pages and a thin **Android WebView shell** (`android/`) that packages the same `web/` folder as assets.
+Same pipeline and quality bar as the sister project `ohadsam/morning_organizer`. `main` is the primary branch.
+Do not skip or reorder steps; later steps assume earlier ones are done. If a step finds nothing, say so explicitly and move on.
+
+**First:** confirm the previous batch's checklist really finished (check the task list) - a green `main` and a half-finished checklist look identical.
+
+## 0. The owner's standing rules - every change must satisfy these (check them in the review passes and say how)
+1. **Audience first.** *(To be defined by the owner when the feature list arrives - record it here.)* Until then: few things per screen, group the rest, collapse long pages into sections, keep wording short and kind.
+2. **UI/UX: simple, accessible, minimal - and beautiful, comfortable and self-explanatory.** Every screen should explain itself (clear titles, one-line hints, visible state). Controls are **grouped by topic in ONE unified toolbar on ONE row** with dropdowns (never a pile of separate buttons, never wrapping over several rows); settings and long pages start collapsed with a one-line summary per section; one primary action per screen.
+3. **Parity PWA = Android app.** The Android app packages the same `web/` folder, so every feature must exist in both. Anything that also has to work in the background must be mirrored through `native.js` -> `NativeBridge.kt` -> Kotlin logic **with a JVM unit test**, and degrade gracefully in the browser. Native-only extras are hidden in the browser, never broken.
+4. **Hebrew first, English equal.** Every string in both languages (neutral plural forms in Hebrew), RTL-safe layout, a space between a number and its unit (`5 ד׳`, `5 m`).
+5. **Defaults protect people.** Safe, quiet, private defaults; nothing leaves the device unless the person chooses to.
+6. **Tests are the proof.** Unit tests for logic, an e2e step for every flow, axe at ZERO violations (he/en, light/dark, big text once it exists), and no horizontal scroll at 320 px. Look at screenshots of every changed screen. (When the app grows, port `tests/e2e/layout.mjs` / `textfit.mjs` from morning_organizer and add them to `ci.yml`.)
+7. **Requirements ledger.** `docs/REQUESTS.md` lists every request/suggestion the owner approved and its status. Before finishing: add the new requests, tick what shipped, and walk the whole list - nothing may be silently dropped (if something cannot be done, say why in the report).
+8. **Honesty.** Say what was verified only by CI / tests and what needs a real device. Never claim a third-party component fits without checking its licence and size.
+9. **Efficiency and code quality.** Reuse before writing: search `web/js/util.js` and the existing modules first; one helper per job, no copy-paste. Small, readable modules with a one-line header comment saying what they are for and what they must not touch; names say what a thing is; no dead code, no speculative options. Be token-efficient in the work itself: read only the files the change touches (grep first), edit instead of rewriting, no repeated re-reads, short reports.
+
+## 1. Five reviews - separate passes, in this order
+Re-read every changed file fresh for each pass; each pass has caught bugs the others missed.
+
+1. **System architecture.** Dependency direction is `ui/* → store/engine/stats/share → util/config`; logic modules stay **pure** (no DOM, no storage, time passed in as `now`). Web code reaches Android only through `js/native.js`; Android code is reached only through `NativeBridge.kt`. New JS file → add it to `sw.js` SHELL (static check enforces). Any new persisted field → handled by a normalise function and old data still loads. Update `docs/ARCHITECTURE.md` if a boundary moved. Check for duplicated logic that should be a shared helper.
+2. **QA / functional.** Walk the user journeys end to end for what changed. Edge cases: empty data, very large data, interrupted action (reload/kill), clock/timezone change, storage blocked (memory fallback), first launch offline, upgrade from the previous version's data. Hebrew **and** English each time.
+3. **UI / UX + RTL.** Touch targets ≥ 44 px, one clear primary action per screen, labels on every icon button, focus visible, contrast in light **and** dark, no horizontal scroll at 320 px, keyboard path for any drag & drop, `prefers-reduced-motion`. RTL: only CSS **logical** properties (`margin-inline-*`, `inset-inline-*`, `text-align: start`); directional icons flip; numbers/time stay LTR where needed. Run the automated audit (`npm run e2e` includes an axe-core step over every screen - it must stay at ZERO violations; add any new screen/dialog to it). Screenshot every changed screen in `he` and `en` (`npm run e2e -- --shots <dir>`) and actually look at them.
+4. **Security.** All user/imported text goes through `h()` (text nodes) - never raw-HTML sinks (`scripts/static-checks.mjs` bans them). Everything arriving via import/share/restore is untrusted: clamp lengths, numbers, colours, strip control+bidi chars, regenerate ids; decompression is size-bounded. CSP in `index.html` stays `'self'` only (no CDN, no inline script/style). Service worker never touches cross-origin. Android: `NativeBridge` validates every argument and caps sizes (`BridgeLimits`); WebView only loads the asset origin (others → external browser); no file/content access; no cleartext; **no `INTERNET` permission** unless a written reason is added to `ARCHITECTURE.md`; receivers/services `exported=false` unless the system must bind them; no private secrets in the repo (the committed APK signing key is a deliberate, documented exception). Run the `security-review` skill on the diff.
+5. **Performance.** Rendering is rebuild-per-view - keep lists bounded, never re-render a whole view per timer tick, timers derive from timestamps (no drift when throttled), storage writes are batched/debounced. No new dependency without a written reason (the shipped app has zero). Check `sw.js` precache stays small and APK size doesn't jump.
+
+Also run `/simplify` (reuse, simplification, efficiency) and `/code-review` on the diff. Fix findings **before** moving on; re-run the affected pass if a fix was non-trivial. Write what each pass found (even "nothing") in the final report.
+
+## 2. Version + What's New
+`npm run bump -- patch|minor|major` updates `web/version.json` (single source; Gradle reads it), `web/sw.js`, `package.json`. Then add `## x.y.z` to `docs/CHANGELOG.md` (the unit test fails without it; the release notes are cut from it).
+
+## 3. User guide - always current
+Every user-visible change updates `docs/USER_GUIDE.md` (and the in-app guide, once it exists, in en + he; a test should check section titles exist in both). New setting/screen/feature ⇒ guide text, even one sentence.
+
+## 4. Docs
+`README.md` (feature list, screenshots if UI changed), `docs/ARCHITECTURE.md`, `docs/RELEASING.md` if pipeline/setup changed. New strings go in **both** languages of `js/i18n.js` (parity test enforces keys + `{placeholders}`); Android strings in `values/` **and** `values-he/`.
+
+## 5. Skills
+If this run revealed a missing step or a wrong claim here, fix this file now (self-review of the checklist).
+
+## 6. Tests - must be green locally
+```
+npm run check      # syntax, banned APIs, CSP/SW consistency
+npm test           # node:test unit tests (logic, i18n parity, version sync, changelog)
+npm run e2e        # (ONLY="axe-core" npm run e2e runs one step) Playwright: boot, RTL, flows, axe, 320 px overflow
+```
+New logic ⇒ new unit test; new user flow ⇒ new e2e step; every fixed bug ⇒ a regression test. If e2e fails right at boot, suspect a bad import / stray `*/` in a new module: `node -e "import('./web/js/x.js')"`.
+Gotcha (real, from the sister project): untrusted keys must be checked with `Object.hasOwn(map, key)` - `key in map` / `map[key]` accept `__proto__`/`constructor`.
+Gotcha (real): `page.addInitScript` only applies on the next document load - `reload()` first. e2e starts in Hebrew/RTL (the default): `newPage({ lang: 'en' })` starts in English.
+Gotcha (real): glyphs like ‹ › in Android layouts do not mirror in RTL - put them in `values/` and `values-he/` strings. Native-only features cannot be exercised here: say so in the report and rely on CI compile/lint.
+Gotcha (real): grid/flex children default to `min-width:auto` - a time input or long word makes sheets wider than the screen; keep `min-width:0` on form controls.
+Gotcha (real): `el.replaceChildren(null)` renders the text "null" - use `setChildren()` from `util.js` or `h()` which flatten and skip null.
+
+## 7. Android verification = CI
+No Android SDK in the sandbox (`dl.google.com` blocked), so Kotlin is only compiled by GitHub Actions (`ci.yml` → *android*: unit tests, lint, release APK). Treat "push, wait, read the log" as mandatory (`get_job_logs` for failures). Pure logic that can be unit-tested on the JVM goes in `BridgeLimits`-style objects (no Android types) with tests in `android/app/src/test`.
+
+## 8. Ship
+Commit on the working branch, push, wait for **web** + **android** green. On `main` the *release* job publishes `distance-analyzer.apk` as the latest release and `pages.yml` deploys the PWA - verify both (release exists with the APK asset; Pages URL serves the new `version.json`). Don't claim "done" before that.
+
+## Known limitations (don't re-report as new)
+- The APK is signed with a committed shared key (stable in-place updates, but not secret) unless private `KEYSTORE_*` secrets are set. Not for the Play Store.
+- Web background features (alarms, timers while closed) cannot run in browsers; the Android app is the reliable path.
+- Layout sweep and text-fit e2e from the sister project are not ported yet (added when the UI grows).
+
+## Done means
+All five reviews run and their fixes applied · version bumped · CHANGELOG + user guide updated · `check`/`test`/`e2e` green · CI green on the branch · (on main) release + Pages verified.

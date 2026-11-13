@@ -1,0 +1,23 @@
+/* Distance Analyzer - design tokens first, logical properties everywhere so RTL (Hebrew) is just dir="rtl". */
+:root {
+  --bg: #f4fafb; --surface: #ffffff; --text: #12262b; --muted: #50666c; --line: #d3e4e8;
+  --brand: #0b7285; --brand-ink: #ffffff; --bad: #b42d2d; --radius: 16px; --shadow: 0 6px 24px rgba(11, 114, 133, .10);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0e1a1d; --surface: #16272b; --text: #e9f5f7; --muted: #9db8be; --line: #28414a; --brand: #3bc0d8; --brand-ink: #06242b; --bad: #ff6b6b; --shadow: 0 6px 24px rgba(0,0,0,.4); } }
+:root[data-theme="dark"] { --bg: #0e1a1d; --surface: #16272b; --text: #e9f5f7; --muted: #9db8be; --line: #28414a; --brand: #3bc0d8; --brand-ink: #06242b; --bad: #ff6b6b; --shadow: 0 6px 24px rgba(0,0,0,.4); }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 1rem; line-height: 1.45; min-height: 100dvh; -webkit-tap-highlight-color: transparent; }
+main { max-width: 760px; margin-inline: auto; padding: 16px; padding-block-end: calc(24px + env(safe-area-inset-bottom)); outline: none; }
+h1 { font-size: 1.6rem; margin: .2em 0 .4em; }
+p { margin: .3em 0; } .note { color: var(--muted); font-size: .9rem; } [hidden] { display: none !important; }
+a { color: var(--brand); }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; padding-block-start: calc(8px + env(safe-area-inset-top)); background: var(--surface); border-block-end: 1px solid var(--line); }
+.brand { font-weight: 700; color: var(--text); text-decoration: none; }
+.btn { display: inline-flex; align-items: center; min-block-size: 44px; padding-inline: 16px; border-radius: var(--radius); background: var(--brand); color: var(--brand-ink); text-decoration: none; font-weight: 600; }
+.field { display: grid; gap: 6px; margin-block: 12px; min-width: 0; }
+select, input { min-block-size: 44px; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding-inline: 12px; min-width: 0; }
+:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+.sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
