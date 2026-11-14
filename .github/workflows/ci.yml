@@ -79,11 +79,11 @@ jobs:
       - name: Collect APK
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk dist/distance-analyzer.apk
-          sha256sum dist/distance-analyzer.apk | tee dist/distance-analyzer.apk.sha256
+          cp android/app/build/outputs/apk/release/app-release.apk dist/stepup.apk
+          sha256sum dist/stepup.apk | tee dist/stepup.apk.sha256
       - uses: actions/upload-artifact@v4
         with:
-          name: distance-analyzer-apk
+          name: stepup-apk
           path: dist/
           retention-days: 30
           if-no-files-found: error
@@ -99,7 +99,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
-        with: { name: distance-analyzer-apk, path: dist }
+        with: { name: stepup-apk, path: dist }
       - name: Create GitHub release (becomes "latest")
         env:
           GH_TOKEN: ${{ github.token }}
@@ -107,8 +107,8 @@ jobs:
           VERSION=$(node -p "require('./web/version.json').version")
           TAG="build-${GITHUB_RUN_NUMBER}"
           awk -v v="## $VERSION" '$0==v{f=1;next} /^## /{f=0} f' docs/CHANGELOG.md > notes.md
-          [ -s notes.md ] || echo "Distance Analyzer $VERSION" > notes.md
-          gh release create "$TAG" dist/distance-analyzer.apk dist/distance-analyzer.apk.sha256 \
+          [ -s notes.md ] || echo "StepUp $VERSION" > notes.md
+          gh release create "$TAG" dist/stepup.apk dist/stepup.apk.sha256 \
             --title "v$VERSION (build ${GITHUB_RUN_NUMBER})" --notes-file notes.md --target "$GITHUB_SHA" --latest
           # keep the release list tidy: newest 10 stay
           gh release list --limit 100 --json tagName --jq '.[10:][].tagName' | while read -r old; do

@@ -7,7 +7,7 @@
             │ util.js, i18n.js (he/en, RTL)                                                │
             │ native.js ── no-op in browsers ───────────────────────────────┐              │
             └───────────────────────────────────────────────────────────────┼──────────────┘
-                                                                            ▼ window.DistanceNative
+                                                                            ▼ window.StepUpNative
  APK (GitHub Releases, always latest)   android/  MainActivity (WebView on https://appassets.androidplatform.net, assets = ../web)
                                          NativeBridge (the only door from JS into Android; validates every argument)
 ```

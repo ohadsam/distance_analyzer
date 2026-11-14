@@ -1,4 +1,4 @@
-package com.distanceanalyzer.app
+package com.stepup.app
 
 /** Pure size caps for anything arriving from the page (no Android types, so it is JVM-tested). */
 object BridgeLimits {

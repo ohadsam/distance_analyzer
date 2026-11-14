@@ -2,7 +2,7 @@
 // Layout uses CSS logical properties, so flipping <html dir> is all RTL needs. Every key must exist in BOTH languages (unit test).
 export const STR = {
   en: {
-    appName: 'Distance Analyzer', home: 'Home', settings: 'Settings', history: 'History', back: 'Back', version: 'Version {v}',
+    appName: 'StepUp', home: 'Home', settings: 'Settings', history: 'History', back: 'Back', version: 'Version {v}',
     hello: 'Ready to move?', helloHint: 'Pick an activity and press start.', walk: 'Walk', run: 'Run', startWalk: 'Start a walk', startRun: 'Start a run',
     resumeTitle: 'Workout in progress', resumeBtn: 'Continue', discard: 'Discard', recent: 'Recent', noWorkouts: 'No workouts yet. Your first one will appear here.', allHistory: 'All workouts',
     km: 'km', perKm: '/km', min: 'min', time: 'Time', distance: 'Distance', pace: 'Pace', avgPace: 'Average pace', kcal: 'Energy', kcalUnit: 'kcal', splits: 'Each kilometre', splitKm: 'Km {n}',
@@ -19,7 +19,7 @@ export const STR = {
     stepsNote: 'Distance comes from GPS and is an estimate. General guidance only, not medical advice.',
   },
   he: {
-    appName: 'מנתח מרחקים', home: 'בית', settings: 'הגדרות', history: 'היסטוריה', back: 'חזרה', version: 'גרסה {v}',
+    appName: 'StepUp', home: 'בית', settings: 'הגדרות', history: 'היסטוריה', back: 'חזרה', version: 'גרסה {v}',
     hello: 'מוכנים לזוז?', helloHint: 'בחרו פעילות ולחצו התחל.', walk: 'הליכה', run: 'ריצה', startWalk: 'התחלת הליכה', startRun: 'התחלת ריצה',
     resumeTitle: 'אימון בתהליך', resumeBtn: 'המשך', discard: 'ביטול', recent: 'אחרונים', noWorkouts: 'עדיין אין אימונים. הראשון יופיע כאן.', allHistory: 'כל האימונים',
     km: 'ק״מ', perKm: '/ק״מ', min: 'דק׳', time: 'זמן', distance: 'מרחק', pace: 'קצב', avgPace: 'קצב ממוצע', kcal: 'אנרגיה', kcalUnit: 'קק״ל', splits: 'כל קילומטר', splitKm: 'ק״מ {n}',

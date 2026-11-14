@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.1
+- **The app is called StepUp** (same Latin wordmark in Hebrew and English). Renamed everywhere: app label, manifest, page title, Android package `com.stepup.app`, APK `stepup.apk`, signing key file `stepup.keystore`, JS bridge `StepUpNative`. Hebrew stays the default language; English is chosen in Settings → Language (already the case).
+
 ## 0.2.0
 - **Design foundation (from the ChatGPT "Momentum" kit, `design/momentum/`)**: eight look packs (momentum, ocean, forest, sunset, violet, slate, mono, high-contrast), each light + dark, generated into `web/css/packs.css` and 54 UI icons into `web/js/iconData.js` by `npm run design`. A unit test re-checks WCAG contrast of every pack and that the generated files are current. Working name "Momentum" is the kit's, not the app's: the app name is still open.
 - **Workout mode** (walk / run): GPS distance with accuracy and jump filtering, moving time, current + average pace, km splits (interpolated), kcal estimate, pause/resume, finish with confirmation, summary with a tile-less route drawing, history and detail, delete. One screen, three numbers, three buttons; **screen lock** that needs a press-and-hold; the screen stays awake; a workout in progress survives a reload (it waits paused, so the gap is not counted).
@@ -11,5 +14,5 @@
 ## 0.1.0
 - Project skeleton: vanilla-JS PWA (`web/`, no build step, no runtime dependencies) + thin Android WebView shell (`android/`) that packages the same `web/` folder as assets.
 - Hebrew (RTL, default) and English; light/dark; offline service worker; CSP `'self'` only.
-- Pipeline copied from the sister project (morning_organizer): static + security checks, unit tests, Playwright e2e with axe-core, Android unit tests + lint + signed release APK, GitHub Release `distance-analyzer.apk` on `main`, PWA on GitHub Pages.
+- Pipeline copied from the sister project (morning_organizer): static + security checks, unit tests, Playwright e2e with axe-core, Android unit tests + lint + signed release APK, GitHub Release `stepup.apk` on `main`, PWA on GitHub Pages.
 - Verified: static checks, unit tests, e2e. Not verified here: the Android build (CI only).

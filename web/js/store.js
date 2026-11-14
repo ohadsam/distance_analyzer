@@ -3,7 +3,7 @@
 import { sanitizeWorkout, sanitizeActive, summarize } from './workout.js';
 
 export const MAX_WORKOUTS = 1000;
-const DB = 'distance-analyzer', STORE = 'workouts';
+const DB = 'stepup', STORE = 'workouts';
 let mem = [], dbp = null;
 
 function open() {

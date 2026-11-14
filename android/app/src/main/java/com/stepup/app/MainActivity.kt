@@ -1,4 +1,4 @@
-package com.distanceanalyzer.app
+package com.stepup.app
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
             cacheMode = WebSettings.LOAD_DEFAULT
             setSupportMultipleWindows(false)
         }
-        web.addJavascriptInterface(NativeBridge(this), "DistanceNative")
+        web.addJavascriptInterface(NativeBridge(this), "StepUpNative")
         web.webChromeClient = object : WebChromeClient() {
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
                 runOnUiThread {
@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
 
     /** Native -> JS event: the page listens with `onNativeEvent` (js/native.js). */
     fun deliver(event: JSONObject) {
-        runOnUiThread { web.evaluateJavascript("dispatchEvent(new CustomEvent('distance-native',{detail:${event}}))", null) }
+        runOnUiThread { web.evaluateJavascript("dispatchEvent(new CustomEvent('stepup-native',{detail:${event}}))", null) }
     }
 
     companion object { const val HOST = "appassets.androidplatform.net" }

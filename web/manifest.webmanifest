@@ -1,7 +1,7 @@
 {
-  "name": "Distance Analyzer",
-  "short_name": "Distance",
-  "description": "Distance Analyzer",
+  "name": "StepUp",
+  "short_name": "StepUp",
+  "description": "Walk and run tracker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

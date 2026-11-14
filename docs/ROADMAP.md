@@ -1,4 +1,4 @@
-# Roadmap - Distance Analyzer (walking & running tracker)
+# Roadmap - StepUp (walking & running tracker)
 
 Ordered so that every phase ships something usable and the later phases build on the earlier ones. Status of each request lives in `REQUESTS.md`.
 Core idea: **clean, simple, self-explanatory**; a **Workout mode** that strips the screen to a few big buttons.

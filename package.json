@@ -1,9 +1,9 @@
 {
-  "name": "distance-analyzer",
-  "version": "0.2.0",
+  "name": "stepup",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
-  "description": "Distance Analyzer - PWA + Android shell",
+  "description": "StepUp - PWA + Android shell",
   "scripts": {
     "test": "node --test tests/unit/*.test.js",
     "check": "node scripts/static-checks.mjs",

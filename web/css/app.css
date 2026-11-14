@@ -1,4 +1,4 @@
-/* Distance Analyzer - tokens come from css/packs.css (generated from design/momentum). Logical properties only, so RTL is just dir="rtl". */
+/* StepUp - tokens come from css/packs.css (generated from design/momentum). Logical properties only, so RTL is just dir="rtl". */
 :root { --radius: 14px; --radius-sm: 8px; --shadow: 0 6px 24px rgb(0 0 0 / .08); font-family: "Noto Sans Hebrew", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }

@@ -31,5 +31,6 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 14 | Extra ideas proposed by Claude and implemented | 🟡 listed in ROADMAP phase 10, awaiting approval per item |
 | 15 | Smart metronome during a run: learns the cadence silently, then clicks at it with a steady, beautiful animation that helps hold rhythm and breathing | ✅ 0.2.0 (real-device tuning pending) |
 | 16 | Efficiency, security, performance, good-looking and simple UI/UX; code review and UI tests | 🟡 ongoing (0.2.0: review + e2e/axe done for what exists) |
-| 17 | Find a nice, cool name for the app and put it in the logo and the app | 🟡 owner is thinking; "Momentum" is only the design kit's working name |
+| 17 | Name the app and put it in the logo and the app | ✅ name **StepUp** (0.2.1, in the app); logo + wordmark come with ChatGPT round 2 |
+| 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |

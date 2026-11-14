@@ -1,11 +1,11 @@
 ---
 name: release-checklist
-description: Run this after implementing any feature or fix in Distance Analyzer (ohadsam/distance_analyzer), before considering the work done. Covers the 5 specialist reviews (architecture, QA, UI/UX + RTL, security, performance), version bump, What's New, user guide, docs, skills, tests, CI as the Android verification gate, and shipping to main. Invoke by name ("run the release checklist") or whenever the user asks to finish/ship/wrap up a change here.
+description: Run this after implementing any feature or fix in StepUp (ohadsam/distance_analyzer), before considering the work done. Covers the 5 specialist reviews (architecture, QA, UI/UX + RTL, security, performance), version bump, What's New, user guide, docs, skills, tests, CI as the Android verification gate, and shipping to main. Invoke by name ("run the release checklist") or whenever the user asks to finish/ship/wrap up a change here.
 ---
 
 # Release checklist
 
-Distance Analyzer = one **vanilla-JS web app** (`web/`, no build step, no runtime dependencies) used two ways:
+StepUp = one **vanilla-JS web app** (`web/`, no build step, no runtime dependencies) used two ways:
 a **PWA** on GitHub Pages and a thin **Android WebView shell** (`android/`) that packages the same `web/` folder as assets.
 Same pipeline and quality bar as the sister project `ohadsam/morning_organizer`. `main` is the primary branch.
 Do not skip or reorder steps; later steps assume earlier ones are done. If a step finds nothing, say so explicitly and move on.
@@ -64,7 +64,7 @@ Gotcha (real): `el.replaceChildren(null)` renders the text "null" - use `setChil
 No Android SDK in the sandbox (`dl.google.com` blocked), so Kotlin is only compiled by GitHub Actions (`ci.yml` → *android*: unit tests, lint, release APK). Treat "push, wait, read the log" as mandatory (`get_job_logs` for failures). Pure logic that can be unit-tested on the JVM goes in `BridgeLimits`-style objects (no Android types) with tests in `android/app/src/test`.
 
 ## 8. Ship
-Commit on the working branch, push, wait for **web** + **android** green. On `main` the *release* job publishes `distance-analyzer.apk` as the latest release and `pages.yml` deploys the PWA - verify both (release exists with the APK asset; Pages URL serves the new `version.json`). Don't claim "done" before that.
+Commit on the working branch, push, wait for **web** + **android** green. On `main` the *release* job publishes `stepup.apk` as the latest release and `pages.yml` deploys the PWA - verify both (release exists with the APK asset; Pages URL serves the new `version.json`). Don't claim "done" before that.
 
 ## Known limitations (don't re-report as new)
 - The APK is signed with a committed shared key (stable in-place updates, but not secret) unless private `KEYSTORE_*` secrets are set. Not for the Play Store.

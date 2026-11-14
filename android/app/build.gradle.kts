@@ -7,17 +7,17 @@ plugins {
 @Suppress("UNCHECKED_CAST")
 val webVersion = groovy.json.JsonSlurper().parse(file("../../web/version.json")) as Map<String, Any>
 
-// Release signing. Default: the committed shared key (android/app/distance-analyzer.keystore), so every APK built from this repo
+// Release signing. Default: the committed shared key (android/app/stepup.keystore), so every APK built from this repo
 // has the same signature and installs as an in-place update. A personal side-loaded app has no store account to protect, so
 // secrecy is traded for update-compatibility (docs/RELEASING.md). To use a private key instead, set the KEYSTORE_* secrets.
 val keystorePath: String? = System.getenv("KEYSTORE_FILE")
 
 android {
-    namespace = "com.distanceanalyzer.app"
+    namespace = "com.stepup.app"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.distanceanalyzer.app"
+        applicationId = "com.stepup.app"
         minSdk = 26
         targetSdk = 34
         versionCode = (webVersion["versionCode"] as Number).toInt()
@@ -26,7 +26,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(keystorePath ?: "distance-analyzer.keystore")
+            storeFile = file(keystorePath ?: "stepup.keystore")
             storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "distanceanalyzer"
             keyAlias = System.getenv("KEY_ALIAS") ?: "distance"
             keyPassword = System.getenv("KEY_PASSWORD") ?: "distanceanalyzer"

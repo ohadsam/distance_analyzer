@@ -1,4 +1,4 @@
-package com.distanceanalyzer.app
+package com.stepup.app
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

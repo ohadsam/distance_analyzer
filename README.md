@@ -1,8 +1,8 @@
-# 📏 Distance Analyzer
+# 📏 StepUp
 
 Works as an **installable PWA** and as a **native Android app** (same UI, plus native extras). No server, no account, no tracking - data stays on your device. Hebrew (RTL, default) and English.
 
-**Android APK (always the latest):** `releases/latest/download/distance-analyzer.apk` · **PWA:** `https://ohadsam.github.io/distance_analyzer/` (after enabling Pages, see `docs/RELEASING.md`).
+**Android APK (always the latest):** `releases/latest/download/stepup.apk` · **PWA:** `https://ohadsam.github.io/distance_analyzer/` (after enabling Pages, see `docs/RELEASING.md`).
 
 ## Features
 - Project skeleton only - features are specified by the owner and tracked in `docs/REQUESTS.md`.
