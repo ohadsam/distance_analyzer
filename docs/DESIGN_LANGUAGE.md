@@ -13,3 +13,6 @@ Every later prompt must restate the decisions below, so icons, backgrounds, illu
 - Motion: gentle, no flashing, loops >= 800 ms, every animation is complete as a still first frame; a "calm animations" switch turns them off.
 - Hard rules: original work only (no copied sets/brands/people/living artists), CC0, no text inside art, RTL-safe (directional glyphs delivered as `-start`/`-end` pairs).
 - Technical contract with the app: allowed SVG elements, sizes, `currentColor` / token classes, file naming, size budget (APK and service-worker precache must stay small).
+
+## Round 3 direction (owner feedback: logo and icons too simple)
+Move from a thin monoline system to a richer one: solid two-tone brand symbol, layered app icon, duotone icons with an ownable signature and pack variants (line / duotone / filled / bold), gradients allowed on brand and hero art (token colours only). UI icons stay on the 24 grid with currentColor + an `i-tint` accent. See `docs/prompts/ROUND3_PROMPT.txt`.

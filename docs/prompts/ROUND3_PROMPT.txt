@@ -1,0 +1,41 @@
+Thank you for the "StepUp final" delivery. The tokens, the contrast audit, the file structure and the integration contract are good and in use; keep every existing id, token name and the 24/64 grids unchanged. But looking at the real app screens, the logo and the icons feel too simple, thin and generic for the premium, original and distinctive product I want. This round is a significant visual upgrade of identity and iconography. Round-1 and round-2 restrictions that caused the flatness ("no gradients or shadows", single 1.8 monoline stroke, circle-plus-glyph art) are RELAXED as stated below. Keep: only these SVG elements (svg, g, path, circle, ellipse, rect, line, polyline, polygon, defs, clipPath, linearGradient, radialGradient, stop), no text/font/image/filter/use/style elements, no event attributes, colours only from tokens, original work (CC0, nothing traced from existing sets, brands or artists), no letters or numbers in art except the StepUp wordmark, RTL rules, motion safety (no flashing, <= 3 changes per second, loops >= 800 ms, complete still first frame). Work in stages, wait for "continue", and show real rendered sheets on light and dark for the packs momentum, ocean, sunset and high-contrast, at 24, 48, 96 and 512 px, with a validator report. Do not claim anything is fixed unless the sheet shows it.
+
+WHAT IS WRONG TODAY (fix all of it)
+1. The brand mark is one thin uniform line with a small arrow: it reads as a generic "route arrow", has no depth, no ownable silhouette and disappears at 24 px.
+2. The app icon is that line on a flat green tile: no layering, no light, no character.
+3. The 54 UI icons are an even thin monoline set that looks like a stock library; nothing says StepUp; the active/inactive states and the pack variants are indistinguishable.
+4. The art (runner, walker, badges, weather, states) is stick-figure line drawing in a circle; backgrounds are nearly invisible.
+
+THE BRAND IDEA TO EXPRESS
+StepUp = steady, kind progress, "one more step up". Energetic, calm, trustworthy, premium, a little playful. The identity must be recognisable from its SILHOUETTE alone at 24 px.
+
+STAGE 1 - LOGO AND APP ICON (a real redesign, three concepts first)
+Show three clearly different concepts (symbol alone at 512, 96, 48, 24 px; on light, dark and on a photo-like busy background), each with a one-line rationale, then I choose:
+ A. A bold, solid, sculpted symbol of rising steps: chunky rounded blocks forming a staircase that also reads as a forward-leaning stride, with a subtle second tone on the step faces for depth.
+ B. A footprint made of two or three offset rounded forms stepping up diagonally, with a bright accent on the leading step.
+ C. A dynamic "S + up" monogram built only from geometry (not lettering): a continuous ribbon that folds into steps and ends in an upward point.
+Requirements for all: filled, confident shapes (stroke is allowed only as a minor detail), generous 12-16 % corner rounding in the family of the existing UI, a two-tone treatment (brand primary + one warm accent for the "up" moment), a one-colour version, a knocked-out version, and a clear minimum size of 16 px. Gradients are allowed on the app icon and hero versions (a soft linear or radial light from the top-start, two or three stops, token colours only); the one-colour and notification versions are flat.
+After my choice deliver: symbol, horizontal and stacked lockups with the existing StepUp wordmark (adjust its weight and the "U"/"p" detail so it matches the new symbol's solidity; keep it as paths), app icon master 1024 with a layered build (background with soft light, mid shape, foreground symbol with a gentle inner highlight and a small long shadow shape; no filters), Android adaptive layers (foreground in the 66 % safe zone, background, monochrome), notification icon, splash design with a 1.2 s step-by-step reveal (motion spec + still), PNG exports 48/72/96/144/192/512/1024, and a themed set for each of the 8 packs in light and dark.
+
+STAGE 2 - A NEW ICON FAMILY WITH CHARACTER (replace all 54 ui-* icons, same ids)
+Design a richer system on the 24 grid:
+ - Duotone: a 1.8 px outline in `currentColor` PLUS a filled accent shape in a second token (class `i-tint`, 22 % to 100 % of the pack primary), so every icon has a solid, readable mass and a clear idea.
+ - ONE ownable signature applied to every icon (for example one corner or terminal ends in a small rising step cut, or the tint shape is always offset 1 unit up-and-forward). Explain it. It must be visible at 20 px.
+ - Three states drawn for the 10 navigation/action icons (home, activity, route, history, chart, settings, search, bell, play, pause): inactive (outline), active (outline + tint), and pressed/filled.
+ - Pack variants: `line` (slate, mono), `duotone` (momentum, ocean, forest, violet), `filled` (sunset), `bold` (high-contrast: 2.6 px stroke, no thin details). Provide each icon in each variant with the same silhouette.
+ - Legibility: every icon recognisable at 20 px; no two icons confusable; run and walk figures must be distinct, dynamic and anatomically elegant (not stick figures): a simple rounded-limb figure with a clear forward lean for run and an upright stride for walk.
+Also add the missing icons: `ui-rhythm` (a pulse that becomes a stride, not a clock), `ui-breath-in`, `ui-breath-out`, `ui-lock-hold`, `ui-weather-clear/cloudy/rain/wind`, `ui-effort-bar`, `ui-reminder-walk`, `ui-reminder-move`, `ui-nudge`, `ui-dashboard`, `ui-filter`, `ui-drill`, `ui-customize`.
+
+STAGE 3 - RICH ART (replace the placeholder art)
+Gradients and layered shapes are allowed (token colours only, soft light from the top-start, depth through overlapping translucent forms; no photographic effects).
+ - Hero illustrations 320x240, light and dark: onboarding x3 (record your runs / find your rhythm / step up steadily), empty history, empty routes, GPS searching, location permission, offline, workout complete, new personal record. A cohesive scenic world: dawn road and horizon, layered hills, trees, stepping stones, morning light, with a friendly abstract runner and walker (rounded limbs, no faces). Clearly premium and original.
+ - Backgrounds 360x800 and 800x360 for home, workout (extremely quiet), records, weather, plan, light + dark: visible but restrained scenes, empty readable centre, report text contrast over the busiest area.
+ - Weather: 7 coloured 64x64 icons and 160x100 scenes.
+ - 12 badges with distinct shapes, bronze/silver/gold token variants, a locked state, and a short reveal animation spec (scale/opacity only).
+ - Widget backgrounds for 2x1, 2x2, 4x1, 4x2 (daily steps ring, goal, week bars, last workout, next workout, streak, quick start) in four looks, light and dark, with dp safe areas.
+
+STAGE 4 - RHYTHM COACH VISUALS
+Beat ring, breathing "lung" disc, states (off, listening, locked, drifting fast/slow, by hand) with stable ids (`rhythm-ring`, `rhythm-lung`, `rhythm-arc`, `rhythm-dots`) using tokens, a `rhythm.json` with exact timings (pulse 1.00 -> 1.08 -> 1.00 in ~180 ms; breathing 3:2, 2:2, 2:1), a reduced-motion version and a still per state. Rich but calm; never competes with the numbers.
+
+STAGE 5 - PACKAGING
+Same structure as before (svg/, tokens.json, assets.json, motion.json + rhythm.json, DESIGN.md, BRAND.md, contrast.csv, preview.html, platform/ PNGs) plus CHANGES.md (every id changed or added, with before/after thumbnails), the validator report (allowed elements only, sizes, contrast of every informative mark >= 3:1 and text >= 4.5:1, 20 px legibility, near-duplicate detection) and sheets. File budgets: UI icon < 1.2 KB, brand symbol < 3 KB, hero illustration < 15 KB, background < 10 KB.

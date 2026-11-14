@@ -40,5 +40,6 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 25 | Weather in the graphs and performance by weather at activity time | 🟡 0.3.0 manual weather + weather widget/filter; automatic weather needs D1 (internet) |
 | 26 | Global search across everything (settings, history, alerts...) | ✅ 0.3.0 |
 | 27 | Push to `main` | ✅ done (CI on main) |
+| 28 | Logo and icons look too simple: improve them significantly | 🟡 round-3 design prompt written (`docs/prompts/ROUND3_PROMPT.txt`), waiting for ChatGPT results |
 | 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |
