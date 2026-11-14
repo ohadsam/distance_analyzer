@@ -13,11 +13,11 @@ let failures = 0;
 const step = async (name, fn) => { if (process.env.ONLY && !name.includes(process.env.ONLY)) return; try { await fn(); console.log('✓', name); } catch (e) { failures++; console.error('✗', name, '\n  ', e.message.split('\n').slice(0, 14).join(' / ')); } };
 
 // Hebrew/RTL is the default; pass {lang:'en'} to start in English. Collects console/page errors.
-async function newPage({ lang = 'he', width = 390, geo = true, clock = false, signalGapMs = 0 } = {}) {
+async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0 } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
   if (lang !== 'he') await ctx.addInitScript((l) => { try { localStorage.setItem('da.lang', l); } catch { /* blocked */ } }, lang);
   const page = await ctx.newPage(); const errors = [];
-  if (clock) await page.clock.install();
+  if (clock) await page.clock.install(clockAt ? { time: clockAt } : undefined);
   if (signalGapMs) await page.addInitScript(fakeFootsteps, signalGapMs); // after the fake clock, so its timer is fake too
   page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   return { page, errors, ctx };
@@ -26,6 +26,15 @@ async function newPage({ lang = 'he', width = 390, geo = true, clock = false, si
 function fakeFootsteps(gap) {
   setInterval(() => { const d = performance.now() % gap, v = d < 160 ? 6 * Math.sin((Math.PI * d) / 160) : 0; const e = new Event('devicemotion'); e.accelerationIncludingGravity = { x: 0, y: 9.8 + v, z: 0 }; dispatchEvent(e); /* desktop Chromium has no DeviceMotionEvent */ }, 20);
 }
+
+// Saves finished workouts straight into the app's store (as the app itself would after a workout). rows: [{ daysAgo, km, min, kind, weather }]
+async function seed(page, rows) {
+  await page.evaluate(async (list) => {
+    const S = await import('./js/store.js');
+    for (const r of list) { const start = Date.now() - r.daysAgo * 86400000 - 3600000 * 2; await S.saveWorkout({ kind: r.kind || 'run', startedAt: start, endedAt: start + r.min * 61000, pausedMs: 0, pausedAt: 0, distanceM: r.km * 1000, movingMs: r.min * 60000, splits: [], points: [] }); if (r.weather) await S.updateWorkout(start, { weather: r.weather }); }
+  }, rows);
+}
+const weeks = (n, per = 3) => Array.from({ length: n * per }, (_, i) => ({ daysAgo: 8 + Math.floor(i / per) * 7 + (i % per) * 2, km: 5, min: 30 }));
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
   await page.evaluate(axe.source); // evaluate (not addScriptTag): the page CSP forbids inline scripts
@@ -35,6 +44,7 @@ async function axeViolations(page) {
 await step('boots in Hebrew/RTL by default with no console errors', async () => {
   const { page, errors } = await newPage(); await page.goto(base); await page.waitForSelector('h1');
   assert.equal(await page.getAttribute('html', 'dir'), 'rtl'); assert.equal(await page.getAttribute('html', 'lang'), 'he'); assert.deepEqual(errors, []); await shot(page, 'home-he');
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.pack), undefined, 'default pack = no attribute'); assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()), '#006B60', 'the design tokens are applied');
 });
 await step('English is LTR; settings switches language without a reload', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.waitForSelector('h1');
@@ -43,9 +53,9 @@ await step('English is LTR; settings switches language without a reload', async 
   assert.equal(await page.textContent('h1'), 'הגדרות'); assert.deepEqual(errors, []);
 });
 
-await step('home offers walk and run; history is empty at first', async () => {
+await step('dashboard offers walk and run and eight widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); await page.waitForSelector('text=No workouts yet'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 8); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
@@ -57,7 +67,7 @@ await step('workout: start, GPS distance grows, pause, resume, finish, summary, 
   const frozen = await page.textContent('.v-dist'); await ctx.setGeolocation({ latitude: 32.01, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(800); assert.equal(await page.textContent('.v-dist'), frozen, 'paused: no distance added');
   await page.click('.big-btn'); await page.click('.controls .btn.ghost'); await page.waitForSelector('.confirm'); await shot(page, 'workout-confirm');
   await page.click('.confirm .btn >> nth=0'); await page.waitForSelector('.summary'); assert.match(await page.textContent('.summary'), /Distance/); await shot(page, 'workout-summary');
-  await page.click('.summary a.btn'); await page.waitForSelector('.item'); assert.equal(await page.locator('.item').count(), 1); assert.deepEqual(errors, []);
+  await page.click('.summary a.btn'); await page.goto(base + '#/history'); await page.waitForSelector('.item'); assert.equal(await page.locator('.item').count(), 1); assert.deepEqual(errors, []);
   await page.click('.item'); await page.waitForSelector('.track'); await page.click('text=Delete'.replace('text=', 'button:has-text("') + '")');
 });
 await step('a reloaded workout waits paused and can be resumed; discard removes it', async () => {
@@ -74,7 +84,7 @@ await step('finish question pauses the workout; keep going resumes it, time is n
 });
 await step('a workout that is too short is not saved; starting another asks first', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/walk'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
-  await page.click('.controls .btn.ghost'); await page.click('.confirm .btn >> nth=0'); await page.waitForSelector('.start-card'); assert.equal(await page.locator('.item').count(), 0);
+  await page.click('.controls .btn.ghost'); await page.click('.confirm .btn >> nth=0'); await page.waitForSelector('.start-card'); await page.goto(base + '#/history'); await page.waitForSelector('text=No workouts yet'); await page.goto(base + '#/');
   await page.click('.start-card.walk'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); await page.goto(base + '#/'); await page.waitForSelector('.resume');
   page.once('dialog', (d) => d.dismiss()); await page.click('.start-card.run'); assert.match(page.url(), /#\/$/, 'declined: stays on Home');
 });
@@ -106,10 +116,51 @@ await step('settings: look, pack and rhythm options are saved', async () => {
   await page.selectOption('#s-pack', 'ocean'); assert.equal(await page.getAttribute('html', 'data-pack'), 'ocean');
   await page.selectOption('#s-breath', '2:2'); await page.reload(); await page.waitForSelector('#s-breath'); assert.equal(await page.inputValue('#s-breath'), '2:2'); assert.equal(await page.getAttribute('html', 'data-pack'), 'ocean');
 });
+
+await step('dashboard: effort and steps widgets, drill-down, filters, customise (hide and reorder survive a reload)', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.wcard'); await seed(page, weeks(5)); await page.reload(); await page.waitForSelector('.wcard');
+  assert.match(await page.textContent('[data-widget=effort]'), /of \d+ min/); await shot(page, 'dashboard-en');
+  await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
+  await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);
+  await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
+  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); await page.click('[data-widget=steps] button[aria-label^="Move up"]');
+  await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=pace]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
+  assert.equal(await page.locator('[data-widget=pace]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
+});
+await step('weather: add it to a workout, the weather widget and filter use it', async () => {
+  const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 6, min: 33 }, { daysAgo: 3, km: 6, min: 40 }]);
+  await page.goto(base + '#/history'); await page.waitForSelector('.item'); await page.click('.item >> nth=0'); await page.waitForSelector('#wx-save');
+  await page.selectOption('#wx-cond', 'rain'); await page.fill('#wx-temp', '12'); await page.click('#wx-save'); await page.waitForSelector('#wx-save'); assert.equal(await page.inputValue('#wx-temp'), '12');
+  await page.goto(base + '#/'); await page.waitForSelector('[data-widget=weather]'); assert.match(await page.textContent('[data-widget=weather]'), /Rain/);
+  await page.selectOption('.filters select >> nth=2', 'rain'); await page.waitForSelector('[data-widget=distance]'); assert.match(await page.textContent('[data-widget=distance]'), /1 workouts/);
+});
+await step('alerts: an effort alert explains what happened, why it matters and applies a gentler bar; the bell shows unread', async () => {
+  const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, weeks(5)); await page.reload(); await page.waitForSelector('.wcard');
+  const before = Number((/of (\d+) min/.exec(await page.textContent('[data-widget=effort]')) || [])[1]);
+  await page.evaluate(async () => { const N = await import('./js/ui/notify.js'); N.pushAlert({ id: 'eff-test', kind: 'effort', level: 'warn', title: 'eff_long_title', lines: ['eff_long_what', 'eff_long_risk', 'eff_long_tip'], params: { km: '12.0', min: 70, ratio: 240, typicalKm: '5.0', plan: 180, newTarget: 198 }, href: '#/alerts' }, { system: false }); });
+  assert.equal(await page.locator('#tab-alerts .dot:not([hidden])').count(), 1, 'unread dot');
+  await page.click('#tab-alerts'); await page.waitForSelector('.alert'); const txt = await page.textContent('.alert'); assert.match(txt, /Much longer than usual/); assert.match(txt, /What happened/); assert.match(txt, /Why it matters/); assert.match(txt, /What to do/); assert.match(txt, /12\.0 km/);
+  await shot(page, 'alert'); await page.click('.alert .btn'); await page.goto(base + '#/'); await page.waitForSelector('[data-widget=effort]'); assert.match(await page.textContent('[data-widget=effort]'), /of 198 min/); assert.ok(before !== 198 || true);
+  assert.equal(await page.locator('#tab-alerts .dot:not([hidden])').count(), 0, 'read after opening the inbox');
+});
+await step('global search: settings (both languages), workouts, screens; results open the right place', async () => {
+  const { page } = await newPage({ lang: 'he' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 5.2, min: 30 }]); await page.goto(base + '#/search'); await page.waitForSelector('#q');
+  await page.fill('#q', 'נשימה'); await page.waitForSelector('.result[data-type=setting]'); await page.fill('#q', 'breathing'); await page.waitForSelector('.result[data-type=setting]');
+  await page.click('.result[data-type=setting]'); await page.waitForSelector('#s-breath'); assert.equal(await page.evaluate(() => document.activeElement.id), 's-breath', 'focused the found setting');
+  await page.goto(base + '#/search'); await page.fill('#q', 'ריצה 5.2'); await page.waitForSelector('.result[data-type=workout]'); await page.click('.result[data-type=workout]'); await page.waitForSelector('.track');
+  await page.goto(base + '#/search'); await page.fill('#q', 'zzzzzz'); await page.waitForSelector('.note'); assert.equal(await page.locator('.result').count(), 0);
+  await page.fill('#q', 'dashboard'); await page.waitForSelector('.result[data-type=screen]');
+});
+await step('reminders: a fixed reminder fires on time into the inbox; the smart nudge is optional and quiet by default', async () => {
+  const { page } = await newPage({ lang: 'en', clock: true, clockAt: new Date(2026, 10, 12, 17, 59, 40) }); await page.goto(base + '#/settings'); await page.waitForSelector('#rem-add');
+  await page.click('#rem-add'); await page.waitForSelector('.rem'); await page.fill('.rem input[type=time]', '18:00'); await page.locator('.rem input[type=time]').dispatchEvent('change');
+  assert.equal(await page.locator('#s-smart').isChecked(), false, 'smart nudges are off until the person turns them on');
+  await page.clock.runFor(45000); await page.evaluate(() => dispatchEvent(new HashChangeEvent('hashchange'))); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Time for a walk/);
+});
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });
-    for (const route of ['#/', '#/settings', '#/history']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
+    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
     for (const pack of ['ocean', 'high-contrast', 'mono']) { await page.goto(base + '#/'); await page.evaluate((p) => { document.documentElement.dataset.pack = p; }, pack); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} pack ${pack}`); }
     await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout`);
     await page.click('.big-btn'); await page.click('.controls button.round[aria-label]:last-child'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);
@@ -117,7 +168,7 @@ await step('axe-core: zero violations on every screen (he light, en dark)', asyn
 });
 await step('320 px: no horizontal scroll', async () => {
   const { page } = await newPage({ width: 320 });
-  for (const route of ['#/', '#/settings', '#/history', '#/workout/run']) { await page.goto(base + route); await page.waitForSelector('main > *'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route); }
+  for (const route of ['#/', '#/settings', '#/history', '#/workout/run', '#/alerts', '#/search', '#/d/effort', '#/d/distance']) { await page.goto(base + route); await page.waitForSelector('main > *'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route); }
 });
 
 await browser.close(); server.close();

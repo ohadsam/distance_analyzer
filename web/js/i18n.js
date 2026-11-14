@@ -1,3 +1,4 @@
+import { EN, HE } from './strings02.js';
 // Hebrew + English. `t(key, params)` looks up the active language, falls back to English, then to the key.
 // Layout uses CSS logical properties, so flipping <html dir> is all RTL needs. Every key must exist in BOTH languages (unit test).
 export const STR = {
@@ -36,6 +37,8 @@ export const STR = {
     stepsNote: 'המרחק נמדד ב-GPS והוא הערכה. הכוונה כללית בלבד, לא ייעוץ רפואי.',
   },
 };
+
+Object.assign(STR.en, EN); Object.assign(STR.he, HE);
 
 let lang = 'he';
 export const getLang = () => lang;

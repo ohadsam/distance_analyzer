@@ -1,0 +1,27 @@
+# Testing
+
+Run all: `npm run check && npm test && npm run e2e` (CI runs the same plus Android unit tests, lint and the release build).
+
+| Layer | Command | What it proves |
+|---|---|---|
+| Static | `npm run check` (`scripts/static-checks.mjs`) | every JS file parses; no `innerHTML`/`eval`/`document.write`/`replaceChildren(args)`; no external URL (CSP is `'self'`); no inline `style=`; every JS/CSS/icon is in `sw.js` SHELL and exists |
+| Unit | `npm test` (`node --test tests/unit/*.test.js`) | pure logic, below |
+| E2E + UI | `npm run e2e [-- --shots dir]` (`tests/e2e/smoke.mjs`) | real Chromium against `web/`: flows, axe-core at zero violations, 320 px overflow, screenshots on request. `ONLY="text" npm run e2e` runs matching steps |
+| Android | CI only | `gradle testDebugUnitTest`, `lintDebug`, `assembleRelease` (no Android SDK in the sandbox) |
+
+## Unit tests (tests/unit)
+- `workout.test.js`: haversine, distance/moving time/pace/splits from a 3 m/s run, rejected fixes, pause gaps, finish, sanitising hostile records, regressions (pace after pause, finishing while paused).
+- `cadence.test.js`: step detector on synthetic accelerometer signals (`_signal.js`), silent learning then lock, irregular rhythm never locks, stop/pause, re-lock, manual rhythm, breathing pattern, untrusted pattern key.
+- `engines.test.js`: stats (weeks start Sunday, buckets, streak, bests, weather buckets, filters), steps (stride, quality, series, recommendation), effort (minutes, bar from median, ceiling, alerts long/fast/surge, gentle new target), reminders (sanitise, due window incl. midnight, smart nudge rules), alerts (sanitise, bounds), search (Hebrew/English normalisation, ranking).
+- `design.test.js`: WCAG contrast of every pack/mode from `design/stepup/tokens.json`; generated files are up to date (`npm run design`); icon data uses only safe elements.
+- `core.test.js`: `cleanText`/`clamp`, he/en string parity (keys and placeholders), language resolution. `version.test.js`: version.json = package.json = sw.js, CHANGELOG entry, user guide exists. `docs.test.js`: every source file is listed in `docs/CONTEXT.md`.
+
+## E2E steps (tests/e2e/smoke.mjs)
+Boot he/RTL + design tokens applied · English switch · dashboard (widgets, start cards) · workout flow with mocked GPS (distance grows, pause, finish, summary, history) · resume after reload / discard · finish question pauses · too-short workout not saved, starting another asks first · lock needs press-and-hold · rhythm coach (fake footstep sensor on a fake clock: silent while learning, locks near 168, breathing cue, pause silences) · rhythm without sensor (manual) · settings saved · dashboard customise/drill/filters/reorder survive reload · weather per workout feeds widget and filter · effort alert card + apply gentler bar + unread dot · global search (he + en, setting focus, workout, screen) · reminder fires on time · axe over every screen (he light, en dark, three packs, workout + rhythm) · 320 px.
+Helpers: `newPage({lang, clock, clockAt, signalGapMs, geo})`, `seed(page, rows)` saves workouts through the app's own store, `fakeFootsteps` injects `devicemotion` events (desktop Chromium has no `DeviceMotionEvent` constructor: use a plain `Event`).
+
+## Gotchas learned
+Install the Playwright fake clock BEFORE page init scripts that use timers; `page.clock.install()` keeps time flowing; the page CSP forbids `addScriptTag` (use `page.evaluate`); wait for the settled DOM after async redraws (dashboard redraws are async, newest draw wins); Chromium exposes `DeviceMotionEvent.requestPermission` but the app must not gate listening on it.
+
+## Not covered (needs a real device or CI)
+Kotlin compile and lint, real GPS and accelerometer behaviour while running, audio timing, battery, notifications while the app is closed, Android permission dialogs.

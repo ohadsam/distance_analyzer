@@ -13,6 +13,7 @@ export function h(tag, attrs, ...kids) {
     if (v == null || v === false) continue;
     if (k === 'class') el.className = v;
     else if (k === 'dataset') Object.assign(el.dataset, v);
+    else if (k === 'style') for (const [p, val] of Object.entries(v)) el.style.setProperty(p, val); // CSSOM is allowed by the CSP; a style attribute is not
     else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
     else if (k in el && k !== 'list' && typeof v !== 'object') el[k] = v;
     else el.setAttribute(k, v === true ? '' : v);

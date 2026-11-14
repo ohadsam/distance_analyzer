@@ -32,5 +32,13 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 15 | Smart metronome during a run: learns the cadence silently, then clicks at it with a steady, beautiful animation that helps hold rhythm and breathing | ✅ 0.2.0 (real-device tuning pending) |
 | 16 | Efficiency, security, performance, good-looking and simple UI/UX; code review and UI tests | 🟡 ongoing (0.2.0: review + e2e/axe done for what exists) |
 | 17 | Name the app and put it in the logo and the app | ✅ name **StepUp** (0.2.1, in the app); logo + wordmark come with ChatGPT round 2 |
+| 20 | Maintain md docs of what was done, file structure and purpose, architecture, tests, so work can continue with full context | ✅ 0.3.0 (`docs/CONTEXT.md`, `TESTING.md`, `CLAUDE.md`, file-map test) |
+| 21 | Effort-bar deviation detection with a notification explaining the deviation, why it is a problem and gentler ways to raise the bar | ✅ 0.3.0 (alerts: long / fast / surge; one-tap gentle bar) |
+| 22 | Daily steps calculations consider continuous distance, speed etc., in dashboards/statistics and in adjusting the effort bar | 🟡 0.3.0 (quality steps in dashboard and recommendation; passive step counter and tighter bar coupling later) |
+| 23 | Reminders for walks and movement exercises; smart system recommendations when there was no movement for a long time; switchable in Settings | ✅ 0.3.0 while the app is open; 🟡 background delivery on Android pending |
+| 24 | Comfortable, flexible, customisable dashboard with search, filters and drill-down on every widget | ✅ 0.3.0 |
+| 25 | Weather in the graphs and performance by weather at activity time | 🟡 0.3.0 manual weather + weather widget/filter; automatic weather needs D1 (internet) |
+| 26 | Global search across everything (settings, history, alerts...) | ✅ 0.3.0 |
+| 27 | Push to `main` | ✅ done (CI on main) |
 | 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |

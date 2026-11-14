@@ -78,7 +78,8 @@ export function sanitizeWorkout(r) {
   const startedAt = num(r.startedAt, 0, 4e12); if (!startedAt) return null;
   const points = Array.isArray(r.points) ? r.points.slice(0, LIMITS.maxPoints).filter((p) => Array.isArray(p) && validPoint({ lat: p[0], lon: p[1] }) && Number.isFinite(p[2])).map((p) => [p[0], p[1], p[2]]) : [];
   const splits = Array.isArray(r.splits) ? r.splits.slice(0, 500).filter((s) => s && Number.isFinite(s.km) && Number.isFinite(s.atMs)).map((s) => ({ km: s.km | 0, atMs: Math.max(0, s.atMs | 0) })) : [];
-  return { kind, startedAt, endedAt: num(r.endedAt, 0, 4e12), elapsedMs: num(r.elapsedMs, 0, 1e9), distanceM: num(r.distanceM, 0, 1e7), movingMs: num(r.movingMs, 0, 1e9), splits, points };
+  const wx = r.weather && typeof r.weather === 'object' && Number.isFinite(r.weather.tempC) ? { tempC: clamp(r.weather.tempC, -60, 60), cond: ['clear', 'cloudy', 'rain', 'windy'].includes(r.weather.cond) ? r.weather.cond : 'clear' } : null;
+  return { kind, startedAt, endedAt: num(r.endedAt, 0, 4e12), elapsedMs: num(r.elapsedMs, 0, 1e9), distanceM: num(r.distanceM, 0, 1e7), movingMs: num(r.movingMs, 0, 1e9), splits, points, ...(wx ? { weather: wx } : {}) };
 }
 
 /** Untrusted saved in-progress workout -> a safe live workout, or null. */

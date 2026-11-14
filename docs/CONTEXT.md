@@ -1,0 +1,53 @@
+# StepUp - project context (START HERE)
+
+Read this first in a new session. It says what the product is, where everything is, how it fits together, what is done, what is not, and the rules for working on it. Keep it current: the release checklist requires it, and `tests/unit/docs.test.js` fails when a source file is missing from the file map below.
+
+## What it is
+**StepUp** (repo `ohadsam/distance_analyzer`): a walking and running tracker. One vanilla-JS web app (`web/`, no build step, no runtime dependencies) shipped as a **PWA** (GitHub Pages) and as a thin **Android WebView app** (`android/`, same `web/` folder as assets). Hebrew (RTL) is the default, English is chosen in Settings. No server, no account; data stays on the device. Branch `main` is the primary branch.
+Owner's standing rules live in `.claude/skills/release-checklist/SKILL.md` (section 0). Requests and their status: `docs/REQUESTS.md`. Plan: `docs/ROADMAP.md`.
+
+## Status (0.3.0)
+Done: workout mode (GPS distance/pace/splits, pause, lock, resume), smart rhythm coach (metronome + breathing guide), history, design foundation + StepUp brand, effort bar by age and history with deviation alerts, quality-weighted steps, dashboard (customisable widgets, filters, drill-down), alerts inbox, global search, reminders (fixed + smart nudges, while the app is open), manual weather per workout with weather-aware stats.
+Not done / known limits: no Android background location or step sensor yet (tracking and reminders work only while the app is open); automatic weather and map/route planning need internet (decision D1 in ROADMAP, not yet approved for implementation); Kotlin is only compiled in CI; sensor thresholds are tuned on synthetic data, not a real run; steps are estimated from tracked workouts (no passive counter yet).
+
+## How to run and verify
+`npm install` · `npm run serve` (http://localhost:8080) · `npm run check && npm test && npm run e2e` · `npm run design` after changing `design/stepup/` · `npm run icons` renders PWA PNG icons · `npm run bump -- patch|minor`. Android: CI only (`gradle -p android ...`). Details: `docs/TESTING.md`, `docs/RELEASING.md`.
+
+## Architecture in one picture
+`ui/*` (DOM via `h()`; text nodes only) -> pure logic (`workout`, `effort`, `steps`, `stats`, `reminders`, `alerts`, `search`, `cadence`, `metronome`, `geo`, `format`) -> `util`. Side effects are thin: `store.js` (IndexedDB + localStorage), `audio.js` (Web Audio), `native.js` (Android bridge), `ui/notify.js` (alerts/notifications), `reminderLoop.js` (timer). Android code is reached only through `NativeBridge.kt`. Full description: `docs/ARCHITECTURE.md`.
+
+## Data model (all persisted data is sanitised on read)
+- **Workout record** (IndexedDB `workouts`, key `startedAt`): `kind` walk|run, `startedAt`, `endedAt`, `elapsedMs`, `movingMs`, `distanceM`, `splits[{km, atMs}]`, `points[[lat,lon,t]]`, optional `weather {tempC, cond}`. In progress: localStorage `da.active` (live workout incl. `pausedMs`, `pausedAt`, `recent`).
+- **Preferences** (localStorage, prefix `da.`): `lang`, `theme`, `pack`, `age`, `height`, `weight`, `breath`, `volume`, `bpm`, `effortAlerts`, JSON: `dash` (widget order/hidden), `dashF` (filters), `rems` (reminders), `smart` (nudges), `nudge` (today's count), `barOv` (one-week bar override), `alerts` (inbox, newest first, max 100).
+
+## Concepts
+- **Effort minutes**: running counts 2x, brisk walking (>= 4.5 km/h) 1x, easy walking 0.5x, very slow 0. **Weekly bar** = median of the last four complete weeks +10 % (12 % when steady), starts at 60 % of the guideline floor, never above the ceiling (children 420 min, adults/seniors 150-300). **Effort alert** when a workout is >= 1.5x the longest recent one, >= 20 % faster than typical, or the week passes 130 % of the bar; it explains what happened / why it matters / what to do and offers a gentler new bar (`barOv`).
+- **Quality steps**: estimated steps x speed factor x continuity bonus (unbroken >= 10/30 min); the recommendation is the recent typical quality steps +10 %, within 50-150 % of the age base.
+- **Rhythm coach**: off -> learning (silent, >= 20 s and steady >= 8 s) -> locked (clicks at the cadence); see ARCHITECTURE.
+- **Weather buckets**: cold < 10 °, cool 10-18, mild 18-26, hot 26+, rain; unknown = none.
+
+## File map (every source file and its job)
+Root: `README.md` product page · `CLAUDE.md` pointer to this file · `package.json` scripts · `index.html` redirect to `web/` for Pages-from-branch · `.nojekyll` · `.gitignore`.
+`.github/workflows/`: `ci.yml` (web checks, Android tests+lint+APK, release on main) · `pages.yml` (PWA deploy).
+`.claude/skills/release-checklist/SKILL.md`: the owner's rules and the ship checklist.
+`docs/`: `CONTEXT.md` this file · `ARCHITECTURE.md` · `TESTING.md` · `RELEASING.md` · `CHANGELOG.md` · `USER_GUIDE.md` · `REQUESTS.md` · `ROADMAP.md` · `DESIGN_LANGUAGE.md` · `PENDING_CHATGPT_PROMPTS.md` · `prompts/` (ChatGPT design prompts).
+`design/stepup/`: the ChatGPT design kit (svg/, tokens.json, assets.json, motion.json, BRAND.md, DESIGN.md, platform/ Android PNGs) - source of truth for look and brand.
+`scripts/`: `build-design.mjs` (kit -> packs.css, iconData.js, brandData.js, web icon, Android launcher PNGs) · `make-icons.mjs` (PWA PNGs) · `bump-version.mjs` · `serve.mjs` (dev server, also used by e2e) · `static-checks.mjs` (syntax, banned APIs, CSP/SW consistency).
+`tests/unit/`: `cadence.test.js` `workout.test.js` `engines.test.js` `design.test.js` `core.test.js` `version.test.js` `docs.test.js` `_signal.js` (synthetic accelerometer) · `tests/e2e/smoke.mjs` (Playwright + axe).
+`web/` (the app): `index.html` `manifest.webmanifest` `sw.js` `version.json` `icon.svg` `icons/` `css/packs.css` (generated tokens) `css/app.css`.
+`web/js/` logic and infrastructure:
+- `app.js` router, topbar, language/look, service-worker registration · `theme-boot.js` applies theme/lang/pack before first paint
+- `util.js` `h()` DOM builder (text nodes only), `setChildren`, `cleanText`, `clamp`, `debounce` · `i18n.js` + `strings02.js` he/en strings (parity-tested) · `format.js` numbers/units/dates and the searchable text of a workout
+- `geo.js` haversine + track projection · `workout.js` workout model (fix filtering, distance, pace, splits, kcal, sanitisers) · `stats.js` filters, buckets, streaks, bests, weather buckets
+- `effort.js` effort bar and deviation check · `steps.js` step estimation and quality · `reminders.js` reminder/nudge decisions · `alerts.js` inbox model + persistence · `search.js` normalisation and ranking
+- `cadence.js` step detector + cadence lock state machine · `metronome.js` beat times and breathing pattern · `audio.js` Web Audio click scheduler
+- `store.js` IndexedDB/localStorage persistence and preferences · `reminderLoop.js` periodic reminder check · `native.js` Android bridge wrapper
+- `icons.js` UI icon + route drawing · `iconData.js` generated icons · `brand.js` brand mark/wordmark drawing · `brandData.js` generated brand paths · `charts.js` bar/line SVG charts
+`web/js/ui/` screens: `dashboard.js` dashboard, widgets, filters, drill-down · `workout.js` workout mode · `rhythm.js` rhythm coach panel · `history.js` history list/detail + weather form · `home.js` shared workout row · `alerts.js` inbox + alert card · `search.js` global search · `settings.js` settings, reminders, look · `notify.js` alert delivery.
+`android/`: `app/src/main/java/com/stepup/app/` `MainActivity.kt` (WebView host, geolocation/permission, keep-awake) · `NativeBridge.kt` (the only JS door) · `BridgeLimits.kt` (pure caps); `app/src/test/.../BridgeLimitsTest.kt`; `res/` (strings he/en, colours, themes, launcher icons); `AndroidManifest.xml`; `build.gradle.kts`, `gradle/libs.versions.toml`, `proguard-rules.pro`, `stepup.keystore` (shared, committed on purpose).
+
+## Working rules (short)
+Follow the release checklist for every change (five reviews, tests, docs). Design assets come from ChatGPT through prompts in `docs/prompts/` (never improvised); integrate results via `design/stepup` + `npm run design`. Hebrew first, English equal, RTL-safe CSS (logical properties). No new network use or dependency without a written reason in ARCHITECTURE. Be honest in reports about what only CI or a real device can verify.
+
+## Next steps (suggested order)
+1. Push + CI green (Android compile). 2. Android foreground location service + step sensor + native notifications (so tracking, steps and reminders work with the screen off). 3. Decide D1 (network): automatic weather, then map/route planning. 4. Round-3 ChatGPT prompt for the missing art (rhythm visuals, illustrations, original UI-icon redraw). 5. Backup/restore, GPX/CSV export, training plans (ROADMAP phase 6).

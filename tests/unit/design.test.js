@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { ICONS } from '../../web/js/iconData.js';
 
-const tokens = JSON.parse(readFileSync('design/momentum/tokens.json', 'utf8'));
+const tokens = JSON.parse(readFileSync('design/stepup/tokens.json', 'utf8'));
 const lum = (h) => { const a = [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255); return [0.2126, 0.7152, 0.0722].reduce((s, w, i) => s + w * (a[i] <= 0.04045 ? a[i] / 12.92 : ((a[i] + 0.055) / 1.055) ** 2.4), 0); };
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => p - q); return (y + 0.05) / (x + 0.05); };
 

@@ -1,33 +1,67 @@
-import { h } from '../util.js';
+import { h, setChildren } from '../util.js';
 import { t, setLang } from '../i18n.js';
-import { getPref, setPref, getNum } from '../store.js';
+import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
 import { native } from '../native.js';
+import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js';
+import { notifyState, askNotify } from './notify.js';
+import { checkReminders } from '../reminderLoop.js';
 
 const PACKS = [['momentum', 'packMomentum'], ['ocean', 'packOcean'], ['forest', 'packForest'], ['sunset', 'packSunset'], ['violet', 'packViolet'], ['slate', 'packSlate'], ['mono', 'packMono'], ['high-contrast', 'packHigh']];
 const opt = (value, label, cur) => h('option', { value, selected: value === cur }, label);
-const field = (label, control, id) => h('div', { class: 'field' }, h('label', { for: id }, label), control);
+const field = (label, control, id) => h('div', { class: 'field', id: `f-${id}` }, h('label', { for: id }, label), control);
 const select = (id, value, items, onchange) => h('select', { id, onchange: (e) => onchange(e.target.value) }, items.map(([v, l]) => opt(v, l, value)));
+const check = (id, label, on, onchange) => h('label', { class: 'check', id: `f-${id}` }, h('input', { type: 'checkbox', id, checked: on, onchange: (e) => onchange(e.target.checked) }), h('span', null, label));
 
 export function applyLook() {
-  const root = document.documentElement, theme = ['light', 'dark'].includes(getPref('theme', 'auto')) ? getPref('theme') : 'auto', pack = PACKS.some(([v]) => v === getPref('pack', 'momentum')) ? getPref('pack') : 'momentum'; // storage is untrusted: only known values reach the DOM
+  const root = document.documentElement, rawTheme = getPref('theme', 'auto'), rawPack = getPref('pack', 'momentum'), theme = ['light', 'dark'].includes(rawTheme) ? rawTheme : 'auto', pack = PACKS.some(([v]) => v === rawPack) ? rawPack : 'momentum'; // storage is untrusted: only known values reach the DOM
   if (theme === 'auto') delete root.dataset.theme; else root.dataset.theme = theme;
   if (pack === 'momentum') delete root.dataset.pack; else root.dataset.pack = pack;
   const bg = getComputedStyle(root).getPropertyValue('--background').trim(); if (bg) document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);
 }
 
-export function renderSettings() {
+const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], DAYS_HE = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
+
+function remindersBlock() {
+  const box = h('div', { class: 'rems' });
+  const draw = () => {
+    const list = sanitizeReminders(getJson('rems', [])), save = (l) => { setJson('rems', l); draw(); };
+    const lang = document.documentElement.lang, names = lang === 'he' ? DAYS_HE : DAYS_EN;
+    setChildren(box, list.length ? list.map((r, i) => h('div', { class: 'rem', 'data-rem': r.id },
+      h('div', { class: 'rem-top' }, select(`rk${i}`, r.kind, [['walk', t('remWalk')], ['move', t('remMove')]], (v) => { list[i].kind = v; save(list); }),
+        h('input', { type: 'time', 'aria-label': t('remTime'), value: r.time, onchange: (e) => { if (e.target.value) { list[i].time = e.target.value; save(list); } } }),
+        h('button', { type: 'button', class: 'round sm', 'aria-label': t('remDelete'), onclick: () => save(list.filter((_, j) => j !== i)) }, '✕')),
+      h('div', { class: 'days', role: 'group', 'aria-label': t('remDays') }, names.map((n, d) => h('button', { type: 'button', class: 'daybtn', 'aria-pressed': String(r.days.includes(d)), onclick: () => { list[i].days = r.days.includes(d) ? r.days.filter((x) => x !== d) : [...r.days, d].sort(); save(list); } }, n))))) : h('p', { class: 'note' }, t('remNone')),
+      list.length < MAX_REMINDERS ? h('button', { type: 'button', class: 'btn ghost', id: 'rem-add', onclick: () => save([...list, { id: `r${Date.now().toString(36)}`, kind: 'walk', time: '18:00', days: [0, 1, 2, 3, 4, 5, 6], on: true }]) }, t('remAdd')) : null);
+  };
+  draw(); return box;
+}
+
+export function renderSettings(focusId) {
   const redraw = () => dispatchEvent(new HashChangeEvent('hashchange'));
   const num = (id, key, def, lo, hi, step = 1) => h('input', { id, type: 'number', inputMode: 'numeric', min: lo, max: hi, step, value: getNum(key, def, lo, hi), onchange: (e) => setPref(key, Math.min(hi, Math.max(lo, Number(e.target.value) || def))) });
-  return h('section', null, h('h1', null, t('settings')),
+  const smart = sanitizeSmart(getJson('smart', {})), saveSmart = (patch) => { setJson('smart', sanitizeSmart({ ...sanitizeSmart(getJson('smart', {})), ...patch })); checkReminders().catch(() => {}); };
+  const ns = notifyState(), nbtn = h('button', { type: 'button', class: 'btn ghost', id: 'notify-btn', disabled: ns === 'granted' || ns === 'unsupported' || ns === 'denied', onclick: async (e) => { await askNotify(); redraw(); } }, ns === 'granted' ? t('remNotifyOn') : ns === 'denied' ? t('remNotifyOff') : t('remNotify'));
+  const el = h('section', { class: 'settings' }, h('h1', null, t('settings')),
     h('h2', null, t('look')),
     field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); redraw(); }), 's-lang'),
     field(t('theme'), select('s-theme', getPref('theme', 'auto'), [['auto', t('themeAuto')], ['light', t('themeLight')], ['dark', t('themeDark')]], (v) => { setPref('theme', v); applyLook(); }), 's-theme'),
     field(t('look'), select('s-pack', getPref('pack', 'momentum'), PACKS.map(([v, k]) => [v, t(k)]), (v) => { setPref('pack', v); applyLook(); }), 's-pack'),
+    h('h2', null, t('profile')),
+    field(t('age'), num('s-age', 'age', 35, 5, 100), 's-age'), field(t('height'), num('s-height', 'height', 170, 100, 230), 's-height'), field(`${t('weight')} (${t('kg')})`, num('s-weight', 'weight', 70, 30, 250), 's-weight'),
+    h('h2', null, t('wEffort')),
+    check('s-effort', `${t('effortAlerts')}`, getPref('effortAlerts', '1') === '1', (on) => setPref('effortAlerts', on ? '1' : '0')), h('p', { class: 'note' }, t('effortAlertsHint')),
+    h('h2', { id: 'f-s-rem' }, t('remTitle')), remindersBlock(),
+    check('s-smart', t('remSmart'), smart.on, (on) => saveSmart({ on })), h('p', { class: 'note' }, t('remSmartHint')),
+    field(t('remFrom'), num('s-from', 'smartFrom', smart.fromHour, 0, 23), 's-from'), field(t('remTo'), num('s-to', 'smartTo', smart.toHour, 1, 24), 's-to'),
+    field(t('remAfter'), num('s-after', 'smartAfter', smart.afterMin, 30, 480, 5), 's-after'), field(t('remMax'), num('s-max', 'smartMax', smart.maxPerDay, 1, 8), 's-max'),
+    nbtn, h('p', { class: 'note' }, t('remNote')),
     h('h2', null, t('metroSection')),
     field(t('breath'), select('s-breath', getPref('breath', '3:2'), [['3:2', t('breath32')], ['2:2', t('breath22')], ['2:1', t('breath21')], ['off', t('breathOff')]], (v) => setPref('breath', v)), 's-breath'),
     field(t('volume'), h('input', { id: 's-vol', type: 'range', min: 0, max: 100, step: 5, value: getNum('volume', 60, 0, 100), oninput: (e) => setPref('volume', e.target.value) }), 's-vol'),
     field(t('defaultBpm'), num('s-bpm', 'bpm', 170, 100, 230), 's-bpm'),
-    h('h2', null, t('kcal')),
-    field(`${t('weight')} (${t('kg')})`, num('s-weight', 'weight', 70, 30, 250), 's-weight'),
     h('p', { class: 'note' }, t('stepsNote')), h('p', { class: 'note', id: 'ver' }, t('version', { v: native.version() || '' })));
+  // the smart-nudge numbers are stored together in one JSON object (validated on every read)
+  for (const [id, key] of [['s-from', 'fromHour'], ['s-to', 'toHour'], ['s-after', 'afterMin'], ['s-max', 'maxPerDay']]) el.querySelector(`#${id}`).onchange = (e) => saveSmart({ [key]: Number(e.target.value) });
+  if (focusId && /^[\w-]{1,30}$/.test(focusId)) queueMicrotask(() => { const f = el.querySelector(`#f-${CSS.escape(focusId)}`) || el.querySelector(`#${CSS.escape(focusId)}`); f?.scrollIntoView({ block: 'center' }); (f?.querySelector('select,input,button') || f)?.focus?.({ preventScroll: true }); });
+  return el;
 }

@@ -33,6 +33,14 @@ export async function saveWorkout(w) {
   } catch { /* memory copy remains */ }
   return rec;
 }
+/** Adds the weather (or other safe fields) to a saved workout. */
+export async function updateWorkout(startedAt, patch) {
+  const rows = await listWorkouts(), r = rows.find((x) => x.startedAt === startedAt); if (!r) return null;
+  const rec = sanitizeWorkout({ ...r, ...patch }); if (!rec) return null;
+  mem = [rec, ...mem.filter((x) => x.startedAt !== startedAt)]; const db = await open();
+  if (db) try { await wrap(db.transaction(STORE, 'readwrite').objectStore(STORE).put(rec)); } catch { /* memory copy remains */ }
+  return rec;
+}
 export async function deleteWorkout(startedAt) {
   mem = mem.filter((r) => r.startedAt !== startedAt); const db = await open();
   if (db) try { await wrap(db.transaction(STORE, 'readwrite').objectStore(STORE).delete(startedAt)); } catch { /* ignore */ }
@@ -52,3 +60,10 @@ const prefs = new Map();
 export const getPref = (k, d) => { try { return localStorage.getItem(`da.${k}`) ?? d; } catch { return prefs.get(k) ?? d; } };
 export const setPref = (k, v) => { prefs.set(k, String(v)); try { localStorage.setItem(`da.${k}`, String(v)); } catch { /* memory only */ } };
 export const getNum = (k, d, lo, hi) => { const n = Number(getPref(k, d)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+
+/** The person: age, height, weight (clamped). */
+export const profile = () => ({ age: getNum('age', 35, 5, 100), heightCm: getNum('height', 170, 100, 230), weightKg: getNum('weight', 70, 30, 250) });
+
+// Small JSON preferences (validated by the caller): dashboard layout, reminders, smart nudges, one-week bar override.
+export const getJson = (k, d) => { try { return JSON.parse(getPref(k, '')) ?? d; } catch { return d; } };
+export const setJson = (k, v) => setPref(k, JSON.stringify(v));

@@ -20,6 +20,15 @@
 * **Network.** None. The Android manifest declares no `INTERNET` permission; any new network use needs a written reason here.
 * **Permissions.** `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: workout distance from GPS, read only while a workout is on screen. The WebView's geolocation prompt is answered in `MainActivity` for our own origin only, after Android's runtime permission. The motion sensor (rhythm coach) needs no permission.
 
+## Modules (0.3 additions)
+- **Pure, unit-tested:** `stats.js` (filter, buckets by day/week with Sunday start, streak, bests, weather buckets), `steps.js` (estimate, quality factor, series, recommendation), `effort.js` (effort minutes, weekly target = median of recent weeks + gentle raise, `checkWorkout` deviation check, `weekStatus`), `reminders.js` (sanitise, `dueReminders`, `smartNudge`), `alerts.js` (inbox model; keys + params so alerts follow the language), `search.js` (normalise he/en, index, rank).
+- **Thin:** `reminderLoop.js` (30 s timer -> pure decisions -> `ui/notify.js` -> inbox + Notification API), `charts.js` (SVG), `brand.js`.
+- **Dashboard:** `ui/dashboard.js` holds the widget table `W` (`summary` for the grid, `detail` for the drill-down), the saved layout/filter (validated against known ids), and a draw-sequence guard so only the newest async draw paints. Filters apply to distance/pace/weather/records; effort, steps and consistency always use all history.
+- **Alert flow:** workout saved -> `ui/workout.js#effortCheck` -> `effort.checkWorkout(record, history before it)` -> `pushAlert` (inbox + system notification) -> shown on the summary and in `#/alerts`; "raise the bar" writes `barOv` (one week) which `weeklyTarget(..., override)` honours.
+- **Search:** `ui/search.js#buildItems` builds items (settings/screens/widgets/workouts/alerts, with both-language keywords); settings results go to `#/settings/<field id>` which scrolls to and focuses the field.
+- **Network:** still none. Weather by hand only; automatic weather and maps wait for decision D1.
+- **Notifications:** web Notification API while the page is open; background delivery on Android (alarms/foreground service) is not built yet.
+
 ## Modules (0.2)
 - **Pure, unit-tested:** `geo.js` (haversine, track projection), `workout.js` (fix filtering, distance, moving time, pace, splits, kcal, sanitisers), `cadence.js` (step detector + lock state machine), `metronome.js` (beat times, breathing pattern), `format.js`.
 - **Thin, side-effecting:** `audio.js` (look-ahead click scheduler on the Web Audio clock; beat times on `performance.now()` so animation and tests share one clock), `store.js` (IndexedDB + memory fallback, localStorage), `icons.js` (SVG via `createElementNS`).

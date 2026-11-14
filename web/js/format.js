@@ -1,5 +1,6 @@
 // Pure formatting of workout numbers. Units come from i18n; a non-breaking space separates number and unit (Hebrew and English).
-import { t } from './i18n.js';
+import { t, STR } from './i18n.js';
+import { weatherBucket } from './stats.js';
 const p2 = (n) => String(n).padStart(2, '0');
 
 /** 3725000 ms -> "1:02:05", 330000 -> "5:30". */
@@ -16,3 +17,13 @@ export function fmtPace(sec) {
 }
 export const fmtPaceUnit = (sec) => `${fmtPace(sec)} ${t('perKm')}`;
 export const fmtDate = (ms, lang) => new Date(ms).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'short', weekday: 'short' });
+
+const BUCKET_KEY = { cold: 'wxCold', cool: 'wxCool', mild: 'wxMild', hot: 'wxHot', rain: 'wxRain', none: 'wxNone' };
+/** Everything a person might type to find a workout, in Hebrew AND English: kind, distance, date, month, weather. */
+export function workoutText(w) {
+  const d = new Date(w.startedAt), km = (w.distanceM / 1000).toFixed(2), both = (k) => `${STR.en[k]} ${STR.he[k]}`;
+  const b = weatherBucket(w.weather);
+  return [both(w.kind), km, `${km} km`, `${km} ${STR.he.km}`, d.toLocaleDateString('he-IL', { day: 'numeric', month: 'long', weekday: 'long' }), d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', weekday: 'long' }), d.getFullYear(),
+    b === 'none' ? '' : both(BUCKET_KEY[b]), w.weather ? `${Math.round(w.weather.tempC)}` : ''].join(' ');
+}
+export const bucketLabel = (b) => t(BUCKET_KEY[b] || 'wxNone');

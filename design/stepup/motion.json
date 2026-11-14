@@ -1,0 +1,80 @@
+{
+  "reducedMotion": "static first frame",
+  "animations": {
+    "route-progress": {
+      "asset": "art-route",
+      "target": "root",
+      "property": "transform",
+      "keyframes": [
+        {
+          "offset": 0,
+          "transform": "scale(1)"
+        },
+        {
+          "offset": 0.5,
+          "transform": "scale(1.035)"
+        },
+        {
+          "offset": 1,
+          "transform": "scale(1)"
+        }
+      ],
+      "durationMs": 2400,
+      "easing": "ease-in-out",
+      "iterations": "infinite",
+      "reducedMotion": {
+        "transform": "scale(1)"
+      }
+    },
+    "badge-reveal": {
+      "asset": "badge-medal",
+      "target": "root",
+      "property": "transform",
+      "keyframes": [
+        {
+          "offset": 0,
+          "transform": "scale(1)"
+        },
+        {
+          "offset": 0.5,
+          "transform": "scale(1.035)"
+        },
+        {
+          "offset": 1,
+          "transform": "scale(1)"
+        }
+      ],
+      "durationMs": 2400,
+      "easing": "ease-in-out",
+      "iterations": "infinite",
+      "reducedMotion": {
+        "transform": "scale(1)"
+      }
+    },
+    "record-update": {
+      "asset": "badge-trophy",
+      "target": "root",
+      "property": "transform",
+      "keyframes": [
+        {
+          "offset": 0,
+          "transform": "scale(1)"
+        },
+        {
+          "offset": 0.5,
+          "transform": "scale(1.035)"
+        },
+        {
+          "offset": 1,
+          "transform": "scale(1)"
+        }
+      ],
+      "durationMs": 2400,
+      "easing": "ease-in-out",
+      "iterations": "infinite",
+      "reducedMotion": {
+        "transform": "scale(1)"
+      }
+    }
+  }
+}

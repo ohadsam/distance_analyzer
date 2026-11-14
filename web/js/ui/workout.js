@@ -5,7 +5,10 @@ import { icon, trackSvg } from '../icons.js';
 import { newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { projectTrack } from '../geo.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
-import { active, saveWorkout, getNum } from '../store.js';
+import { active, saveWorkout, getNum, getPref, getJson, listWorkouts, profile } from '../store.js';
+import { checkWorkout } from '../effort.js';
+import { pushAlert } from './notify.js';
+import { alertCard } from './alerts.js';
 import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
 
@@ -65,7 +68,18 @@ export function renderWorkout(kind) {
     const keep = save && w && w.distanceM >= MIN_SAVE_M;
     if (w) { finish(w, Date.now()); if (keep) await saveWorkout(w); }
     active.clear(); rhythm.destroy(); keepAwake(false);
-    if (keep) { phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
+    if (keep) { await effortCheck(); phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
+  }
+
+  // After saving: is this workout far beyond the plan? Then explain what happened, why it matters and how to raise the bar gently.
+  let headsUp = null;
+  async function effortCheck() {
+    if (getPref('effortAlerts', '1') !== '1') return;
+    try {
+      const rows = await listWorkouts(), rec = rows.find((r) => r.startedAt === w.startedAt); if (!rec) return;
+      const c = checkWorkout(rec, rows.filter((r) => r.startedAt !== rec.startedAt), profile().age, w.endedAt);
+      if (c) headsUp = pushAlert({ id: `eff-${rec.startedAt}`, kind: 'effort', level: c.level, title: `eff_${c.id}_title`, lines: [`eff_${c.id}_what`, `eff_${c.id}_risk`, `eff_${c.id}_tip`], params: { ...c.params, plan: c.plan, newTarget: c.newTarget }, href: '#/alerts' });
+    } catch { /* the workout is saved either way */ }
   }
 
   // ---------- lock: press and hold to unlock, so a sweaty hand or a pocket cannot stop the workout ----------
@@ -104,6 +118,7 @@ export function renderWorkout(kind) {
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackSvg(xy),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
+      headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 
