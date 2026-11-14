@@ -8,6 +8,7 @@ export function createMetronome() {
   let ctx = null, timer = 0, gain = null, anchor = 0, idx0 = 0, bpm = 0, until = 0, volume = 0.6, accent = null;
 
   const perf = () => performance.now();
+  function open() { try { ctx ||= new (globalThis.AudioContext || globalThis.webkitAudioContext)(); ctx.resume?.(); return true; } catch { ctx = null; return false; } }
   function click(tPerf, loud) {
     if (!ctx) return;
     const at = Math.max(ctx.currentTime, ctx.currentTime + (tPerf - perf()) / 1000);
@@ -23,10 +24,12 @@ export function createMetronome() {
   }
   return {
     get running() { return timer !== 0; },
+    /** Call from a tap: browsers only let audio start from a user gesture, and the first click happens much later. */
+    unlock() { open(); },
     /** Starts (must be called from a user gesture the first time). `accentOf(i)` returns true for an accented beat (the first of a breath cycle). */
     start(newBpm, { vol = 0.6, accentOf = null } = {}) {
       this.stop(); bpm = newBpm; volume = vol; accent = accentOf;
-      try { ctx ||= new (globalThis.AudioContext || globalThis.webkitAudioContext)(); ctx.resume?.(); gain = ctx.createGain(); gain.gain.value = volume; gain.connect(ctx.destination); } catch { ctx = null; } // no audio: the visuals still run
+      if (open()) { gain = ctx.createGain(); gain.gain.value = volume; gain.connect(ctx.destination); } // no audio: the visuals still run
       anchor = perf() + 60; idx0 = 0; until = 0; timer = setInterval(pump, TICK_MS); pump();
     },
     /** Changes the tempo at the next beat so the rhythm never stutters. */

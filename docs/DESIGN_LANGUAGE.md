@@ -1,6 +1,7 @@
 # Design language (single source of truth for every visual asset)
 
-Status: **draft - to be filled from the first ChatGPT round** (`docs/prompts/STYLE_SYSTEM_PROMPT.md`, ready to paste).
+Status: **foundation integrated (0.2.0)** from the ChatGPT "Momentum" kit in `design/momentum/` (see its `DESIGN.md`: 24 grid, 1.8 stroke, round caps, no gradients/shadows, 48 dp targets, eight packs x light/dark, semantic tokens only). Round 2 (`docs/prompts/ROUND2_PROMPT.txt`) upgrades the placeholders.
+Known gaps in round 1: generic-looking icon geometry (originality), placeholder brand mark, art = icon in a circle, near-invisible backgrounds, widget shells are plain boxes, no rhythm-coach art/motion, no logo concepts / adaptive icon layers / PNGs.
 Direction already fixed: energetic, calm, trustworthy; open road / horizon / morning air; outdoor-in-sunlight legibility; four packs `trail` (default), `coast`, `ember`, `sunlight` (high-contrast, also the Workout-mode look).
 Every later prompt must restate the decisions below, so icons, backgrounds, illustrations and animations stay one family.
 

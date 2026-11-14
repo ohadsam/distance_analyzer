@@ -9,7 +9,7 @@ import { active, saveWorkout, getNum } from '../store.js';
 import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
 
-const HOLD_MS = 900;
+const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not worth a history entry
 
 export function renderWorkout(kind) {
   let w = active.load(), watch = 0, wake = null, tickId = 0, gps = 'searching', acc = 0, phase = 'ready'; // ready | running | paused | confirm | done
@@ -23,12 +23,12 @@ export function renderWorkout(kind) {
   const gpsChip = h('div', { class: 'chip', 'data-gps': 'searching', role: 'status' });
   const lockBtn = h('button', { type: 'button', class: 'round', 'aria-label': t('lock'), onclick: () => setLocked(true) }, icon('lock'));
   const mainBtn = h('button', { type: 'button', class: 'big-btn', onclick: onMain });
-  const finishBtn = h('button', { type: 'button', class: 'btn ghost', onclick: () => { phase = 'confirm'; paint(); } }, icon('flag'), t('finish'));
+  const finishBtn = h('button', { type: 'button', class: 'btn ghost', onclick: askFinish }, icon('flag'), t('finish'));
   const metroBtn = h('button', { type: 'button', class: 'round', 'aria-pressed': 'false', 'aria-label': t('metro'), onclick: () => rhythm.toggle() }, icon('pace'));
   const confirmBar = h('div', { class: 'confirm', role: 'group', 'aria-label': t('finishAsk') },
     h('p', null, t('finishAsk')),
     h('button', { type: 'button', class: 'btn', onclick: () => end(true) }, t('saveFinish')),
-    h('button', { type: 'button', class: 'btn ghost', onclick: () => { phase = 'paused'; paint(); } }, t('keepGoing')),
+    h('button', { type: 'button', class: 'btn ghost', onclick: keepGoing }, t('keepGoing')),
     h('button', { type: 'button', class: 'btn danger', onclick: () => end(false) }, t('discard')));
   const lockLayer = h('div', { class: 'lock', hidden: true }, h('div', { class: 'lock-msg' }, icon('lock', 40), h('p', null, t('locked'))));
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
@@ -57,10 +57,15 @@ export function renderWorkout(kind) {
     else if (phase === 'paused') { resume(w, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); }
     paint();
   }
+  // Finish asks first. The workout pauses while the question is open (no time, distance or clicking is added meanwhile).
+  let before = 'paused';
+  function askFinish() { before = phase; if (phase === 'running') { pause(w, Date.now()); rhythm.setRunning(false); } phase = 'confirm'; paint(); }
+  function keepGoing() { if (before === 'running') { resume(w, Date.now()); phase = 'running'; rhythm.setRunning(true); } else phase = 'paused'; paint(); }
   async function end(save) {
-    if (save && w) { finish(w, Date.now()); await saveWorkout(w); } else if (w) finish(w, Date.now());
+    const keep = save && w && w.distanceM >= MIN_SAVE_M;
+    if (w) { finish(w, Date.now()); if (keep) await saveWorkout(w); }
     active.clear(); rhythm.destroy(); keepAwake(false);
-    if (save && w && w.distanceM >= 0) { phase = 'done'; paint(); } else { w = null; location.hash = '#/'; }
+    if (keep) { phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
   }
 
   // ---------- lock: press and hold to unlock, so a sweaty hand or a pocket cannot stop the workout ----------
@@ -98,14 +103,14 @@ export function renderWorkout(kind) {
     const n = w.endedAt, mins = elapsedMs(w, n), xy = projectTrack(w.points, 300, 180);
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackSvg(xy),
-      h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
+      h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 
   // ---------- lifecycle ----------
   startGps(); paintGps(); paint();
   let ticks = 0;
-  tickId = setInterval(() => { paint(); if (phase === 'running' && ++ticks % 15 === 0) persist(); }, 1000);
+  tickId = setInterval(() => { paint(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
   const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') keepAwake(true); };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };

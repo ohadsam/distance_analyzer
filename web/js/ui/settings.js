@@ -9,7 +9,7 @@ const field = (label, control, id) => h('div', { class: 'field' }, h('label', { 
 const select = (id, value, items, onchange) => h('select', { id, onchange: (e) => onchange(e.target.value) }, items.map(([v, l]) => opt(v, l, value)));
 
 export function applyLook() {
-  const root = document.documentElement, theme = getPref('theme', 'auto'), pack = getPref('pack', 'momentum');
+  const root = document.documentElement, theme = ['light', 'dark'].includes(getPref('theme', 'auto')) ? getPref('theme') : 'auto', pack = PACKS.some(([v]) => v === getPref('pack', 'momentum')) ? getPref('pack') : 'momentum'; // storage is untrusted: only known values reach the DOM
   if (theme === 'auto') delete root.dataset.theme; else root.dataset.theme = theme;
   if (pack === 'momentum') delete root.dataset.pack; else root.dataset.pack = pack;
   const bg = getComputedStyle(root).getPropertyValue('--background').trim(); if (bg) document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);

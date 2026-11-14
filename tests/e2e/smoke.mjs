@@ -62,8 +62,21 @@ await step('workout: start, GPS distance grows, pause, resume, finish, summary, 
 });
 await step('a reloaded workout waits paused and can be resumed; discard removes it', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/walk'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); await page.waitForTimeout(300);
-  await page.goto(base + '#/'); await page.waitForSelector('.resume'); await page.click('.resume'); await page.waitForSelector('.workout[data-phase="paused"]');
+  await page.goto(base + '#/'); await page.waitForSelector('.resume'); await page.click('.resume a.btn'); await page.waitForSelector('.workout[data-phase="paused"]');
   await page.click('.controls .btn.ghost'); await page.click('.confirm .btn.danger'); await page.waitForSelector('.start-card'); assert.equal(await page.locator('.resume').count(), 0);
+});
+await step('finish question pauses the workout; keep going resumes it, time is not added meanwhile', async () => {
+  const { page } = await newPage({ lang: 'en', clock: true }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
+  await page.click('.big-btn'); await page.clock.runFor(5000); await page.click('.controls .btn.ghost'); await page.waitForSelector('.confirm');
+  const t0 = await page.textContent('.v-time'); await page.clock.runFor(20000); assert.equal(await page.textContent('.v-time'), t0, 'the clock is stopped while asking');
+  await page.click('.confirm .btn.ghost'); assert.equal(await page.getAttribute('.workout', 'data-phase'), 'running'); await page.clock.runFor(3000);
+  assert.ok(Number(/:(\d\d)$/.exec(await page.textContent('.v-time'))[1]) >= 7 && Number(/:(\d\d)$/.exec(await page.textContent('.v-time'))[1]) <= 9, 'about 8 s of workout');
+});
+await step('a workout that is too short is not saved; starting another asks first', async () => {
+  const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/walk'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
+  await page.click('.controls .btn.ghost'); await page.click('.confirm .btn >> nth=0'); await page.waitForSelector('.start-card'); assert.equal(await page.locator('.item').count(), 0);
+  await page.click('.start-card.walk'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); await page.goto(base + '#/'); await page.waitForSelector('.resume');
+  page.once('dialog', (d) => d.dismiss()); await page.click('.start-card.run'); assert.match(page.url(), /#\/$/, 'declined: stays on Home');
 });
 await step('lock needs a press-and-hold to open', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');

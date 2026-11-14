@@ -2,8 +2,7 @@
 
 | # | Prompt file | Covers | Blocks | Status |
 |---|---|---|---|---|
-| 1 | `docs/prompts/STYLE_SYSTEM_PROMPT.md` | design language, palette + 4 packs, logo + app icon, 32 base UI icons | every later visual asset | **ready - owner to paste into ChatGPT** |
-| 2 | (to write after #1) | activity / weather / route art, widget backgrounds | phases 1, 2, 8, 9 | after #1 |
-| 3 | (to write after #2) | records & achievement badges, celebration + progress animations, illustrations, empty-state and onboarding art, backgrounds | phases 3-6 | after #2 |
+| 1 | `docs/prompts/STYLE_SYSTEM_PROMPT.md` | design language, palette, base icons | - | ✅ returned as the "Momentum" kit; tokens + 54 UI icons integrated (0.2.0). Art, backgrounds, badges, widgets, brand mark were placeholders |
+| 2 | `docs/prompts/ROUND2_PROMPT.txt` | originality pass on icons, 3 logo concepts (name still open), rhythm-coach visuals + motion spec, real illustrations/backgrounds/weather, widgets, badges, chart language | polish of every screen, widgets (phase 9), badges (phase 10), name in the logo | **ready - owner to paste into the same ChatGPT conversation** |
 
 Flow: prompt written here → owner pastes it in ChatGPT → owner returns the results → validate, look at the sheets, integrate → update `DESIGN_LANGUAGE.md` and this list.

@@ -26,8 +26,8 @@ export function createRhythm({ onChange = () => {} } = {}) {
   function nudge(d) { const s = state(); if (s.state !== 'locked') return; cad.setManual(s.bpm + d); sync(); }
 
   function onMotion(e) {
-    const a = e.accelerationIncludingGravity; if (!a || !running) return;
-    gotMotion = true; const t0 = now(), s = det(t0, a.x ?? 0, a.y ?? 0, a.z ?? 0); if (s) cad.step(s);
+    const a = e.accelerationIncludingGravity; if (!a) return;
+    gotMotion = true; if (!running) return; const t0 = now(), s = det(t0, a.x ?? 0, a.y ?? 0, a.z ?? 0); if (s) cad.step(s);
   }
   function render() {
     const s = state(), hint = rhythmHint(s.bpm, s.measured);
@@ -59,7 +59,7 @@ export function createRhythm({ onChange = () => {} } = {}) {
   }
 
   async function enable() {
-    on = true; pattern = getPref('breath', '3:2'); gotMotion = false; noSensor = false; lastBpm = 0; lastLabel = ''; el.hidden = false;
+    metro.unlock(); on = true; pattern = getPref('breath', '3:2'); gotMotion = false; noSensor = false; lastBpm = 0; lastLabel = ''; el.hidden = false;
     cad.start(now()); tick = setInterval(second, 1000); sync(); onChange(true); // shows "listening" at once; the sensor may first ask for permission (iOS)
     try { if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') await DeviceMotionEvent.requestPermission(); } catch { /* iOS asks first; if refused no events arrive and the manual rhythm takes over */ }
     if (!on) return; // switched off while the permission question was open

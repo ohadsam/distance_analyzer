@@ -34,7 +34,8 @@ class MainActivity : ComponentActivity() {
         val ok = res[Manifest.permission.ACCESS_FINE_LOCATION] == true || res[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         geoPending?.let { (origin, cb) -> cb.invoke(origin, ok, false) }; geoPending = null
     }
-    private fun hasLocation() = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    private fun hasLocation() = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+        checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -56,7 +57,8 @@ class MainActivity : ComponentActivity() {
                 runOnUiThread {
                     if (Uri.parse(origin).host != HOST) { callback.invoke(origin, false, false); return@runOnUiThread }
                     if (hasLocation()) callback.invoke(origin, true, false)
-                    else { geoPending?.let { (o, cb) -> cb.invoke(o, false, false) }; geoPending = origin to callback; locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) }
+                    else if (geoPending != null) callback.invoke(origin, false, false) // a question is already open: do not stack a second one
+                    else { geoPending = origin to callback; locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) }
                 }
             }
         }

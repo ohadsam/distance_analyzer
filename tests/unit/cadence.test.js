@@ -62,6 +62,9 @@ test('beatsBetween is exact and gap-free across windows', () => {
   const a = beatsBetween(1000, 120, 1000, 3100); assert.deepEqual(a.map((b) => b.t), [1000, 1500, 2000, 2500, 3000]); assert.equal(a[4].i, 4);
   const b = [...beatsBetween(1000, 120, 1000, 2100), ...beatsBetween(1000, 120, 2100, 3100)]; assert.deepEqual(b.map((x) => x.i), [0, 1, 2, 3, 4, 5].slice(0, b.length));
 });
+test('security: an untrusted breathing pattern key falls back to the default instead of reading the prototype', () => {
+  assert.equal(breathAt(0, '__proto__').phase, 'in'); assert.equal(lungAt(1, 'constructor'), 1 / 3);
+});
 test('breathing pattern 3:2 cycles in-in-in-out-out', () => {
   assert.deepEqual([0, 1, 2, 3, 4, 5].map((i) => breathAt(i, '3:2').phase), ['in', 'in', 'in', 'out', 'out', 'in']);
   assert.equal(breathAt(0, '3:2').first, true); assert.equal(breathAt(5, '3:2').first, true); assert.equal(breathAt(3, 'off').phase, 'none');

@@ -15,6 +15,7 @@ export const STR = {
     language: 'Language', theme: 'Theme', themeAuto: 'Automatic', themeLight: 'Light', themeDark: 'Dark', look: 'Look', weight: 'Weight (for energy)', kg: 'kg',
     metroSection: 'Rhythm coach', volume: 'Click volume', breath: 'Breathing pattern', breathOff: 'No breathing guide', breath32: 'In 3 steps, out 2 (default)', breath22: 'In 2 steps, out 2 (easy)', breath21: 'In 2 steps, out 1 (fast)',
     defaultBpm: 'Rhythm if no sensor', packMomentum: 'Momentum', packOcean: 'Ocean', packForest: 'Forest', packSunset: 'Sunset', packViolet: 'Violet', packSlate: 'Slate', packMono: 'Mono', packHigh: 'High contrast',
+    movingTime: 'Moving time', replaceAsk: 'A workout is still in progress. Discard it and start a new one?', discardAsk: 'Discard the workout in progress?', tooShort: 'Too short to save',
     stepsNote: 'Distance comes from GPS and is an estimate. General guidance only, not medical advice.',
   },
   he: {
@@ -31,6 +32,7 @@ export const STR = {
     language: 'שפה', theme: 'מצב תצוגה', themeAuto: 'אוטומטי', themeLight: 'בהיר', themeDark: 'כהה', look: 'מראה', weight: 'משקל (לחישוב אנרגיה)', kg: 'ק״ג',
     metroSection: 'מאמן קצב', volume: 'עוצמת הנקישה', breath: 'דפוס נשימה', breathOff: 'בלי הנחיית נשימה', breath32: 'שאיפה 3 צעדים, נשיפה 2 (ברירת מחדל)', breath22: 'שאיפה 2 צעדים, נשיפה 2 (קל)', breath21: 'שאיפה 2 צעדים, נשיפה 1 (מהיר)',
     defaultBpm: 'קצב כשאין חיישן', packMomentum: 'מומנטום', packOcean: 'אוקיינוס', packForest: 'יער', packSunset: 'שקיעה', packViolet: 'סגול', packSlate: 'צפחה', packMono: 'מונו', packHigh: 'ניגודיות גבוהה',
+    movingTime: 'זמן תנועה', replaceAsk: 'יש אימון בתהליך. לבטל אותו ולהתחיל חדש?', discardAsk: 'לבטל את האימון שבתהליך?', tooShort: 'קצר מדי לשמירה',
     stepsNote: 'המרחק נמדד ב-GPS והוא הערכה. הכוונה כללית בלבד, לא ייעוץ רפואי.',
   },
 };

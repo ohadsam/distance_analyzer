@@ -34,11 +34,21 @@ test('finish closes the workout and resumes a pending pause; summary is compact;
   const w = newWorkout('run', 1000); addFix(w, fix(0, 1000)); addFix(w, fix(3, 2000)); pause(w, 3000); finish(w, 9000);
   assert.equal(w.endedAt, 9000); assert.equal(elapsedMs(w, 99999), 8000 - 6000, 'paused 3000-9000 is not counted: 1000..3000 = 2000');
   const big = newWorkout('run', 0); big.movingMs = 3600000; assert.equal(kcal(big, 70), 686); assert.equal(kcal({ kind: 'walk', movingMs: 3600000 }), 245);
-  assert.deepEqual(Object.keys(summarize(w)).sort(), ['distanceM', 'endedAt', 'kind', 'movingMs', 'points', 'splits', 'startedAt']);
+  assert.deepEqual(Object.keys(summarize(w)).sort(), ['distanceM', 'elapsedMs', 'endedAt', 'kind', 'movingMs', 'points', 'splits', 'startedAt']);
 });
 test('sanitizeWorkout clamps hostile records and drops bad points', () => {
   assert.equal(sanitizeWorkout(null), null); assert.equal(sanitizeWorkout({ kind: 'run' }), null);
   const r = sanitizeWorkout({ kind: '__proto__', startedAt: 1e9, distanceM: 1e99, movingMs: -5, points: [[1, 2, 3], [999, 2, 3], 'x', [1, 2]], splits: [{ km: 1, atMs: 5 }, { km: 'a' }], extra: 1 });
   assert.equal(r.kind, 'walk'); assert.equal(r.distanceM, 1e7); assert.equal(r.movingMs, 0); assert.deepEqual(r.points, [[1, 2, 3]]); assert.equal(r.splits.length, 1); assert.equal('extra' in r, false);
   assert.equal(sanitizeWorkout({ startedAt: 5, points: new Array(LIMITS.maxPoints + 10).fill([1, 1, 1]) }).points.length, LIMITS.maxPoints);
+});
+
+test('regression: pace after a long pause uses only fixes since the resume', () => {
+  const w = newWorkout('run', 0); for (let s = 0; s <= 40; s++) addFix(w, fix(3 * s, s * 1000));
+  pause(w, 41000); resume(w, 400000); assert.equal(recentPaceSec(w), 0, 'no stale window across the pause');
+  for (let s = 0; s <= 20; s++) addFix(w, fix(500 + 3 * s, 400000 + s * 1000)); assert.ok(Math.abs(recentPaceSec(w) - 333) < 8, `pace ${recentPaceSec(w)}`);
+});
+test('regression: finishing while paused does not count the pause, and the record keeps wall-clock time', () => {
+  const w = newWorkout('walk', 0); pause(w, 10000); finish(w, 50000);
+  assert.equal(elapsedMs(w, 99999), 10000); assert.equal(summarize(w).elapsedMs, 10000);
 });

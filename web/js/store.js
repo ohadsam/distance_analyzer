@@ -41,7 +41,9 @@ export async function deleteWorkout(startedAt) {
 // In-progress workout (survives a reload or the app being killed): small JSON in localStorage.
 export const active = {
   load() { try { const r = JSON.parse(localStorage.getItem('da.active') || 'null'); return r ? sanitizeActive(r) : null; } catch { return null; } },
-  save(w) { try { localStorage.setItem('da.active', JSON.stringify(w)); } catch { /* storage full or blocked */ } },
+  save(w) {
+    try { localStorage.setItem('da.active', JSON.stringify(w)); } catch { try { localStorage.setItem('da.active', JSON.stringify({ ...w, points: w.points.slice(-1500) })); } catch { /* storage full or blocked */ } } // quota: keep the numbers, drop old route points
+  },
   clear() { try { localStorage.removeItem('da.active'); } catch { /* ignore */ } },
 };
 
