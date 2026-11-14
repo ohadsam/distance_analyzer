@@ -1,0 +1,40 @@
+You are a senior brand and icon designer and a Python programmer. Build ONE original, consistent, professional visual foundation for a mobile app that tracks walking and running (Hebrew first, right-to-left; English equal). This first round defines the design language itself, the logo and app icon, the colour tokens of every style pack, and the base UI icon set. Later rounds (activity and weather art, widgets, badges and records, animations, illustrations, backgrounds) will reuse exactly what you define now, so be precise and write down every rule.
+
+WORK IN STAGES and wait for me to say "continue" between them:
+Stage 1 = the design language document + colour tokens for all packs (with printed contrast table) + preview sheet.
+Stage 2 = the logo and app icon (several concepts first, I pick one) + the 32 base UI icons for the default pack + preview sheets.
+Stage 3 = the same icons in all packs, light and dark, validation report, packaging.
+
+## 1. The app and its audience
+- Purpose: record walks and runs (GPS distance, pace, time, splits), count daily steps, show progress charts, plan routes on a map, show the weather for planned activity, remind and reschedule missed workouts, build an age-based "effort bar" and a weekly training plan, tell the runner mid-workout when a record or a previous distance is about to be passed, and show many home-screen widgets.
+- Users: all ages (teenagers to seniors), beginners to regular runners. Used outdoors in bright sun, on the move, often one-handed, sometimes sweaty or with gloves. So: big readable silhouettes, high legibility at 20 px, generous spacing, nothing busy.
+- Personality in three words: **energetic, calm, trustworthy**. Clean, modern, friendly; motion and the open road/horizon as the theme; not aggressive "extreme sport", not childish, not clinical. A unique identity of its own: no copied icon sets, brands, mascots, living artists' styles, no real people. Gender-neutral and inclusive. CC0 / free for commercial use.
+- Hebrew and English users are equal. Icons must not depend on reading direction except where direction is the meaning (back, next, forward, undo, trend arrows): deliver those as a pair `*-start` / `*-end` (start = the side where text begins) so the app can mirror them. No text or letters inside icons or the logo symbol.
+- Accessibility: every glyph recognisable at 20 px; colour is never the only signal; UI glyph contrast against the pack background at least 3:1; text/background pairs at least 4.5:1.
+- Motion rules (for later rounds, define them now): gentle, no flashing, loops >= 800 ms, small amplitudes; every animated asset is complete as a still first frame (the app has a "calm animations" switch).
+
+## 2. The style system (stage 1)
+Invent the brand palette yourself within this direction: a fresh, confident colour family evoking morning air, trails and sunrise on the road - one strong brand colour, one warm energetic accent (for records and achievements), a calm neutral scale, plus semantic good / warn / bad. Avoid generic "fitness neon" and avoid purple-on-white defaults. Show me the palette with names, hex values and the reasoning in one short paragraph.
+Define FOUR style packs sharing the same geometry (a pack only changes colours, line weight, corner softness, icon variant and decoration):
+1. `trail` (default): the signature look. Medium line (2 px on a 24 grid), duotone icons, soft rounded corners.
+2. `coast`: cool blues and sand tones; calm, medium line, duotone.
+3. `ember`: warm sunrise-to-sunset reds/oranges; cosy, filled icons.
+4. `sunlight` (high clarity for bright sun and low vision, also the Workout-mode look): very high contrast, thick 3 px line, simple solid shapes, strong colour separation, minimal detail; contrast ink/bg >= 7:1.
+Each pack defines TOKENS for light AND dark mode: `bg`, `surface`, `ink`, `muted`, `line`, `brand`, `brand2`, `accent`, `good`, `warn`, `bad`, plus eight artwork colours `k1..k8` (primary, secondary, third, light tint, dark shade, warm accent, cool accent, neutral) and a heart-rate/effort ramp of five calm-to-intense colours `z1..z5` that stay distinguishable for colour-blind users (also differ in lightness). Print the contrast ratios of ink/bg, ink/surface, muted/bg, brand/surface (3:1), accent/surface, and each z-colour against the surface; fix any that fail.
+Also state in the pack JSON: `strokeWidth` (24-grid), `iconVariant` (`line`|`duotone`|`filled`), `corner` (`soft`|`round`|`chunky`), `mood` (one sentence, en and he), and who it suits.
+
+## 3. How artwork is coloured (so one drawing serves all packs)
+- UI icons: 24x24 grid (`viewBox="0 0 24 24"`), strokes/fills use `currentColor` through class `i-ink`; secondary tint areas use `i-tint`; strokes use class `i-sw` (the app sets stroke-width per pack). Round caps and joins, consistent corner radius logic, one light direction (soft, from the top).
+- Colourful artwork (logo, later rounds): 64x64 grid (illustrations 256x256, logo 512x512), colours ONLY via classes `k1..k8` (each with a sensible default `fill`) plus fixed white (#FFFFFF), dark ink (#22313A) and natural colours where an object must look natural. Shading = black/white shapes with `fill-opacity` 0.08-0.25. Design so the same drawing looks good with any pack's eight colours and in dark mode.
+
+## 4. SVG rules (the app validates strictly; breaking files are rejected)
+Allowed elements only: svg, g, path, circle, ellipse, rect, line, polyline, polygon, defs, clipPath, linearGradient, radialGradient, stop. No script, style, image, foreignObject, filter, use, text, event attributes, external references. No inline `style=""`; use classes and attributes. Every file < 2 KB (logo < 6 KB), coordinates rounded to at most 2 decimals, unique ids only if needed (prefix with the asset name), no metadata/editor junk, minified.
+
+## 5. Stage 2: logo, app icon and the 32 base UI icons
+Logo: give me THREE different original concepts first (on a sheet, in the default pack, light and dark, at 512, 96 and 24 px), each with a one-line idea (themes to explore: a path/horizon that becomes a rising sun; a footprint trail that forms a distance marker; a looping track; a pin-and-line route). I choose one. Then deliver the final: `logo-symbol.svg` (no text), `app-icon.svg` (full-bleed square 512 for the PWA/maskable), adaptive-icon foreground/background/monochrome layers for Android (foreground inside the 66 % safe zone), a notification small icon (24 px, single colour), and PNGs at 48/72/96/144/192/512.
+Base UI icons (24 grid, all must feel like one family): home, history, chart-bar, chart-line, steps/footprints, run (figure), walk (figure), flag/finish, location-pin, route, map, layers, play, pause, stop, lap/split, timer, speedometer/pace, trophy/record, target/goal, calendar, bell/reminder, settings/gear, plus, check, close, back-start, next-end, trend-up, trend-down, weather-sun-cloud, share. Names exactly as listed (kebab-case, `-start`/`-end` pairs where stated).
+
+## 6. Deliverables and checks
+- `design-language.md`: the written rules (palette and reasoning, grid, stroke, corner logic, light direction, level of detail, do/don't list, how to extend the family in later rounds).
+- `packs.json` (all tokens, light + dark), `icons.json` (name -> svg string; variants per pack where they differ), the app-icon files, and `preview-*.png` sheets (every icon at 24, 48 and 96 px on light and dark surfaces for each pack; the logo concepts).
+- A Python validator you ran: allowed elements only, size limits, class usage, contrast table, a 20 px legibility render check, near-duplicate detection (no two icons may look alike). Report real numbers; do not claim anything is fixed unless the sheet shows it. Wait for "continue" between stages.
