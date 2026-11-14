@@ -37,6 +37,8 @@ export function renderDetail(id) {
 function weatherForm(r) {
   const cond = h('select', { id: 'wx-cond', 'aria-label': t('wxCond') }, [['clear', 'wxClear'], ['cloudy', 'wxCloudy'], ['rain', 'wxRain'], ['windy', 'wxWindy']].map(([v, k]) => h('option', { value: v, selected: (r.weather?.cond || 'clear') === v }, t(k))));
   const temp = h('input', { id: 'wx-temp', type: 'number', inputMode: 'numeric', min: -60, max: 60, step: 1, 'aria-label': t('wxTemp'), value: r.weather ? Math.round(r.weather.tempC) : '' });
+  const msg = h('p', { class: 'note', role: 'status' });
   return h('div', { class: 'wxform' }, h('h2', null, t('wxTitle')), h('div', { class: 'wxrow' }, cond, temp, h('button', { type: 'button', class: 'btn', id: 'wx-save', onclick: async () => {
-    if (temp.value === '') return; await updateWorkout(r.startedAt, { weather: { tempC: Number(temp.value), cond: cond.value } }); const sr = document.getElementById('sr'); if (sr) sr.textContent = t('wxSaved'); dispatchEvent(new HashChangeEvent('hashchange')); } }, t('wxSave'))));
+    if (temp.value === '') { msg.textContent = t('wxNeedTemp'); temp.focus(); return; }
+    await updateWorkout(r.startedAt, { weather: { tempC: Number(temp.value), cond: cond.value } }); msg.textContent = t('wxSaved'); } }, t('wxSave'))), msg);
 }

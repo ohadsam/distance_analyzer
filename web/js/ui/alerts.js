@@ -13,8 +13,9 @@ export function alertCard(a, { onChange = () => {} } = {}) {
   const [what, risk, tip] = a.lines;
   return h('article', { class: `alert ${a.level} ${a.read ? '' : 'unread'}`, 'data-alert': a.id }, h('div', { class: 'ahead' }, icon(a.kind === 'effort' ? 'activity' : 'bell', 22), h('b', { class: 'grow' }, t(a.title, a.params)), h('small', null, when)),
     a.kind === 'effort' ? [sect(t('why'), what), sect(t('risk'), risk), sect(t('tip'), tip)] : (what ? h('p', null, t(what, a.params)) : null),
-    a.params.newTarget && a.params.plan ? h('div', { class: 'asec' }, h('p', null, t('eff_plan', a.params)),
-      h('button', { type: 'button', class: 'btn', onclick: () => { setJson('barOv', { week: weekStart(a.ts), minutes: Number(a.params.newTarget) }); alertStore.save(alertStore.load().map((x) => (x.id === a.id ? { ...x, params: { ...x.params, applied: 1 } } : x))); onChange(); announce(t('barApplied', { n: a.params.newTarget })); } }, t('applyBar', { n: a.params.newTarget }))) : null);
+    a.params.newTarget > a.params.plan && !a.params.applied ? h('div', { class: 'asec' }, h('p', null, t('eff_plan', a.params)),
+      h('button', { type: 'button', class: 'btn', onclick: () => { setJson('barOv', { week: weekStart(a.ts), minutes: Number(a.params.newTarget) }); alertStore.save(alertStore.load().map((x) => (x.id === a.id ? { ...x, params: { ...x.params, applied: 1 } } : x))); onChange(); announce(t('barApplied', { n: a.params.newTarget })); } }, t('applyBar', { n: a.params.newTarget })))
+      : a.params.applied ? h('p', { class: 'note' }, t('barApplied', { n: a.params.newTarget })) : null);
 }
 const announce = (msg) => { const sr = document.getElementById('sr'); if (sr) sr.textContent = msg; };
 

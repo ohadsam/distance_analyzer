@@ -18,10 +18,11 @@ function open() {
 }
 const wrap = (rq) => new Promise((res, rej) => { rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error); });
 
-export async function listWorkouts() {
+/** Newest first. `points: false` skips the (large) route points: statistics, search and reminders never need them. */
+export async function listWorkouts({ points = true } = {}) {
   const db = await open(); let rows = mem;
   if (db) try { rows = await wrap(db.transaction(STORE).objectStore(STORE).getAll()); } catch { /* fall back to memory */ }
-  return rows.map(sanitizeWorkout).filter(Boolean).sort((a, b) => b.startedAt - a.startedAt);
+  return rows.map((r) => sanitizeWorkout(points ? r : { ...r, points: [] })).filter(Boolean).sort((a, b) => b.startedAt - a.startedAt);
 }
 export async function saveWorkout(w) {
   const rec = sanitizeWorkout(summarize(w)); if (!rec) return null;

@@ -17,7 +17,9 @@ export function sanitizeReminders(list) {
 }
 export function sanitizeSmart(s) {
   const o = { ...SMART_DEFAULT, ...(s && typeof s === 'object' ? s : {}) };
-  return { on: o.on === true, fromHour: clamp(+o.fromHour | 0, 0, 23), toHour: clamp(+o.toHour | 0, 1, 24), afterMin: clamp(+o.afterMin | 0, 30, 480), maxPerDay: clamp(+o.maxPerDay | 0, 1, 8), gapMin: clamp(+o.gapMin | 0, 30, 480) };
+  // the smart window lies within one day: its end is after its start
+  const from = clamp(+o.fromHour | 0, 0, 23), to = clamp(+o.toHour | 0, 1, 24);
+  return { on: o.on === true, fromHour: from, toHour: to > from ? to : Math.min(24, from + 1), afterMin: clamp(+o.afterMin | 0, 30, 480), maxPerDay: clamp(+o.maxPerDay | 0, 1, 8), gapMin: clamp(+o.gapMin | 0, 30, 480) };
 }
 
 /** Fixed reminders that fall due in the window (lastCheck, now] - call about once a minute. Returns the due reminders. */

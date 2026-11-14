@@ -11,12 +11,18 @@ import { active } from './store.js';
 const TICK = 30000;
 let last = Date.now(), timer = 0;
 
+let busy = false;
 export async function checkReminders(now = Date.now(), prevCheck = last) {
+  if (busy) return; busy = true; // overlapping checks (timer + settings change) must not both read the same nudge counter
+  try { await runChecks(now, prevCheck); } finally { busy = false; }
+}
+async function runChecks(now, prevCheck) {
   last = now;
   const list = sanitizeReminders(getJson('rems', [])), smart = sanitizeSmart(getJson('smart', {}));
   for (const r of dueReminders(list, prevCheck, now)) pushAlert({ id: `rem-${r.id}-${dayStart(now)}-${r.time}`, kind: 'reminder', title: r.kind === 'walk' ? 'rem_walk' : 'rem_move', lines: [r.kind === 'walk' ? 'rem_walk_body' : 'rem_move_body'], href: '#/workout/walk' });
-  if (!smart.on) return;
-  const rows = await listWorkouts(), prof = profile(), today = rows.filter((w) => dayStart(w.startedAt) === dayStart(now)), n = getJson('nudge', {});
+  const nd = getJson('nudge', {}), cheap = { lastMoveAt: 0, nudgesToday: nd.day === dayStart(now) ? nd.n | 0 : 0, lastNudgeAt: nd.last | 0, stepsToday: 0, goalSteps: 0, weekBehind: false, activeNow: !!active.load() };
+  if (!smartNudge(smart, cheap, now)) return; // the hour, the daily cap, the spacing and a running workout are decided before any data is loaded
+  const rows = await listWorkouts({ points: false }), prof = profile(), today = rows.filter((w) => dayStart(w.startedAt) === dayStart(now)), n = getJson('nudge', {});
   const day = dayStart(now), state = n.day === day ? n : { day, n: 0, last: 0 };
   const series = stepSeries(rows, 14, now, prof.heightCm), st = weekStatus(rows, prof.age, now, getJson('barOv', null));
   const d = smartNudge(smart, { lastMoveAt: Math.max(0, ...today.map((w) => w.endedAt || w.startedAt)), nudgesToday: state.n, lastNudgeAt: state.last, stepsToday: series[series.length - 1].quality, goalSteps: recommendedSteps(series, prof.age), weekBehind: st.status === 'behind', activeNow: !!active.load() }, now);

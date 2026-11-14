@@ -6,6 +6,7 @@ import { speedKmh, weekStart, WEEK } from './stats.js';
 
 export const GUIDE = { child: { floor: 420, ceiling: 420 }, adult: { floor: 150, ceiling: 300 }, senior: { floor: 150, ceiling: 300 } };
 export const guideFor = (age) => (age < 18 ? GUIDE.child : age >= 65 ? GUIDE.senior : GUIDE.adult);
+export const MIN_BAR = 30;
 export const MAX_RAISE = 0.10, MAX_RAISE_STEADY = 0.12; // the bar may rise at most this much per week
 
 /** "Moderate-equivalent minutes" of a workout: running counts double, a brisk walk once, a stroll less, a very slow one not at all. */
@@ -31,8 +32,8 @@ export function weeklyEffort(rows, now, weeks = 4) {
 export function weeklyTarget(rows, age, now, override = null) {
   const g = guideFor(age), weeks = weeklyEffort(rows, now, 4), active = weeks.filter((x) => x.min > 0), typical = median(active.map((x) => x.min));
   const steady = weeks.slice(-3).every((x) => x.n >= 2), raise = steady ? MAX_RAISE_STEADY : MAX_RAISE;
-  const start = Math.round(g.floor * 0.6);
-  const minutes = active.length ? Math.round(clamp(typical * (1 + raise), start, g.ceiling)) : start;
+  const start = Math.round(g.floor * 0.6); // a first suggestion for someone with no history yet
+  const minutes = active.length ? Math.round(clamp(typical * (1 + raise), MIN_BAR, g.ceiling)) : start; // with history the bar follows what the person really does, never below a small minimum
   const recent = rows.filter((w) => w.startedAt >= now - 28 * 86400000 && w.startedAt < weekStart(now) + WEEK);
   const set = override && override.week === weekStart(now) && override.minutes > 0 ? Math.round(clamp(override.minutes, 30, g.ceiling)) : 0; // the person's own gentle raise for this week
   return { minutes: set || minutes, overridden: !!set, computed: minutes, floor: g.floor, ceiling: g.ceiling, typical: Math.round(typical), steady, raisePct: Math.round(raise * 100),
@@ -57,13 +58,14 @@ export const weekProgress = (rows, now) => rows.filter((w) => weekStart(w.starte
  *  - surge: this week's effort already beyond 130 % of the weekly bar
  * `newTarget` is the gentler raise of the bar that the run supports: at most +10 % (and a fifth of how far over the plan it went).
  */
-export function checkWorkout(w, before, age, now) {
+export function checkWorkout(w, before, age, now, override = null) {
   if (before.length < 3) return null;
-  const plan = weeklyTarget(before, age, now), g = guideFor(age);
+  const plan = weeklyTarget(before, age, now, override), g = guideFor(age);
   const recent = before.filter((x) => x.startedAt >= now - 28 * 86400000);
+  if (!recent.length) return null; // after a long break there is no recent normal to compare with
   const longestM = Math.max(1, ...recent.map((x) => x.distanceM)), longestMin = Math.max(1, ...recent.map((x) => x.movingMs / 60000));
   const ratio = Math.max(w.distanceM / longestM, w.movingMs / 60000 / longestMin);
-  const gentle = (over) => Math.min(g.ceiling, Math.round(plan.minutes * (1 + Math.min(MAX_RAISE, Math.max(0, over - 1) * 0.2))));
+  const gentle = (over) => { const n = Math.min(g.ceiling, Math.round(plan.minutes * (1 + Math.min(MAX_RAISE, Math.max(0, over - 1) * 0.2)))); return n > plan.minutes ? n : 0; }; // 0 = nothing to raise (already at the guideline ceiling)
   if (ratio >= 1.5 && w.movingMs / 60000 >= 15) return { id: 'long', level: ratio >= 2 ? 'warn' : 'notice', params: { ratio: Math.round(ratio * 100), km: (w.distanceM / 1000).toFixed(1), typicalKm: (longestM / 1000).toFixed(1), min: Math.round(w.movingMs / 60000) }, plan: plan.minutes, newTarget: gentle(ratio) };
   const runs = recent.filter((x) => x.kind === 'run' && x.distanceM >= 1000 && x.movingMs > 0);
   if (w.kind === 'run' && runs.length >= 3 && w.distanceM >= 1000) {

@@ -17,7 +17,7 @@ export const EN = {
   paceTrend: 'Average pace per workout', paceBest: 'Best: {pace}', wxNoData: 'Add the weather to a workout to see how you perform in it. Automatic weather needs the internet and comes later.',
   wxPaceLine: '{pace} in {n} workouts',
   wxCold: 'Cold (under 10°)', wxCool: 'Cool (10-18°)', wxMild: 'Mild (18-26°)', wxHot: 'Hot (26°+)', wxRain: 'Rain', wxNone: 'No weather',
-  wxClear: 'Clear', wxCloudy: 'Cloudy', wxWindy: 'Windy', wxTemp: 'Temperature (°C)', wxCond: 'Conditions', wxSave: 'Save weather', wxTitle: 'Weather during the workout', wxSaved: 'Weather saved',
+  wxClear: 'Clear', wxCloudy: 'Cloudy', wxWindy: 'Windy', wxTemp: 'Temperature (°C)', wxCond: 'Conditions', wxSave: 'Save weather', wxTitle: 'Weather during the workout', wxSaved: 'Weather saved', wxNeedTemp: 'Enter the temperature first',
   recLongest: 'Longest', recFastest: 'Fastest average pace', recBestKm: 'Fastest kilometre', recNone: 'Your bests will appear after your first workouts.',
   // alerts
   alertsTitle: 'Alerts', alertsEmpty: 'No alerts. Good.', markRead: 'Mark all read', clearAll: 'Clear all', applyBar: 'Raise the bar gently to {n} min', barApplied: 'Weekly bar set to {n} min', details: 'Details', headsUp: 'Heads-up',
@@ -60,7 +60,7 @@ export const HE = {
   paceTrend: 'קצב ממוצע לכל אימון', paceBest: 'הטוב ביותר: {pace}', wxNoData: 'הוסיפו את מזג האוויר לאימון כדי לראות איך אתם מתפקדים בו. מזג אוויר אוטומטי דורש אינטרנט ויגיע בהמשך.',
   wxPaceLine: '{pace} ב-{n} אימונים',
   wxCold: 'קר (מתחת ל-10°)', wxCool: 'קריר (10-18°)', wxMild: 'נעים (18-26°)', wxHot: 'חם (26° ומעלה)', wxRain: 'גשם', wxNone: 'ללא מזג אוויר',
-  wxClear: 'בהיר', wxCloudy: 'מעונן', wxWindy: 'רוחות', wxTemp: 'טמפרטורה (°C)', wxCond: 'תנאים', wxSave: 'שמירת מזג האוויר', wxTitle: 'מזג האוויר בזמן האימון', wxSaved: 'מזג האוויר נשמר',
+  wxClear: 'בהיר', wxCloudy: 'מעונן', wxWindy: 'רוחות', wxTemp: 'טמפרטורה (°C)', wxCond: 'תנאים', wxSave: 'שמירת מזג האוויר', wxTitle: 'מזג האוויר בזמן האימון', wxSaved: 'מזג האוויר נשמר', wxNeedTemp: 'הזינו קודם את הטמפרטורה',
   recLongest: 'הארוך ביותר', recFastest: 'הקצב הממוצע המהיר ביותר', recBestKm: 'הקילומטר המהיר ביותר', recNone: 'השיאים שלך יופיעו אחרי האימונים הראשונים.',
   alertsTitle: 'התראות', alertsEmpty: 'אין התראות. מצוין.', markRead: 'סימון הכול כנקרא', clearAll: 'מחיקת הכול', applyBar: 'העלאה מתונה של הסרגל ל-{n} דק׳', barApplied: 'הסרגל השבועי נקבע ל-{n} דק׳', details: 'פירוט', headsUp: 'שימו לב',
   why: 'מה קרה', risk: 'למה זה חשוב', tip: 'מה כדאי לעשות',

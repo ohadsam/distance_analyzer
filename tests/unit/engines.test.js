@@ -67,6 +67,7 @@ test('effort: one huge week cannot drag the bar up (median)', () => {
 test('effort: a much longer run raises a notice with a gentle new target; a normal run does not', () => {
   const before = history(4, 5, 30);
   assert.equal(checkWorkout(wk(0, 5.5, 33, 'run'), before, 40, NOW), null);
+  assert.equal(checkWorkout(wk(0, 2, 20, 'walk'), history(4, 5, 30).map((x) => ({ ...x, startedAt: x.startedAt - 60 * 86400000 })), 40, NOW), null, 'after a long break there is nothing recent to compare with (no false alarm)');
   const c = checkWorkout(wk(0, 12, 70, 'run'), before, 40, NOW); assert.equal(c.id, 'long'); assert.ok(c.params.ratio >= 200 && c.level === 'warn');
   const plan = weeklyTarget(before, 40, NOW).minutes; assert.ok(c.newTarget > plan && c.newTarget <= Math.round(plan * 1.1) + 1, `new ${c.newTarget} vs ${plan}`);
   assert.equal(checkWorkout(wk(0, 12, 70, 'run'), before.slice(0, 2), 40, NOW), null, 'needs a real history');
@@ -105,4 +106,12 @@ test('search: Hebrew and English, vowel marks, final letters, quotes; ranks titl
   const idx = buildIndex([{ id: 1, type: 'setting', title: 'Breathing pattern', text: 'דפוס נשימה breath' }, { id: 2, type: 'workout', title: 'Run 5.20 km', text: 'ריצה run pace', ts: 5 }, { id: 3, type: 'setting', title: 'Pace alerts', text: '' }]);
   assert.deepEqual(search(idx, 'נשימה').map((x) => x.id), [1]); assert.deepEqual(search(idx, 'pace').map((x) => x.id), [3, 2]); assert.deepEqual(search(idx, 'run 5.2').map((x) => x.id), [2]);
   assert.deepEqual(search(idx, '   '), []); assert.deepEqual(search(idx, 'zzz'), []); assert.deepEqual(search(idx, 'breath pat').map((x) => x.id), [1]);
+});
+
+test('regression: a low-activity person gets a bar that follows them (not 4.5x), the ceiling raise is not offered, smart hours stay inside one day', () => {
+  const light = []; for (let n = 1; n <= 4; n++) light.push(inWeek(n, 2, 2, 10, 'walk')); // ~ 10 effort min a week
+  assert.equal(weeklyTarget(light, 40, NOW).minutes, 30, 'minimum bar, not 90');
+  const atCeiling = history(4, 12, 75); const w = wk(0, 30, 200, 'run'); const c = checkWorkout(w, atCeiling, 40, NOW); assert.ok(c); assert.ok(c.newTarget === 0 || c.newTarget > c.plan, 'never a no-op raise');
+  const s = sanitizeSmart({ on: true, fromHour: 22, toHour: 6 }); assert.ok(s.toHour > s.fromHour);
+  assert.equal(weeklyTarget(history(4, 4, 30), 40, NOW, { week: weekStart(NOW), minutes: 200 }).minutes, 200, 'override honoured'); assert.equal(weeklyTarget(history(4, 4, 30), 40, NOW, { week: weekStart(NOW) - 7 * DAY, minutes: 200 }).overridden, false, 'an old override expires');
 });

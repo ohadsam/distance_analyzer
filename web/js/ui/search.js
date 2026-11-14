@@ -6,7 +6,7 @@ import { buildIndex, search } from '../search.js';
 import { listWorkouts, getPref } from '../store.js';
 import { alertStore } from '../alerts.js';
 import { fmtKm, fmtDate, workoutText } from '../format.js';
-import { WIDGETS } from './dashboard.js';
+import { WIDGETS, W_KEY } from './dashboard.js';
 
 const both = (k) => `${STR.en[k]} ${STR.he[k]}`;
 // Settings and screens that can be found: [id, i18n key of the title, extra keywords (en + he), anchor].
@@ -17,7 +17,6 @@ const SETTINGS = [
   ['s-effort', 'effortAlerts', 'bar deviation alert סרגל מאמצים חריגה התראה', 'settings'], ['s-smart', 'remSmart', 'reminders nudge inactive תזכורות חכמות חוסר תנועה', 'settings'], ['s-rem', 'remTitle', 'reminder walk move תזכורת הליכה תנועה', 'settings'],
 ];
 const SCREENS = [['', 'dashboard', 'home main בית ראשי'], ['history', 'history', 'workouts log אימונים יומן'], ['alerts', 'alertsTitle', 'notifications inbox התראות'], ['settings', 'settings', 'preferences הגדרות'], ['workout/run', 'startRun', 'record gps ריצה הקלטה'], ['workout/walk', 'startWalk', 'record gps הליכה הקלטה']];
-const W_KEY = { effort: 'wEffort', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
 const TYPE_KEY = { setting: 'typeSetting', screen: 'typeScreen', widget: 'typeWidget', workout: 'typeWorkout', alert: 'typeAlert' };
 const TYPE_ICON = { setting: 'settings', screen: 'home', widget: 'chart', workout: 'run', alert: 'bell' };
 
@@ -26,7 +25,7 @@ export async function buildItems() {
   for (const [id, key, words] of SCREENS) items.push({ id: `screen:${id}`, type: 'screen', title: t(key), text: `${both(key)} ${words}`, href: `#/${id}` });
   for (const [id, key, words] of SETTINGS) items.push({ id: `set:${id}`, type: 'setting', title: t(key), text: `${both(key)} ${words}`, href: `#/settings/${id}` });
   for (const id of WIDGETS) items.push({ id: `w:${id}`, type: 'widget', title: t(W_KEY[id]), text: both(W_KEY[id]), href: `#/d/${id}` });
-  for (const w of (await listWorkouts()).slice(0, 400)) items.push({ id: `wk:${w.startedAt}`, type: 'workout', title: `${t(w.kind)} · ${fmtKm(w.distanceM)} · ${fmtDate(w.startedAt, getLang())}`, text: workoutText(w), href: `#/w/${w.startedAt}`, ts: w.startedAt });
+  for (const w of (await listWorkouts({ points: false })).slice(0, 400)) items.push({ id: `wk:${w.startedAt}`, type: 'workout', title: `${t(w.kind)} · ${fmtKm(w.distanceM)} · ${fmtDate(w.startedAt, getLang())}`, text: workoutText(w), href: `#/w/${w.startedAt}`, ts: w.startedAt });
   for (const a of alertStore.load()) items.push({ id: `al:${a.id}`, type: 'alert', title: t(a.title, a.params), text: `${both(a.title)} ${a.lines.map(both).join(' ')}`, href: '#/alerts', ts: a.ts });
   return items;
 }

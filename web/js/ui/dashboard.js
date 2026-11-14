@@ -14,7 +14,7 @@ import { workoutRow } from './home.js';
 
 export const WIDGETS = ['effort', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
 const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
-const W_KEY = { effort: 'wEffort', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
+export const W_KEY = { effort: 'wEffort', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 export function loadLayout() {
@@ -30,7 +30,7 @@ const saveFilter = (f) => setJson('dashF', f);
 
 /** Everything the widgets need, computed once per draw. */
 export async function loadContext(now = Date.now()) {
-  const all = await listWorkouts(), prof = profile(), f = loadFilter(), ov = getJson('barOv', null);
+  const all = await listWorkouts({ points: false }), prof = profile(), f = loadFilter(), ov = getJson('barOv', null);
   const rows = filterWorkouts(all, { since: f.days ? now - f.days * DAY : 0, kind: f.kind, weather: f.weather, text: f.text }, workoutText);
   return { all, rows, f, now, prof, ov, plan: weeklyTarget(all, prof.age, now, ov), status: weekStatus(all, prof.age, now, ov), steps: stepSeries(all, 14, now, prof.heightCm), alerts: alertStore.load() };
 }
@@ -70,7 +70,7 @@ export const W = {
   },
   weather: {
     summary: (c) => { const r = paceByWeather(c.rows); return r.length ? h('div', { class: 'rows flat' }, r.map((x) => row(bucketLabel(x.bucket), t('wxPaceLine', { pace: fmtPaceUnit(x.paceSec), n: x.n })))) : h('p', { class: 'note' }, t('wxNoData')); },
-    detail: (c) => { const r = paceByWeather(c.rows); return [r.length ? barChart(r.map((x) => ({ v: Math.max(0, 600 - x.paceSec), label: bucketLabel(x.bucket).split(' ')[0] }))) : null, r.length ? h('div', { class: 'rows' }, r.map((x) => row(bucketLabel(x.bucket), t('wxPaceLine', { pace: fmtPaceUnit(x.paceSec), n: x.n })))) : h('p', { class: 'note' }, t('wxNoData'))]; },
+    detail: (c) => { const r = paceByWeather(c.rows); return [r.length ? barChart(r.map((x) => ({ v: Math.max(...r.map((y) => y.paceSec)) * 1.1 - x.paceSec, label: bucketLabel(x.bucket).split(' ')[0] }))) /* taller = faster, scaled from the data */ : null, r.length ? h('div', { class: 'rows' }, r.map((x) => row(bucketLabel(x.bucket), t('wxPaceLine', { pace: fmtPaceUnit(x.paceSec), n: x.n })))) : h('p', { class: 'note' }, t('wxNoData'))]; },
   },
   records: {
     summary: (c) => { const pb = personalBests(c.rows); return pb.longest ? h('div', { class: 'rows flat' }, row(t('recLongest'), fmtKm(pb.longest.distanceM)), pb.fastest ? row(t('recFastest'), fmtPaceUnit(paceSec(pb.fastest))) : null, pb.bestKm ? row(t('recBestKm'), fmtClock(pb.bestKm.ms)) : null) : h('p', { class: 'note' }, t('recNone')); },
@@ -93,11 +93,12 @@ function filterBar(c, redraw) {
 }
 
 export function renderDashboard() {
-  const el = h('section', { class: 'dash' }), resume = active.load();
+  const el = h('section', { class: 'dash' });
   let editing = false, seq = 0;
-  const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!resume) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, icon(kind, 36), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
   async function draw() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return; // only the newest draw may paint (fast taps start several)
+    const resume = active.load(); // read on every draw: a discard must show at once
+    const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!active.load()) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, icon(kind, 36), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
     const layout = loadLayout();
     const change = (fn) => { const L = loadLayout(); fn(L); setJson('dash', L); draw(); }; // always from the saved layout, so a fast second tap never works on a stale copy
     const move = (id, d) => change((L) => { const i = L.order.indexOf(id), j = i + d; if (j >= 0 && j < L.order.length) [L.order[i], L.order[j]] = [L.order[j], L.order[i]]; });

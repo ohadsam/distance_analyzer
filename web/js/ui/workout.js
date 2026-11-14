@@ -77,8 +77,8 @@ export function renderWorkout(kind) {
     if (getPref('effortAlerts', '1') !== '1') return;
     try {
       const rows = await listWorkouts(), rec = rows.find((r) => r.startedAt === w.startedAt); if (!rec) return;
-      const c = checkWorkout(rec, rows.filter((r) => r.startedAt !== rec.startedAt), profile().age, w.endedAt);
-      if (c) headsUp = pushAlert({ id: `eff-${rec.startedAt}`, kind: 'effort', level: c.level, title: `eff_${c.id}_title`, lines: [`eff_${c.id}_what`, `eff_${c.id}_risk`, `eff_${c.id}_tip`], params: { ...c.params, plan: c.plan, newTarget: c.newTarget }, href: '#/alerts' });
+      const c = checkWorkout(rec, rows.filter((r) => r.startedAt !== rec.startedAt), profile().age, w.endedAt, getJson('barOv', null));
+      if (c) headsUp = pushAlert({ id: `eff-${rec.startedAt}`, kind: 'effort', level: c.level, title: `eff_${c.id}_title`, lines: [`eff_${c.id}_what`, `eff_${c.id}_risk`, `eff_${c.id}_tip`], params: { ...c.params, plan: c.plan, ...(c.newTarget ? { newTarget: c.newTarget } : {}) }, href: '#/alerts' });
     } catch { /* the workout is saved either way */ }
   }
 
