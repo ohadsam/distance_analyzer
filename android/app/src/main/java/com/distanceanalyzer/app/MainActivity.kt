@@ -1,8 +1,14 @@
 package com.distanceanalyzer.app
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.view.WindowManager
+import android.webkit.GeolocationPermissions
+import android.webkit.WebChromeClient
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -11,6 +17,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.webkit.WebViewAssetLoader
 import org.json.JSONObject
 
@@ -20,6 +27,14 @@ import org.json.JSONObject
  */
 class MainActivity : ComponentActivity() {
     private lateinit var web: WebView
+    private var geoPending: Pair<String, GeolocationPermissions.Callback>? = null
+
+    // The page asks for the location (workout tracking): only our own origin may, and Android's runtime permission is asked first.
+    private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res ->
+        val ok = res[Manifest.permission.ACCESS_FINE_LOCATION] == true || res[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        geoPending?.let { (origin, cb) -> cb.invoke(origin, ok, false) }; geoPending = null
+    }
+    private fun hasLocation() = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,7 +50,16 @@ class MainActivity : ComponentActivity() {
             cacheMode = WebSettings.LOAD_DEFAULT
             setSupportMultipleWindows(false)
         }
-        web.addJavascriptInterface(NativeBridge(), "DistanceNative")
+        web.addJavascriptInterface(NativeBridge(this), "DistanceNative")
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
+                runOnUiThread {
+                    if (Uri.parse(origin).host != HOST) { callback.invoke(origin, false, false); return@runOnUiThread }
+                    if (hasLocation()) callback.invoke(origin, true, false)
+                    else { geoPending?.let { (o, cb) -> cb.invoke(o, false, false) }; geoPending = origin to callback; locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)) }
+                }
+            }
+        }
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? = loader.shouldInterceptRequest(request.url)
 
@@ -58,6 +82,11 @@ class MainActivity : ComponentActivity() {
     override fun onResume() { super.onResume(); web.onResume() }
     override fun onPause() { web.onPause(); super.onPause() }
     override fun onDestroy() { web.destroy(); super.onDestroy() }
+
+    /** Keeps the screen on during a workout (the web Wake Lock API is not reliable in every WebView). */
+    fun setKeepAwake(on: Boolean) = runOnUiThread {
+        if (on) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
 
     /** Native -> JS event: the page listens with `onNativeEvent` (js/native.js). */
     fun deliver(event: JSONObject) {

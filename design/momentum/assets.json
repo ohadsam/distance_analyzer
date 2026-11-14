@@ -1,0 +1,540 @@
+{
+  "assets": {
+    "ui-home": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 11 12 3 21 11 M5 10v10h5v-6h4v6h5V10\"/></svg>",
+    "ui-activity": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12h4l3-7 4 14 3-7h4\"/></svg>",
+    "ui-route": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"5\" cy=\"5\" r=\"2\"/><circle cx=\"19\" cy=\"19\" r=\"2\"/><path d=\"M7 5h8a4 4 0 0 1 0 8H9a3 3 0 0 0 0 6h8\"/></svg>",
+    "ui-walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"13\" cy=\"4\" r=\"2\"/><path d=\"m12 7-3 5-4 2m7-7 4 5h4m-8-5-1 8-5 6m5-6 5 6\"/></svg>",
+    "ui-run": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"16\" cy=\"4\" r=\"2\"/><path d=\"m13 7-5 2-4 5m9-7 4 5h4m-8-5-4 8 5 2-2 5m-3-7-6 5\"/></svg>",
+    "ui-play": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m8 5 12 7-12 7Z\"/></svg>",
+    "ui-pause": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 5v14M15 5v14\"/></svg>",
+    "ui-stop": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"6\" y=\"6\" width=\"12\" height=\"12\" rx=\"2\"/></svg>",
+    "ui-check": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 12 4 4 10-10\"/></svg>",
+    "ui-close": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m6 6 12 12M18 6 6 18\"/></svg>",
+    "ui-plus": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>",
+    "ui-minus": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/></svg>",
+    "ui-back": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m14 5-7 7 7 7\"/></svg>",
+    "ui-forward": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m10 5 7 7-7 7\"/></svg>",
+    "ui-up": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 15 7-7 7 7\"/></svg>",
+    "ui-down": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m5 9 7 7 7-7\"/></svg>",
+    "ui-search": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"10\" cy=\"10\" r=\"6\"/><path d=\"m15 15 5 5\"/></svg>",
+    "ui-settings": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"m10 3 4 0 1 3 3 1 3 3-2 3 0 3-3 3-3-1-3 3-3-3-3-1 0-4-2-3 3-3 3-1Z\"/></svg>",
+    "ui-profile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"7\" r=\"4\"/><path d=\"M4 21v-2a8 8 0 0 1 16 0v2\"/></svg>",
+    "ui-calendar": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M7 3v4m10-4v4M3 10h18\"/></svg>",
+    "ui-clock": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 6v6l4 2\"/></svg>",
+    "ui-distance": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 17 17 3l4 4L7 21Z M8 12l3 3m1-7 3 3\"/></svg>",
+    "ui-pace": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 19a9 9 0 1 1 16 0M12 12l5-5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></svg>",
+    "ui-heart": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 20 4 12C-1 5 8 1 12 7c4-6 13-2 8 5Z\"/></svg>",
+    "ui-steps": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 3c-3 0-4 5-2 8l3 1 2-4c1-3-1-5-3-5ZM16 12c-3 0-4 5-2 8l3 1 2-4c1-3-1-5-3-5Z\"/></svg>",
+    "ui-map": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16M15 5v16\"/></svg>",
+    "ui-pin": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 21s-7-7-7-12a7 7 0 0 1 14 0c0 5-7 12-7 12Z\"/><circle cx=\"12\" cy=\"9\" r=\"2\"/></svg>",
+    "ui-gps": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"7\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M12 2v3m0 14v3M2 12h3m14 0h3\"/></svg>",
+    "ui-chart": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 3v17h17M8 16v-4m5 4V8m5 8V5\"/></svg>",
+    "ui-history": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 1 3 7M3 5v7h7m2-5v5l4 2\"/></svg>",
+    "ui-trophy": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 3h10v7a5 5 0 0 1-10 0ZM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4M12 15v5m-5 1h10\"/></svg>",
+    "ui-medal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"15\" r=\"6\"/><path d=\"m7 10-3-7h6l2 6 2-6h6l-3 7\"/></svg>",
+    "ui-star": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m12 3 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z\"/></svg>",
+    "ui-bell": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 17h14l-2-4V8a5 5 0 0 0-10 0v5Zm5 3h4\"/></svg>",
+    "ui-sun": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2\"/></svg>",
+    "ui-moon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z\"/></svg>",
+    "ui-cloud": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 18a4 4 0 0 1-1-8 6 6 0 0 1 12-1 5 5 0 0 1 1 9Z\"/></svg>",
+    "ui-rain": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 14a4 4 0 0 1-1-8 6 6 0 0 1 12-1 5 5 0 0 1 1 9ZM8 17l-2 4m7-4-2 4m7-4-2 4\"/></svg>",
+    "ui-wind": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 8h13a3 3 0 1 0-3-3M3 12h17a2 2 0 1 1-2 2M3 16h9a3 3 0 1 1-3 3\"/></svg>",
+    "ui-share": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"5\" cy=\"12\" r=\"2\"/><circle cx=\"19\" cy=\"5\" r=\"2\"/><circle cx=\"19\" cy=\"19\" r=\"2\"/><path d=\"m7 11 10-5M7 13l10 5\"/></svg>",
+    "ui-edit": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m4 16 12-12 4 4L8 20H4Zm10-10 4 4\"/></svg>",
+    "ui-trash": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h16M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7m4-7v7\"/></svg>",
+    "ui-lock": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/></svg>",
+    "ui-info": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 11v6m0-10v.1\"/></svg>",
+    "ui-help": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9 8a3 3 0 1 1 4 3l-1 2m0 4v.1\"/></svg>",
+    "ui-refresh": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 10a8 8 0 1 0-2 8m2-14v6h-6\"/></svg>",
+    "ui-filter": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5h18l-7 8v6l-4 2v-8Z\"/></svg>",
+    "ui-more": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"5\" cy=\"12\" r=\"1\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/></svg>",
+    "ui-volume": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 9h4l5-5v16l-5-5H3Zm13-1a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14\"/></svg>",
+    "ui-battery": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"7\" width=\"16\" height=\"10\" rx=\"2\"/><path d=\"M21 10v4M6 10v4m3-4v4\"/></svg>",
+    "ui-download": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v12m-5-5 5 5 5-5M4 17v4h16v-4\"/></svg>",
+    "ui-flag": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 21V3m0 1h13l-3 4 3 4H5\"/></svg>",
+    "ui-target": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></svg>",
+    "ui-shoe": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 14V8l5 3 4 4 7 1 2 2v3H3Z M8 12l2-2m1 5 2-2\"/></svg>",
+    "ui-water": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3S5 11 5 15a7 7 0 0 0 14 0c0-4-7-12-7-12Z\"/></svg>",
+    "brand-mark": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 44C24 44 26 20 38 20h11M37 44h12M44 13l7 7-7 7\"/><circle cx=\"15\" cy=\"44\" r=\"2\"/></svg>",
+    "app-icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"64\" height=\"64\" rx=\"15\" fill=\"#006B60\" stroke=\"none\"/><path d=\"M15 44C24 44 26 20 38 20h11M37 44h12M44 13l7 7-7 7\"/><circle cx=\"15\" cy=\"44\" r=\"2\"/></svg>",
+    "art-walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><circle cx=\"13\" cy=\"4\" r=\"2\"/><path d=\"m12 7-3 5-4 2m7-7 4 5h4m-8-5-1 8-5 6m5-6 5 6\"/></g></svg>",
+    "art-run": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><circle cx=\"16\" cy=\"4\" r=\"2\"/><path d=\"m13 7-5 2-4 5m9-7 4 5h4m-8-5-4 8 5 2-2 5m-3-7-6 5\"/></g></svg>",
+    "art-sun": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2\"/></g></svg>",
+    "art-moon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><path d=\"M20 15A9 9 0 0 1 9 4a9 9 0 1 0 11 11Z\"/></g></svg>",
+    "art-cloud": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><path d=\"M6 18a4 4 0 0 1-1-8 6 6 0 0 1 12-1 5 5 0 0 1 1 9Z\"/></g></svg>",
+    "art-rain": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><path d=\"M6 14a4 4 0 0 1-1-8 6 6 0 0 1 12-1 5 5 0 0 1 1 9ZM8 17l-2 4m7-4-2 4m7-4-2 4\"/></g></svg>",
+    "art-wind": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><path d=\"M3 8h13a3 3 0 1 0-3-3M3 12h17a2 2 0 1 1-2 2M3 16h9a3 3 0 1 1-3 3\"/></g></svg>",
+    "art-shoe": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><path d=\"M3 14V8l5 3 4 4 7 1 2 2v3H3Z M8 12l2-2m1 5 2-2\"/></g></svg>",
+    "art-water": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><path d=\"M12 3S5 11 5 15a7 7 0 0 0 14 0c0-4-7-12-7-12Z\"/></g></svg>",
+    "art-route": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"27\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(10 10) scale(1.83)\"><circle cx=\"5\" cy=\"5\" r=\"2\"/><circle cx=\"19\" cy=\"19\" r=\"2\"/><path d=\"M7 5h8a4 4 0 0 1 0 8H9a3 3 0 0 0 0 6h8\"/></g></svg>",
+    "widget-distance": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 80\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"1\" width=\"158\" height=\"78\" rx=\"14\" fill=\"#FFFFFF\" stroke=\"#697D8E\"/><g transform=\"translate(12 14) scale(1.3)\"><path d=\"M3 17 17 3l4 4L7 21Z M8 12l3 3m1-7 3 3\"/></g><path d=\"M12 62h136\" stroke=\"#B8C6D2\"/><path d=\"M12 62h85\" stroke=\"#006B60\" stroke-width=\"5\"/></svg>",
+    "widget-pace": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 80\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"1\" width=\"158\" height=\"78\" rx=\"14\" fill=\"#FFFFFF\" stroke=\"#697D8E\"/><g transform=\"translate(12 14) scale(1.3)\"><path d=\"M4 19a9 9 0 1 1 16 0M12 12l5-5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></g><path d=\"M12 62h136\" stroke=\"#B8C6D2\"/><path d=\"M12 62h85\" stroke=\"#006B60\" stroke-width=\"5\"/></svg>",
+    "widget-steps": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 80\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"1\" width=\"158\" height=\"78\" rx=\"14\" fill=\"#FFFFFF\" stroke=\"#697D8E\"/><g transform=\"translate(12 14) scale(1.3)\"><path d=\"M7 3c-3 0-4 5-2 8l3 1 2-4c1-3-1-5-3-5ZM16 12c-3 0-4 5-2 8l3 1 2-4c1-3-1-5-3-5Z\"/></g><path d=\"M12 62h136\" stroke=\"#B8C6D2\"/><path d=\"M12 62h85\" stroke=\"#006B60\" stroke-width=\"5\"/></svg>",
+    "widget-clock": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 80\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"1\" width=\"158\" height=\"78\" rx=\"14\" fill=\"#FFFFFF\" stroke=\"#697D8E\"/><g transform=\"translate(12 14) scale(1.3)\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 6v6l4 2\"/></g><path d=\"M12 62h136\" stroke=\"#B8C6D2\"/><path d=\"M12 62h85\" stroke=\"#006B60\" stroke-width=\"5\"/></svg>",
+    "widget-heart": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 80\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"1\" width=\"158\" height=\"78\" rx=\"14\" fill=\"#FFFFFF\" stroke=\"#697D8E\"/><g transform=\"translate(12 14) scale(1.3)\"><path d=\"M12 20 4 12C-1 5 8 1 12 7c4-6 13-2 8 5Z\"/></g><path d=\"M12 62h136\" stroke=\"#B8C6D2\"/><path d=\"M12 62h85\" stroke=\"#006B60\" stroke-width=\"5\"/></svg>",
+    "widget-activity": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 80\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"1\" y=\"1\" width=\"158\" height=\"78\" rx=\"14\" fill=\"#FFFFFF\" stroke=\"#697D8E\"/><g transform=\"translate(12 14) scale(1.3)\"><path d=\"M3 12h4l3-7 4 14 3-7h4\"/></g><path d=\"M12 62h136\" stroke=\"#B8C6D2\"/><path d=\"M12 62h85\" stroke=\"#006B60\" stroke-width=\"5\"/></svg>",
+    "badge-star": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><path d=\"m12 3 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z\"/></g></svg>",
+    "badge-trophy": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><path d=\"M7 3h10v7a5 5 0 0 1-10 0ZM7 5H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4M12 15v5m-5 1h10\"/></g></svg>",
+    "badge-medal": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><circle cx=\"12\" cy=\"15\" r=\"6\"/><path d=\"m7 10-3-7h6l2 6 2-6h6l-3 7\"/></g></svg>",
+    "badge-flag": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><path d=\"M5 21V3m0 1h13l-3 4 3 4H5\"/></g></svg>",
+    "badge-target": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"1\"/></g></svg>",
+    "badge-steps": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><path d=\"M7 3c-3 0-4 5-2 8l3 1 2-4c1-3-1-5-3-5ZM16 12c-3 0-4 5-2 8l3 1 2-4c1-3-1-5-3-5Z\"/></g></svg>",
+    "badge-run": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><circle cx=\"16\" cy=\"4\" r=\"2\"/><path d=\"m13 7-5 2-4 5m9-7 4 5h4m-8-5-4 8 5 2-2 5m-3-7-6 5\"/></g></svg>",
+    "badge-walk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 64 64\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"32\" cy=\"32\" r=\"28\" fill=\"#9CE5D6\"/><circle cx=\"32\" cy=\"32\" r=\"23\" stroke-dasharray=\"2 4\"/><g transform=\"translate(12 12) scale(1.67)\"><circle cx=\"13\" cy=\"4\" r=\"2\"/><path d=\"m12 7-3 5-4 2m7-7 4 5h4m-8-5-1 8-5 6m5-6 5 6\"/></g></svg>",
+    "state-empty": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 140\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"80\" cy=\"60\" r=\"45\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(44 24) scale(3)\"><circle cx=\"5\" cy=\"5\" r=\"2\"/><circle cx=\"19\" cy=\"19\" r=\"2\"/><path d=\"M7 5h8a4 4 0 0 1 0 8H9a3 3 0 0 0 0 6h8\"/></g><path d=\"M20 115h120\" stroke-dasharray=\"3 8\"/></svg>",
+    "state-offline": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 140\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"80\" cy=\"60\" r=\"45\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(44 24) scale(3)\"><path d=\"M6 18a4 4 0 0 1-1-8 6 6 0 0 1 12-1 5 5 0 0 1 1 9Z\"/></g><path d=\"M20 115h120\" stroke-dasharray=\"3 8\"/></svg>",
+    "state-complete": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 140\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"80\" cy=\"60\" r=\"45\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(44 24) scale(3)\"><path d=\"m5 12 4 4 10-10\"/></g><path d=\"M20 115h120\" stroke-dasharray=\"3 8\"/></svg>",
+    "state-permission": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 160 140\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"80\" cy=\"60\" r=\"45\" fill=\"#9CE5D6\" stroke=\"none\"/><g transform=\"translate(44 24) scale(3)\"><rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/></g><path d=\"M20 115h120\" stroke-dasharray=\"3 8\"/></svg>",
+    "bg-home": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 220\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M-20 150Q70 30 160 130T340 110V220H-20Z\" fill=\"#9CE5D6\" stroke=\"none\" opacity=\".35\"/><path d=\"M-20 170Q70 50 160 150T340 130\" stroke=\"#006B60\" opacity=\".25\" stroke-width=\"3\"/></svg>",
+    "bg-activity": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 220\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M-20 150Q70 30 160 130T340 110V220H-20Z\" fill=\"#9CE5D6\" stroke=\"none\" opacity=\".35\"/><path d=\"M-20 170Q70 50 160 150T340 130\" stroke=\"#006B60\" opacity=\".25\" stroke-width=\"3\"/></svg>",
+    "bg-records": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 220\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M-20 150Q70 30 160 130T340 110V220H-20Z\" fill=\"#9CE5D6\" stroke=\"none\" opacity=\".35\"/><path d=\"M-20 170Q70 50 160 150T340 130\" stroke=\"#006B60\" opacity=\".25\" stroke-width=\"3\"/></svg>",
+    "bg-weather": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 320 220\" fill=\"none\" stroke=\"#006B60\" stroke-width=\"1\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M-20 150Q70 30 160 130T340 110V220H-20Z\" fill=\"#9CE5D6\" stroke=\"none\" opacity=\".35\"/><path d=\"M-20 170Q70 50 160 150T340 130\" stroke=\"#006B60\" opacity=\".25\" stroke-width=\"3\"/></svg>"
+  },
+  "metadata": {
+    "ui-home": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-activity": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-route": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-walk": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-run": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-play": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-pause": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-stop": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-check": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-close": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-plus": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-minus": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-back": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": true
+    },
+    "ui-forward": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": true
+    },
+    "ui-up": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-down": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-search": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-settings": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-profile": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-calendar": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-clock": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-distance": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-pace": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-heart": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-steps": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-map": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-pin": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-gps": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-chart": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-history": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-trophy": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-medal": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-star": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-bell": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-sun": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-moon": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-cloud": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-rain": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-wind": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-share": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-edit": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-trash": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-lock": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-info": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-help": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-refresh": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-filter": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-more": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-volume": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-battery": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-download": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-flag": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-target": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-shoe": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "ui-water": {
+      "kind": "icon",
+      "viewBox": "0 0 24 24",
+      "mirrorRTL": false
+    },
+    "brand-mark": {
+      "kind": "brand",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "app-icon": {
+      "kind": "brand",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-walk": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-run": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-sun": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-moon": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-cloud": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-rain": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-wind": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-shoe": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-water": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "art-route": {
+      "kind": "art",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "widget-distance": {
+      "kind": "widget-shell",
+      "viewBox": "0 0 160 80",
+      "mirrorRTL": false
+    },
+    "widget-pace": {
+      "kind": "widget-shell",
+      "viewBox": "0 0 160 80",
+      "mirrorRTL": false
+    },
+    "widget-steps": {
+      "kind": "widget-shell",
+      "viewBox": "0 0 160 80",
+      "mirrorRTL": false
+    },
+    "widget-clock": {
+      "kind": "widget-shell",
+      "viewBox": "0 0 160 80",
+      "mirrorRTL": false
+    },
+    "widget-heart": {
+      "kind": "widget-shell",
+      "viewBox": "0 0 160 80",
+      "mirrorRTL": false
+    },
+    "widget-activity": {
+      "kind": "widget-shell",
+      "viewBox": "0 0 160 80",
+      "mirrorRTL": false
+    },
+    "badge-star": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-trophy": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-medal": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-flag": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-target": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-steps": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-run": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "badge-walk": {
+      "kind": "badge",
+      "viewBox": "0 0 64 64",
+      "mirrorRTL": false
+    },
+    "state-empty": {
+      "kind": "illustration",
+      "viewBox": "0 0 160 140",
+      "mirrorRTL": false
+    },
+    "state-offline": {
+      "kind": "illustration",
+      "viewBox": "0 0 160 140",
+      "mirrorRTL": false
+    },
+    "state-complete": {
+      "kind": "illustration",
+      "viewBox": "0 0 160 140",
+      "mirrorRTL": false
+    },
+    "state-permission": {
+      "kind": "illustration",
+      "viewBox": "0 0 160 140",
+      "mirrorRTL": false
+    },
+    "bg-home": {
+      "kind": "background",
+      "viewBox": "0 0 320 220",
+      "mirrorRTL": false
+    },
+    "bg-activity": {
+      "kind": "background",
+      "viewBox": "0 0 320 220",
+      "mirrorRTL": false
+    },
+    "bg-records": {
+      "kind": "background",
+      "viewBox": "0 0 320 220",
+      "mirrorRTL": false
+    },
+    "bg-weather": {
+      "kind": "background",
+      "viewBox": "0 0 320 220",
+      "mirrorRTL": false
+    }
+  }
+}

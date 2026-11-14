@@ -1,23 +1,71 @@
-/* Distance Analyzer - design tokens first, logical properties everywhere so RTL (Hebrew) is just dir="rtl". */
-:root {
-  --bg: #f4fafb; --surface: #ffffff; --text: #12262b; --muted: #50666c; --line: #d3e4e8;
-  --brand: #0b7285; --brand-ink: #ffffff; --bad: #b42d2d; --radius: 16px; --shadow: 0 6px 24px rgba(11, 114, 133, .10);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
-}
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0e1a1d; --surface: #16272b; --text: #e9f5f7; --muted: #9db8be; --line: #28414a; --brand: #3bc0d8; --brand-ink: #06242b; --bad: #ff6b6b; --shadow: 0 6px 24px rgba(0,0,0,.4); } }
-:root[data-theme="dark"] { --bg: #0e1a1d; --surface: #16272b; --text: #e9f5f7; --muted: #9db8be; --line: #28414a; --brand: #3bc0d8; --brand-ink: #06242b; --bad: #ff6b6b; --shadow: 0 6px 24px rgba(0,0,0,.4); }
+/* Distance Analyzer - tokens come from css/packs.css (generated from design/momentum). Logical properties only, so RTL is just dir="rtl". */
+:root { --radius: 14px; --radius-sm: 8px; --shadow: 0 6px 24px rgb(0 0 0 / .08); font-family: "Noto Sans Hebrew", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--text); font-size: 1rem; line-height: 1.45; min-height: 100dvh; -webkit-tap-highlight-color: transparent; }
-main { max-width: 760px; margin-inline: auto; padding: 16px; padding-block-end: calc(24px + env(safe-area-inset-bottom)); outline: none; }
-h1 { font-size: 1.6rem; margin: .2em 0 .4em; }
-p { margin: .3em 0; } .note { color: var(--muted); font-size: .9rem; } [hidden] { display: none !important; }
-a { color: var(--brand); }
-.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; padding-block-start: calc(8px + env(safe-area-inset-top)); background: var(--surface); border-block-end: 1px solid var(--line); }
-.brand { font-weight: 700; color: var(--text); text-decoration: none; }
-.btn { display: inline-flex; align-items: center; min-block-size: 44px; padding-inline: 16px; border-radius: var(--radius); background: var(--brand); color: var(--brand-ink); text-decoration: none; font-weight: 600; }
-.field { display: grid; gap: 6px; margin-block: 12px; min-width: 0; }
-select, input { min-block-size: 44px; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding-inline: 12px; min-width: 0; }
-:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+body { margin: 0; background: var(--background); color: var(--text); font-size: 1rem; line-height: 1.5; min-height: 100dvh; -webkit-tap-highlight-color: transparent; font-variant-numeric: tabular-nums; }
+main { max-width: 640px; margin-inline: auto; padding: 16px; padding-block-end: calc(24px + env(safe-area-inset-bottom)); outline: none; }
+h1 { font-size: 1.5rem; line-height: 2rem; margin: .2em 0 .3em; } h2 { font-size: 1.05rem; margin: 1.4em 0 .5em; }
+p { margin: .3em 0; } .note { color: var(--muted); font-size: .9rem; } [hidden] { display: none !important; } .grow { flex: 1; min-width: 0; }
+a { color: var(--primary); } small { display: block; color: var(--muted); font-size: .85rem; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+main:focus-visible { outline: none; } /* main is only focused programmatically after navigation (screen readers) */
 .sr-only { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.ico { flex: none; display: block; }
+
+/* top bar */
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 8px 4px 16px; padding-inline: 16px 8px; padding-block-start: calc(4px + env(safe-area-inset-top)); background: var(--surface); border-block-end: 1px solid var(--outline); }
+body[data-view="workout"] .topbar { display: none; }
+.brand { font-weight: 700; color: var(--text); text-decoration: none; }
+.tabs { display: flex; } .tab { display: grid; place-items: center; inline-size: 48px; block-size: 48px; color: var(--text); border-radius: 50%; }
+
+/* buttons: 48 px minimum touch target */
+.btn, button.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 48px; padding-inline: 20px; border: 2px solid var(--primary); border-radius: var(--radius-sm); background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--primary); } .btn.danger { background: transparent; color: var(--danger); border-color: var(--danger); }
+button.round { display: grid; place-items: center; inline-size: 52px; block-size: 52px; border-radius: 50%; border: 2px solid var(--outline); background: var(--surface); color: var(--text); cursor: pointer; padding: 0; }
+button.round.on, button.round[aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+.field { display: grid; gap: 6px; margin-block: 12px; min-width: 0; }
+select, input { min-block-size: 48px; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--outline); border-radius: var(--radius-sm); padding-inline: 12px; min-width: 0; }
+input[type=range] { padding: 0; accent-color: var(--primary); }
+
+/* home */
+.starts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-block: 16px; }
+.start-card { display: grid; justify-items: center; gap: 10px; padding: 24px 12px; border-radius: var(--radius); background: var(--surface); border: 2px solid currentColor; text-decoration: none; min-block-size: 140px; align-content: center; }
+.start-card b { color: var(--text); } .start-card.walk { color: var(--walk); } .start-card.run { color: var(--run); }
+.card, .item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--outline); text-decoration: none; color: var(--text); min-block-size: 64px; }
+.card.resume { border-color: var(--primary); margin-block: 8px; }
+.list { display: grid; gap: 8px; } .link { display: inline-block; padding-block: 12px; }
+.kind { display: grid; place-items: center; inline-size: 40px; block-size: 40px; border-radius: 50%; } .kind.walk { color: var(--walk); } .kind.run { color: var(--run); }
+.rows { display: grid; gap: 1px; background: var(--outline); border: 1px solid var(--outline); border-radius: var(--radius-sm); overflow: hidden; margin-block: 12px; }
+.row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 16px; background: var(--surface); }
+.track { inline-size: 100%; max-block-size: 220px; background: var(--surface); border: 1px solid var(--outline); border-radius: var(--radius); }
+.track-line { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; } .track-start { fill: var(--walk); } .track-end { fill: var(--run); }
+
+/* workout mode: few things, big numbers */
+.workout { display: grid; grid-template-rows: auto 1fr; min-block-size: 100dvh; padding: 12px 16px; padding-block: calc(12px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-bottom)); max-inline-size: 640px; margin-inline: auto; }
+body[data-view="workout"] main { padding: 0; max-width: none; }
+.wk-top { display: flex; align-items: center; gap: 8px; } .wk { display: flex; flex-direction: column; gap: 16px; justify-content: space-between; }
+.chip { display: inline-flex; align-items: center; gap: 6px; min-block-size: 36px; padding-inline: 12px; border-radius: 99px; border: 1px solid var(--outline); background: var(--surface); font-size: .9rem; }
+.chip[data-gps="good"] { color: var(--success); } .chip[data-gps="denied"], .chip[data-gps="missing"] { color: var(--danger); } .chip[data-gps="weak"] { color: var(--warning); }
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-block-start: 8px; }
+.metric { padding: 12px 16px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--outline); } .metric.wide { grid-column: 1 / -1; }
+.cap { color: var(--muted); font-size: .9rem; } .val { font-size: 2.25rem; line-height: 2.5rem; font-weight: 700; } .metric.wide .val.v-time { font-size: 3.5rem; line-height: 4rem; }
+.controls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; justify-items: center; gap: 12px; }
+.controls > :first-child { justify-self: start; } .controls > :last-child { justify-self: end; }
+.big-btn { display: grid; justify-items: center; align-content: center; gap: 4px; inline-size: 120px; block-size: 120px; border-radius: 50%; border: 0; background: var(--primary); color: var(--on-primary); font: inherit; font-weight: 700; cursor: pointer; }
+.big-btn.is-pause { background: var(--surface); color: var(--text); border: 4px solid var(--primary); }
+.confirm { display: grid; gap: 10px; text-align: center; padding: 16px; border: 2px solid var(--primary); border-radius: var(--radius); background: var(--surface); }
+.lock { position: fixed; inset: 0; z-index: 20; display: grid; place-content: center; justify-items: center; gap: 24px; background: color-mix(in srgb, var(--background) 94%, transparent); }
+.lock-msg { display: grid; justify-items: center; gap: 8px; } .lock .btn { position: relative; overflow: hidden; } .lock .btn.holding { box-shadow: inset 0 0 0 100px color-mix(in srgb, var(--on-primary) 25%, transparent); }
+.summary { display: grid; gap: 12px; align-content: start; }
+
+/* rhythm coach: a calm pulse (beat) inside a slowly breathing circle (lungs). Only transform/opacity move. */
+.rhythm { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "art bpm adj" "art lab adj" "cue cue cue"; align-items: center; gap: 4px 16px; padding: 12px 16px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--outline); --beat: 0; --lung: .5; }
+.rhythm-art { grid-area: art; position: relative; inline-size: 96px; block-size: 96px; }
+.rhythm-art > span { position: absolute; inset: 0; border-radius: 50%; }
+.rhythm-lung { background: color-mix(in srgb, var(--primary) 18%, transparent); transform: scale(calc(.55 + .45 * var(--lung))); }
+.rhythm-ring { border: 5px solid var(--primary); transform: scale(calc(.5 + .12 * var(--beat))); opacity: calc(.55 + .45 * var(--beat)); z-index: 1; }
+.rhythm[data-state="listening"] .rhythm-ring { transform: scale(.5); opacity: .5; border-style: dotted; }
+.rhythm-bpm { grid-area: bpm; font-size: 2.5rem; line-height: 1; font-weight: 700; align-self: end; } .rhythm-label { grid-area: lab; color: var(--muted); align-self: start; }
+.rhythm-adjust { grid-area: adj; display: grid; gap: 6px; } .rhythm-cue { grid-area: cue; text-align: center; font-weight: 600; min-block-size: 1.5rem; }
+.rhythm[data-hint="fast"] .rhythm-label, .rhythm[data-hint="slow"] .rhythm-label { color: var(--warning); } .rhythm[data-hint="on"] .rhythm-label { color: var(--success); }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } .rhythm-ring, .rhythm-lung { transform: scale(.8); opacity: 1; } }

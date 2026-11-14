@@ -1,24 +1,33 @@
-// Entry point: language/theme, tiny hash router, registers the service worker. UI modules live in js/ui/.
+// Entry point: language/look, tiny hash router with per-view cleanup, service worker. UI modules live in js/ui/.
 import { setLang, t } from './i18n.js';
+import { getPref } from './store.js';
+import { icon } from './icons.js';
 import { renderHome } from './ui/home.js';
-import { renderSettings } from './ui/settings.js';
+import { renderSettings, applyLook } from './ui/settings.js';
+import { renderHistory, renderDetail } from './ui/history.js';
+import { renderWorkout } from './ui/workout.js';
 import { setChildren, h } from './util.js';
 
-const ROUTES = { '': renderHome, settings: renderSettings };
-
-export function getPref(key, fallback) { try { return localStorage.getItem(`da.${key}`) || fallback; } catch { return fallback; } }
-export function setPref(key, value) { try { localStorage.setItem(`da.${key}`, value); } catch { /* storage blocked: stays in memory only */ } }
+// route table: pattern -> view(param). Anything unknown falls back to Home.
+const ROUTES = [[/^settings$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)$/, renderWorkout], [/^$/, renderHome]];
+let current = null;
 
 function route() {
-  const name = location.hash.replace(/^#\/?/, '');
-  const view = ROUTES[name] || renderHome;
-  const main = document.getElementById('app');
-  setChildren(main, view());
-  setChildren(document.getElementById('topbar'), h('a', { href: '#/', class: 'brand' }, t('appName')), h('a', { href: '#/settings', class: 'btn' }, t('settings')));
-  document.title = t('appName');
+  current?.cleanup?.();
+  const path = location.hash.replace(/^#\/?/, '');
+  let view = renderHome, arg;
+  for (const [re, fn] of ROUTES) { const m = re.exec(path); if (m) { view = fn; arg = m[1]; break; } }
+  const workout = view === renderWorkout;
+  document.body.dataset.view = workout ? 'workout' : 'page';
+  current = view(arg);
+  setChildren(document.getElementById('app'), current);
+  setChildren(document.getElementById('topbar'), h('a', { href: '#/', class: 'brand' }, t('appName')),
+    h('nav', { class: 'tabs', 'aria-label': t('appName') }, h('a', { href: '#/history', class: 'tab', 'aria-label': t('history') }, icon('history', 22)), h('a', { href: '#/settings', class: 'tab', 'aria-label': t('settings') }, icon('settings', 22))));
+  document.title = t('appName'); document.getElementById('app').focus({ preventScroll: true });
 }
 
 setLang(getPref('lang', 'he'));
+applyLook();
 addEventListener('hashchange', route);
 route();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });

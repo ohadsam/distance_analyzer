@@ -29,3 +29,7 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 12 | Many widget types | 🟡 planned (phase 2, 9) |
 | 13 | Clean, simple, easy UI with comfortable buttons; Workout mode that reduces buttons to a minimum | 🟡 planned (phase 1, standing rule) |
 | 14 | Extra ideas proposed by Claude and implemented | 🟡 listed in ROADMAP phase 10, awaiting approval per item |
+| 15 | Smart metronome during a run: learns the cadence silently, then clicks at it with a steady, beautiful animation that helps hold rhythm and breathing | ✅ 0.2.0 (real-device tuning pending) |
+| 16 | Efficiency, security, performance, good-looking and simple UI/UX; code review and UI tests | 🟡 ongoing (0.2.0: review + e2e/axe done for what exists) |
+| 17 | Find a nice, cool name for the app and put it in the logo and the app | 🟡 owner is thinking; "Momentum" is only the design kit's working name |
+| 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |

@@ -2,7 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- No permissions yet: the app makes no network request. Every new permission needs a written reason here and in docs/ARCHITECTURE.md. -->
+    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. The app makes no network request (no INTERNET). -->
+    <!-- Workout tracking: the GPS position, read only while a workout is on screen (the page asks; MainActivity answers for our own origin only). -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
 

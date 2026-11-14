@@ -1,6 +1,6 @@
 {
   "name": "distance-analyzer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Distance Analyzer - PWA + Android shell",
@@ -10,7 +10,8 @@
     "e2e": "node tests/e2e/smoke.mjs",
     "serve": "node scripts/serve.mjs",
     "bump": "node scripts/bump-version.mjs",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "design": "node scripts/build-design.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.10.2",

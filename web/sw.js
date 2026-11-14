@@ -1,8 +1,8 @@
 // Offline-first service worker. VERSION is kept equal to version.json by scripts/bump-version.mjs (a unit test enforces it).
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
 const CACHE = `distance-analyzer-${VERSION}`;
-const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'version.json', 'icon.svg', 'css/app.css',
-  'js/app.js', 'js/theme-boot.js', 'js/util.js', 'js/i18n.js', 'js/native.js', 'js/ui/home.js', 'js/ui/settings.js',
+const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'version.json', 'icon.svg', 'css/packs.css', 'css/app.css',
+  'js/app.js', 'js/theme-boot.js', 'js/util.js', 'js/i18n.js', 'js/native.js', 'js/icons.js', 'js/iconData.js', 'js/geo.js', 'js/workout.js', 'js/metronome.js', 'js/cadence.js', 'js/audio.js', 'js/format.js', 'js/store.js', 'js/ui/home.js', 'js/ui/settings.js', 'js/ui/history.js', 'js/ui/workout.js', 'js/ui/rhythm.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });

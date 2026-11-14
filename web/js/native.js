@@ -6,6 +6,8 @@ const call = (name, ...args) => { try { return B?.[name]?.(...args); } catch (e)
 export const native = {
   available: !!B,
   version: () => call('appVersion'),
+  /** Keeps the screen on during a workout. */
+  keepAwake: (on) => call('keepAwake', !!on),
 };
 
 /** Native -> JS events: {type: ...}. */

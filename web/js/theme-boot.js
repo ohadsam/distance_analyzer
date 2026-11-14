@@ -4,5 +4,6 @@ try {
   const th = localStorage.getItem('da.theme'); if (th === 'light' || th === 'dark') document.documentElement.dataset.theme = th;
   let lg = localStorage.getItem('da.lang') || 'he';
   if (lg === 'auto') lg = /^(he|iw)\b/i.test(navigator.language || '') ? 'he' : 'en';
+  const pk = localStorage.getItem('da.pack'); if (pk && /^[a-z-]{3,20}$/.test(pk) && pk !== 'momentum') document.documentElement.dataset.pack = pk;
   document.documentElement.lang = lg; document.documentElement.dir = lg === 'he' ? 'rtl' : 'ltr';
 } catch { /* storage blocked: the static markup is already Hebrew/RTL */ }
