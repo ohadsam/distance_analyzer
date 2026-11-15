@@ -31,7 +31,7 @@ Root: `README.md` product page · `CLAUDE.md` pointer to this file · `package.j
 `.github/workflows/`: `ci.yml` (web checks, Android tests+lint+APK, release on main) · `pages.yml` (PWA deploy).
 `.claude/skills/release-checklist/SKILL.md`: the owner's rules and the ship checklist.
 `docs/`: `CONTEXT.md` this file · `ARCHITECTURE.md` · `TESTING.md` · `RELEASING.md` · `CHANGELOG.md` · `USER_GUIDE.md` · `REQUESTS.md` · `ROADMAP.md` · `DESIGN_LANGUAGE.md` · `PENDING_CHATGPT_PROMPTS.md` · `prompts/` (ChatGPT design prompts).
-`design/stepup/`: the ChatGPT design kit (svg/, tokens.json, assets.json, motion.json, BRAND.md, DESIGN.md, platform/ Android PNGs) - source of truth for look and brand.
+`design/stepup/`: the ChatGPT design kit (UI icons/art from the "premium" round; the brand-* files are still the first logo, to be replaced by round 4) (svg/, tokens.json, assets.json, motion.json, BRAND.md, DESIGN.md, platform/ Android PNGs) - source of truth for look and brand.
 `scripts/`: `build-design.mjs` (kit -> packs.css, iconData.js, brandData.js, web icon, Android launcher PNGs) · `make-icons.mjs` (PWA PNGs) · `bump-version.mjs` · `serve.mjs` (dev server, also used by e2e) · `static-checks.mjs` (syntax, banned APIs, CSP/SW consistency).
 `tests/unit/`: `routes.test.js` `reco.test.js` `cadence.test.js` `workout.test.js` `engines.test.js` `design.test.js` `core.test.js` `version.test.js` `docs.test.js` `_signal.js` (synthetic accelerometer) · `tests/e2e/smoke.mjs` (Playwright + axe).
 `web/` (the app): `index.html` `manifest.webmanifest` `sw.js` `version.json` `icon.svg` `icons/` `css/packs.css` (generated tokens) `css/app.css`.

@@ -19,6 +19,8 @@ test('generated design files are up to date (run: npm run design)', () => {
   execFileSync(process.execPath, ['scripts/build-design.mjs'], { stdio: 'pipe' });
   assert.deepEqual([readFileSync('web/css/packs.css', 'utf8'), readFileSync('web/js/iconData.js', 'utf8')], before);
 });
-test('icon data only uses safe drawing elements', () => {
-  for (const [name, kids] of Object.entries(ICONS)) { assert.ok(kids.length, name); for (const [tag, attrs] of kids) { assert.match(tag, /^(circle|path|rect|line|polyline|polygon|ellipse)$/); for (const k of Object.keys(attrs)) assert.ok(!/^on|href|style/i.test(k), `${name}.${k}`); } }
+test('icon data only uses safe drawing elements and attributes (nested)', () => {
+  const OK = /^(g|circle|path|rect|line|polyline|polygon|ellipse)$/, BAD_ATTR = /^on|href|style|class|id$/i;
+  const walk = (name, nodes) => { for (const [tag, attrs, kids] of nodes) { assert.match(tag, OK, name); for (const [k, v] of Object.entries(attrs)) { assert.ok(!BAD_ATTR.test(k), `${name}.${k}`); assert.match(String(v), /^[\w\s.,#()%-]*$/, `${name}.${k}`); } walk(name, kids); } };
+  for (const [name, nodes] of Object.entries(ICONS)) { assert.ok(nodes.length, name); walk(name, nodes); }
 });

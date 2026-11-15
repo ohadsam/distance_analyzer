@@ -2,14 +2,20 @@
 import { ICONS } from './iconData.js';
 const NS = 'http://www.w3.org/2000/svg';
 
-export function icon(name, size = 24) {
-  const svg = document.createElementNS(NS, 'svg');
-  for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', width: size, height: size, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true', focusable: 'false', class: 'ico' })) svg.setAttribute(k, v);
-  for (const [tag, attrs] of Object.hasOwn(ICONS, name) ? ICONS[name] : []) {
+function draw(parent, nodes) {
+  for (const [tag, attrs, kids] of nodes) {
     const el = document.createElementNS(NS, tag);
     for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-    svg.append(el);
+    if (kids?.length) draw(el, kids);
+    parent.append(el);
   }
+}
+
+/** A UI icon from the generated data (nested whitelisted elements; each icon carries its own fills and strokes, `currentColor` follows the text colour). */
+export function icon(name, size = 24) {
+  const svg = document.createElementNS(NS, 'svg');
+  for (const [k, v] of Object.entries({ viewBox: '0 0 24 24', width: size, height: size, 'aria-hidden': 'true', focusable: 'false', class: 'ico' })) svg.setAttribute(k, v);
+  if (Object.hasOwn(ICONS, name)) draw(svg, ICONS[name]);
   return svg;
 }
 
