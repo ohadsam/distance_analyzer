@@ -3,7 +3,7 @@
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
-import { active, listWorkouts, profile, getJson, setJson } from '../store.js';
+import { active, listWorkouts, listRoutes, profile, getJson, setJson } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
 import { filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
@@ -12,10 +12,11 @@ import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
 import { barChart, lineChart } from '../charts.js';
 import { workoutRow } from './home.js';
 import { recoSummary, mountReco } from './reco.js';
+import { quickActions, routesBody, suggest } from './routes.js';
 
-export const WIDGETS = ['effort', 'reco', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
+export const WIDGETS = ['effort', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
 const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
-export const W_KEY = { effort: 'wEffort', reco: 'wReco', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
+export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 export function loadLayout() {
@@ -33,7 +34,7 @@ const saveFilter = (f) => setJson('dashF', f);
 export async function loadContext(now = Date.now()) {
   const all = await listWorkouts({ points: false }), prof = profile(), f = loadFilter(), ov = getJson('barOv', null);
   const rows = filterWorkouts(all, { since: f.days ? now - f.days * DAY : 0, kind: f.kind, weather: f.weather, text: f.text }, workoutText);
-  return { all, rows, f, now, prof, ov, plan: weeklyTarget(all, prof.age, now, ov), status: weekStatus(all, prof.age, now, ov), steps: stepSeries(all, 14, now, prof.heightCm), alerts: alertStore.load() };
+  return { all, rows, f, now, prof, ov, plan: weeklyTarget(all, prof.age, now, ov), status: weekStatus(all, prof.age, now, ov), steps: stepSeries(all, 14, now, prof.heightCm), alerts: alertStore.load(), routes: await listRoutes() };
 }
 
 // ---------- widgets: summary (on the dashboard) and detail (drill-down) ----------
@@ -77,6 +78,10 @@ export const W = {
     summary: (c) => { const pb = personalBests(c.rows); return pb.longest ? h('div', { class: 'rows flat' }, row(t('recLongest'), fmtKm(pb.longest.distanceM)), pb.fastest ? row(t('recFastest'), fmtPaceUnit(paceSec(pb.fastest))) : null, pb.bestKm ? row(t('recBestKm'), fmtClock(pb.bestKm.ms)) : null) : h('p', { class: 'note' }, t('recNone')); },
     detail: (c) => [W.records.summary(c)],
   },
+  routes: {
+    summary: (c) => { const top = suggest(c.routes, c.all)[0]; return c.routes.length ? h('div', null, stat(String(c.routes.length), top ? `${t('qaSuggested')}: ${top.route.name}` : t('routeRecNone'))) : h('p', { class: 'note' }, t('routesNone')); },
+    detail: () => { const box = h('div', { class: 'routesbox' }); const draw = () => { box.alive = true; routesBody(box, box.dataset.filter || 'all', draw); }; draw(); return [box]; },
+  },
   reco: {
     summary: (c) => recoSummary(c),
     detail: () => { const box = h('div', { class: 'recobox' }); const draw = () => { box.alive = true; mountReco(box, 'all', { redraw: draw }); }; draw(); return [box]; },
@@ -119,6 +124,7 @@ export function renderDashboard() {
     setChildren(el,
       h('div', { class: 'dash-top' }, h('h1', null, t('dashboard')), h('button', { type: 'button', class: 'btn ghost', 'aria-pressed': String(editing), onclick: () => { editing = !editing; draw(); } }, t(editing ? 'editDone' : 'edit'))),
       resume ? h('div', { class: 'card resume' }, icon(resume.kind, 28), h('span', { class: 'grow' }, h('b', null, t('resumeTitle')), h('small', null, fmtKm(resume.distanceM))), h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (confirm(t('discardAsk'))) { active.clear(); draw(); } } }, t('discard')), h('a', { class: 'btn', href: `#/workout/${resume.kind}` }, t('resumeBtn'))) : null,
+      quickActions(suggest(c.routes, c.all)[0]?.route || null),
       h('div', { class: 'starts' }, startLink('walk'), startLink('run')),
       filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),
       h('a', { class: 'link', href: '#/history' }, t('allWorkouts')));
@@ -134,9 +140,9 @@ export function renderDrill(id) {
   async function draw() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return;
     setChildren(el, h('a', { class: 'link back', href: '#/' }, icon('back', 20), t('dashboard')), h('h1', null, t(W_KEY[id])),
-      id === 'effort' || id === 'steps' || id === 'alerts' || id === 'reco' ? null : filterBar(c, draw), h('div', { class: 'detail' }, W[id].detail(c)),
-      id === 'alerts' || id === 'reco' ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
-      id === 'alerts' || id === 'reco' ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
+      ['effort', 'steps', 'alerts', 'reco', 'routes'].includes(id) ? null : filterBar(c, draw), h('div', { class: 'detail' }, W[id].detail(c)),
+      ['alerts', 'reco', 'routes'].includes(id) ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
+      ['alerts', 'reco', 'routes'].includes(id) ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
   }
   draw(); el.cleanup = () => { el.alive = false; for (const b of el.querySelectorAll('.recobox')) b.alive = false; }; // also stops a recommendation load that is still running
   return el;

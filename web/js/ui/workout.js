@@ -9,12 +9,20 @@ import { active, saveWorkout, getNum, getPref, getJson, listWorkouts, profile } 
 import { checkWorkout } from '../effort.js';
 import { pushAlert } from './notify.js';
 import { alertCard } from './alerts.js';
+import { liveMap } from './livemap.js';
+import { summaryBox } from './routes.js';
+import { listRoutes, updateWorkout } from '../store.js';
+import { attemptsOf } from '../routeReco.js';
+import { distanceAtTime } from '../route.js';
+import { onlineOn, cachedForecast } from '../weatherApi.js';
+import { weatherAt } from '../forecast.js';
+import { paceSec } from '../stats.js';
 import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
 
 const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not worth a history entry
 
-export function renderWorkout(kind) {
+export function renderWorkout(kind, go, routeId) {
   let w = active.load(), watch = 0, wake = null, tickId = 0, gps = 'searching', acc = 0, phase = 'ready'; // ready | running | paused | confirm | done
   if (w) { kind = w.kind; if (!isPaused(w)) pause(w, w.last?.t || Date.now()); phase = 'paused'; } // a reloaded workout waits, so the gap is not counted
   const sr = document.getElementById('sr');
@@ -36,6 +44,21 @@ export function renderWorkout(kind) {
   const lockLayer = h('div', { class: 'lock', hidden: true }, h('div', { class: 'lock-msg' }, icon('lock', 40), h('p', null, t('locked'))));
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
   const body = h('div', { class: 'wk' });
+  // Live map (no tiles) and, when following a saved route, the route line, its name and a "ghost" of the best earlier attempt.
+  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', role: 'status', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), mapBox = h('div', { class: 'mapbox' }, lm.el, followEl, ghostEl);
+  let follow = null; // { route, best }
+  if (routeId) (async () => {
+    const route = (await listRoutes()).find((r) => r.id === routeId); if (!route) return;
+    const best = attemptsOf(route, await listWorkouts()).sort((a, b) => paceSec(a) - paceSec(b))[0];
+    follow = { route, best: best && best.points.length > 5 ? best : null }; followEl.hidden = false; followEl.textContent = t('followingRoute', { name: route.name }); paintMap();
+  })();
+  let mapAt = 0;
+  function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : []); mapAt = Date.now(); }
+  function paintGhost() {
+    if (!follow?.best || !w || phase !== 'running') { ghostEl.hidden = true; return; }
+    const d = Math.round(w.distanceM - distanceAtTime(follow.best.points, elapsedMs(w, Date.now()))), m = Math.abs(d);
+    ghostEl.hidden = false; ghostEl.textContent = m < 10 ? t('ghostOn') : t(d > 0 ? 'ghostAhead' : 'ghostBehind', { m }); ghostEl.dataset.side = m < 10 ? 'on' : d > 0 ? 'ahead' : 'behind';
+  }
   const el = h('section', { class: 'workout', 'data-phase': phase }, h('div', { class: 'wk-top' }, h('h1', { class: 'sr-only' }, t(kind)), gpsChip, h('span', { class: 'grow' }), lockBtn), body, lockLayer);
 
   // ---------- tracking ----------
@@ -64,11 +87,19 @@ export function renderWorkout(kind) {
   let before = 'paused';
   function askFinish() { before = phase; if (phase === 'running') { pause(w, Date.now()); rhythm.setRunning(false); } phase = 'confirm'; paint(); }
   function keepGoing() { if (before === 'running') { resume(w, Date.now()); phase = 'running'; rhythm.setRunning(true); } else phase = 'paused'; paint(); }
+  let saved = null, routeEl = null;
   async function end(save) {
     const keep = save && w && w.distanceM >= MIN_SAVE_M;
-    if (w) { finish(w, Date.now()); if (keep) await saveWorkout(w); }
+    if (w) { finish(w, Date.now()); if (keep) saved = await saveWorkout(w); }
     active.clear(); rhythm.destroy(); keepAwake(false);
-    if (keep) { await effortCheck(); phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
+    if (keep) { await effortCheck(); await afterSave(); phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
+  }
+
+  // After saving: the weather during the workout (from the saved forecast, when the person uses the online forecast) and the route box (recognise / save / follow).
+  async function afterSave() {
+    if (!saved) return;
+    try { const f = onlineOn() ? cachedForecast(saved.startedAt + 3600000, 12 * 3600000) : null, wx = f && weatherAt(f, saved.startedAt); if (wx && !saved.weather) saved = (await updateWorkout(saved.startedAt, { weather: wx })) || saved; } catch { /* the weather is a bonus */ }
+    routeEl = summaryBox(saved, routeId || '');
   }
 
   // After saving: is this workout far beyond the plan? Then explain what happened, why it matters and how to raise the bar gently.
@@ -110,7 +141,7 @@ export function renderWorkout(kind) {
     setChildren(mainBtn, main); mainBtn.classList.toggle('is-pause', phase === 'running');
     setChildren(body,
       h('div', { class: 'metrics' }, metric(t('time'), vTime, 'wide'), metric(t('distance') + ` (${t('km')})`, vDist, 'wide'), metric(`${t('pace')} (${t('perKm')})`, vPace)),
-      rhythm.el,
+      mapBox, rhythm.el,
       phase === 'confirm' ? confirmBar : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, metroBtn));
   }
   function summary() {
@@ -118,14 +149,15 @@ export function renderWorkout(kind) {
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackSvg(xy),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
-      headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
+      routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 
   // ---------- lifecycle ----------
   startGps(); paintGps(); paint();
   let ticks = 0;
-  tickId = setInterval(() => { paint(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
+  paintMap(); if (go && phase === 'ready') onMain(); // "measure now": start at once
+  tickId = setInterval(() => { paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
   const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') keepAwake(true); };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };

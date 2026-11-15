@@ -3,7 +3,7 @@ import { h, setChildren } from '../util.js';
 import { t, STR, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
 import { buildIndex, search } from '../search.js';
-import { listWorkouts, getPref } from '../store.js';
+import { listWorkouts, listRoutes, getPref } from '../store.js';
 import { alertStore } from '../alerts.js';
 import { fmtKm, fmtDate, workoutText } from '../format.js';
 import { WIDGETS, W_KEY } from './dashboard.js';
@@ -16,9 +16,9 @@ const SETTINGS = [
   ['s-breath', 'breath', 'rhythm metronome breathing נשימה מטרונום קצב', 'settings'], ['s-vol', 'volume', 'sound click metronome עוצמה צליל', 'settings'], ['s-bpm', 'defaultBpm', 'cadence steps rhythm קצב צעדים', 'settings'],
   ['s-online', 'setOnline', 'weather forecast online location מזג אוויר תחזית מיקום', 'settings'], ['s-reco-notify', 'setRecoNotify', 'recommendation notification good time המלצה התראה זמן טוב', 'settings'], ['s-effort', 'effortAlerts', 'bar deviation alert סרגל מאמצים חריגה התראה', 'settings'], ['s-smart', 'remSmart', 'reminders nudge inactive תזכורות חכמות חוסר תנועה', 'settings'], ['s-rem', 'remTitle', 'reminder walk move תזכורת הליכה תנועה', 'settings'],
 ];
-const SCREENS = [['', 'dashboard', 'home main בית ראשי'], ['history', 'history', 'workouts log אימונים יומן'], ['alerts', 'alertsTitle', 'notifications inbox התראות'], ['reco', 'recoTitle', 'recommendations best time weather forecast המלצות זמן מועדף תחזית'], ['settings', 'settings', 'preferences הגדרות'], ['workout/run', 'startRun', 'record gps ריצה הקלטה'], ['workout/walk', 'startWalk', 'record gps הליכה הקלטה']];
-const TYPE_KEY = { setting: 'typeSetting', screen: 'typeScreen', widget: 'typeWidget', workout: 'typeWorkout', alert: 'typeAlert' };
-const TYPE_ICON = { setting: 'settings', screen: 'home', widget: 'chart', workout: 'run', alert: 'bell' };
+const SCREENS = [['', 'dashboard', 'home main בית ראשי'], ['history', 'history', 'workouts log אימונים יומן'], ['alerts', 'alertsTitle', 'notifications inbox התראות'], ['routes', 'routesTitle', 'routes path track saved one-time מסלולים מסלול שמור חד פעמי'], ['reco', 'recoTitle', 'recommendations best time weather forecast המלצות זמן מועדף תחזית'], ['settings', 'settings', 'preferences הגדרות'], ['workout/run', 'startRun', 'record gps ריצה הקלטה'], ['workout/walk', 'startWalk', 'record gps הליכה הקלטה']];
+const TYPE_KEY = { setting: 'typeSetting', screen: 'typeScreen', widget: 'typeWidget', workout: 'typeWorkout', alert: 'typeAlert', route: 'routeOf' };
+const TYPE_ICON = { setting: 'settings', screen: 'home', widget: 'chart', workout: 'run', alert: 'bell', route: 'route' };
 
 export async function buildItems() {
   const items = [];
@@ -26,6 +26,7 @@ export async function buildItems() {
   for (const [id, key, words] of SETTINGS) items.push({ id: `set:${id}`, type: 'setting', title: t(key), text: `${both(key)} ${words}`, href: `#/settings/${id}` });
   for (const id of WIDGETS) items.push({ id: `w:${id}`, type: 'widget', title: t(W_KEY[id]), text: both(W_KEY[id]), href: `#/d/${id}` });
   for (const w of (await listWorkouts({ points: false })).slice(0, 400)) items.push({ id: `wk:${w.startedAt}`, type: 'workout', title: `${t(w.kind)} · ${fmtKm(w.distanceM)} · ${fmtDate(w.startedAt, getLang())}`, text: workoutText(w), href: `#/w/${w.startedAt}`, ts: w.startedAt });
+  for (const r of await listRoutes()) items.push({ id: `rt:${r.id}`, type: 'route', title: `${r.name} · ${fmtKm(r.lengthM)}`, text: `${r.name} ${both('routesTitle')} ${r.oneTime ? both('routeOneTimeBadge') : ''}`, href: `#/r/${r.id}`, ts: r.createdAt });
   for (const a of alertStore.load()) items.push({ id: `al:${a.id}`, type: 'alert', title: t(a.title, a.params), text: `${both(a.title)} ${a.lines.map(both).join(' ')}`, href: '#/alerts', ts: a.ts });
   return items;
 }

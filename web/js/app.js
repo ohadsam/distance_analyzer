@@ -7,6 +7,7 @@ import { renderDashboard, renderDrill } from './ui/dashboard.js';
 import { renderAlerts } from './ui/alerts.js';
 import { renderSearch } from './ui/search.js';
 import { renderReco } from './ui/reco.js';
+import { renderRoutes, renderRoute } from './ui/routes.js';
 import { alertStore, unreadCount } from './alerts.js';
 import { startReminderLoop } from './reminderLoop.js';
 import { renderSettings, applyLook } from './ui/settings.js';
@@ -15,17 +16,17 @@ import { renderWorkout } from './ui/workout.js';
 import { setChildren, h } from './util.js';
 
 // route table: pattern -> view(param). Anything unknown falls back to Home.
-const ROUTES = [[/^settings(?:\/([\w-]{1,30}))?$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)$/, renderWorkout], [/^d\/([a-z]{3,20})$/, renderDrill], [/^alerts$/, renderAlerts], [/^search$/, renderSearch], [/^reco$/, renderReco], [/^$/, renderDashboard]];
+const ROUTES = [[/^settings(?:\/([\w-]{1,30}))?$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)(?:\/(go))?(?:\/r\/(r[a-z0-9]{3,24}))?$/, renderWorkout], [/^routes$/, renderRoutes], [/^r\/(r[a-z0-9]{3,24})$/, renderRoute], [/^d\/([a-z]{3,20})$/, renderDrill], [/^alerts$/, renderAlerts], [/^search$/, renderSearch], [/^reco$/, renderReco], [/^$/, renderDashboard]];
 let current = null;
 
 function route() {
   current?.cleanup?.();
   const path = location.hash.replace(/^#\/?/, '');
-  let view = renderDashboard, arg;
-  for (const [re, fn] of ROUTES) { const m = re.exec(path); if (m) { view = fn; arg = m[1]; break; } }
+  let view = renderDashboard, args = [];
+  for (const [re, fn] of ROUTES) { const m = re.exec(path); if (m) { view = fn; args = m.slice(1); break; } }
   const workout = view === renderWorkout;
   document.body.dataset.view = workout ? 'workout' : 'page';
-  current = view(arg);
+  current = view(...args);
   setChildren(document.getElementById('app'), current);
   setChildren(document.getElementById('topbar'), h('a', { href: '#/', class: 'brand', 'aria-label': t('appName') }, brandMark(30), brandWordmark(20)),
     h('nav', { class: 'tabs', 'aria-label': t('appName') }, h('a', { href: '#/reco', class: 'tab', 'aria-label': t('recoTitle') }, icon('star', 22)), h('a', { href: '#/search', class: 'tab', 'aria-label': t('search') }, icon('search', 22)),

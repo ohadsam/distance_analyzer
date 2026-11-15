@@ -106,3 +106,13 @@ a.wcard:hover { border-color: var(--primary); } .wcard h2 { margin: 0; font-size
 .reco.habit { border-inline-start: 5px solid var(--primary); } .reco.best { border-inline-start: 5px solid var(--success); } .reco.avoid { border-inline-start: 5px solid var(--warning); }
 .rhead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .tag { font-size: .85rem; color: var(--muted); } .num { direction: ltr; unicode-bidi: isolate; }
 .chart .bar.bad { fill: color-mix(in srgb, var(--warning) 70%, transparent); } .consent { display: grid; gap: 10px; } .consent h2 { margin: 0; } .card { flex-wrap: wrap; }
+
+/* quick actions, routes, live map */
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-block: 12px; } .quick-main { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 16px 18px; min-block-size: 72px; border-radius: var(--radius); background: var(--primary); color: var(--on-primary); text-decoration: none; }
+.quick-main small { display: block; color: inherit; opacity: .9; } .quick-btn { display: flex; align-items: center; gap: 8px; min-block-size: 56px; padding: 8px 14px; border-radius: var(--radius); border: 1px solid var(--outline); background: var(--surface); color: var(--text); text-decoration: none; font-weight: 600; }
+.routecard .kind { color: var(--primary); } .routebox { display: grid; gap: 8px; margin-block: 8px; } .good { color: var(--success); font-weight: 700; } .err { color: var(--danger); }
+.mapbox { display: grid; gap: 4px; } .livemap { inline-size: 100%; max-block-size: 150px; background: var(--surface); border: 1px solid var(--outline); border-radius: var(--radius); }
+.livemap .route-line { fill: none; stroke: var(--muted); stroke-width: 3; stroke-dasharray: 6 5; } .livemap .track-line { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.livemap .track-start { fill: var(--walk); } .livemap .me { fill: var(--run); stroke: var(--surface); stroke-width: 3; }
+.ghost { margin: 0; font-weight: 700; } .ghost[data-side="ahead"] { color: var(--success); } .ghost[data-side="behind"] { color: var(--warning); }
+body[data-view="workout"] .livemap { max-block-size: 110px; }

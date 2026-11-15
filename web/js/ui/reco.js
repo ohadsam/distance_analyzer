@@ -10,9 +10,11 @@ import { weekStatus } from '../effort.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
 import { streak, dayStart, DAY } from '../stats.js';
 import { barChart } from '../charts.js';
+import { listRoutes } from '../store.js';
+import { suggest, suggestionCard } from './routes.js';
 
-const AREAS = ['all', 'weather', 'effort', 'routine'];
-const AREA_KEY = { all: 'recoAll', weather: 'recoWeather', effort: 'recoEffort', routine: 'recoRoutine' };
+const AREAS = ['all', 'weather', 'routes', 'effort', 'routine'];
+const AREA_KEY = { all: 'recoAll', weather: 'recoWeather', routes: 'routesTitle', effort: 'recoEffort', routine: 'recoRoutine' };
 const hh = (n) => `${String(n % 24).padStart(2, '0')}:00`;
 const range = (i) => `${hh(i.start)}-${hh(i.end)}`;
 const TYPE_KEY = { habit: 'typeHabit', best: 'typeBest', avoid: 'typeAvoid' };
@@ -50,7 +52,8 @@ export async function mountReco(box, area = 'all', { redraw } = {}) {
   const kindSel = h('select', { id: 'reco-kind', 'aria-label': t('recoKind'), onchange: (e) => { setPref('recoKind', e.target.value); redraw?.(); } }, [['walk', t('walk')], ['run', t('run')]].map(([v, l]) => h('option', { value: v, selected: v === c.kind }, l)));
   parts.push(h('div', { class: 'field' }, h('label', { for: 'reco-kind' }, t('recoKind')), kindSel));
   if (area === 'all' || area === 'weather') parts.push(...await weatherPart(c, day, box, redraw));
-  if (area !== 'weather') { const g = c.general.filter((r) => area === 'all' || r.area === area || (area === 'effort' && r.area === 'steps')); if (area !== 'all' || g.length) parts.push(h('div', { class: 'rlist' }, g.length ? g.map(generalCard) : (area === 'all' ? [] : [h('p', { class: 'note' }, t('recoNone'))]))); }
+  if (area === 'all' || area === 'routes') { const sug = suggest(await listRoutes(), c.rows).slice(0, 3); if (sug.length || area === 'routes') parts.push(h('div', { class: 'rlist' }, h('h2', null, t('routeRecTitle')), sug.length ? sug.map(suggestionCard) : h('p', { class: 'note' }, t('routeRecNone')))); }
+  if (area !== 'weather' && area !== 'routes') { const g = c.general.filter((r) => area === 'all' || r.area === area || (area === 'effort' && r.area === 'steps')); if (area !== 'all' || g.length) parts.push(h('div', { class: 'rlist' }, g.length ? g.map(generalCard) : (area === 'all' ? [] : [h('p', { class: 'note' }, t('recoNone'))]))); }
   if (box.alive !== false && box.seq === mine) setChildren(box, parts);
 }
 

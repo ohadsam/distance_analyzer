@@ -35,3 +35,9 @@ export function sanitizeHours(list) {
   const n = (v, lo, hi) => (Number.isFinite(v) ? clamp(v, lo, hi) : 0);
   return list.slice(0, MAX_HOURS).filter((h) => h && Number.isFinite(h.t) && h.t > 1e12 && h.t < 4e12 && Number.isFinite(h.temp)).map((h) => ({ t: h.t, temp: clamp(h.temp, -60, 60), feels: n(h.feels, -70, 70), rainP: n(h.rainP, 0, 100), rain: n(h.rain, 0, 200), wind: n(h.wind, 0, 250), uv: n(h.uv, 0, 20), day: h.day === true }));
 }
+
+/** The weather during a workout from a forecast list: { tempC, cond } of the hour containing `ts`, or null when the list does not cover it. */
+export function weatherAt(list, ts) {
+  const h = list.find((x) => ts >= x.t && ts < x.t + 3600000); if (!h) return null;
+  return { tempC: Math.round(h.temp), cond: h.rain > 0.2 || h.rainP >= 60 ? 'rain' : h.wind >= 30 ? 'windy' : 'clear' };
+}

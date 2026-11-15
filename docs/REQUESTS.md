@@ -44,5 +44,10 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 29 | Recommendations for walking/running by weather: the preferred times of day, considering the historical routine (usual hours, 2-3 sessions a day) and giving general best hours | ✅ 0.4.0 (live forecast format to verify on a device) |
 | 30 | A recommendations widget with drill-down on the dashboard, and a toolbar button to a recommendations screen (weather, effort bar, ...) | ✅ 0.4.0 |
 | 31 | Optional notifications about good times (setting) | ✅ 0.4.0 while the app is open; background delivery pending |
+| 32 | Quick buttons, e.g. "Start measuring now" that measures distance and shows the position on a map | ✅ 0.5.0 (live map without background tiles; tiles need D2) |
+| 33 | Save a measured path as a route; manage routes | ✅ 0.5.0 |
+| 34 | Progress/improvement graphs per route | ✅ 0.5.0 |
+| 35 | Recommend routes by where performance was best relative to time, hour and weather | ✅ 0.5.0 (needs real-track validation) |
+| 36 | Mark a route one-time (trip/holiday) so recommendations ignore it | ✅ 0.5.0 |
 | 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |

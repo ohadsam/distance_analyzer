@@ -1,16 +1,17 @@
 // Persistence: finished workouts in IndexedDB (memory fallback when storage is blocked), the in-progress workout and preferences in localStorage.
 // Everything read back is sanitised; the list is bounded.
 import { sanitizeWorkout, sanitizeActive, summarize } from './workout.js';
+import { sanitizeRoute, MAX_ROUTES } from './route.js';
 
 export const MAX_WORKOUTS = 1000;
 const DB = 'stepup', STORE = 'workouts';
-let mem = [], dbp = null;
+let mem = [], memRoutes = [], dbp = null;
 
 function open() {
   dbp ||= new Promise((res) => {
     try {
-      const rq = indexedDB.open(DB, 1);
-      rq.onupgradeneeded = () => rq.result.createObjectStore(STORE, { keyPath: 'startedAt' });
+      const rq = indexedDB.open(DB, 2);
+      rq.onupgradeneeded = () => { const db = rq.result; if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'startedAt' }); if (!db.objectStoreNames.contains('routes')) db.createObjectStore('routes', { keyPath: 'id' }); };
       rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null); rq.onblocked = () => res(null);
     } catch { res(null); }
   });
@@ -45,6 +46,24 @@ export async function updateWorkout(startedAt, patch) {
 export async function deleteWorkout(startedAt) {
   mem = mem.filter((r) => r.startedAt !== startedAt); const db = await open();
   if (db) try { await wrap(db.transaction(STORE, 'readwrite').objectStore(STORE).delete(startedAt)); } catch { /* ignore */ }
+}
+
+// Saved routes (a few KB each, at most MAX_ROUTES).
+export async function listRoutes() {
+  const db = await open(); let rows = memRoutes;
+  if (db) try { rows = await wrap(db.transaction('routes').objectStore('routes').getAll()); } catch { /* memory */ }
+  return rows.map(sanitizeRoute).filter(Boolean).sort((a, b) => b.createdAt - a.createdAt);
+}
+export async function saveRoute(r) {
+  const rec = sanitizeRoute(r); if (!rec) return null;
+  memRoutes = [rec, ...memRoutes.filter((x) => x.id !== rec.id)].slice(0, MAX_ROUTES); const db = await open();
+  if (db) try { await wrap(db.transaction('routes', 'readwrite').objectStore('routes').put(rec)); } catch { /* memory copy remains */ }
+  return rec;
+}
+export async function deleteRoute(id) {
+  memRoutes = memRoutes.filter((x) => x.id !== id); const db = await open();
+  if (db) try { await wrap(db.transaction('routes', 'readwrite').objectStore('routes').delete(id)); } catch { /* ignore */ }
+  for (const w of await listWorkouts({ points: false })) if (w.routeId === id) await updateWorkout(w.startedAt, { routeId: '' }); // the workouts stay, just unlinked
 }
 
 // In-progress workout (survives a reload or the app being killed): small JSON in localStorage.

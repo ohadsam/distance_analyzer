@@ -23,6 +23,11 @@ Steps are estimated from your tracked walks and runs. Brisk, unbroken stretches 
 ## Reminders
 Settings → Reminders: add reminders for a walk or a movement break at set times and days. Turn on **Smart nudges** to get a gentle prompt when there was no movement for a long time (only in your waking hours, a few times a day at most, never during a workout). Allow notifications to also see them outside the app. For now reminders arrive while StepUp is open.
 
+## Quick actions, routes and the live map
+At the top of the dashboard: **Measure now** starts a measurement immediately (distance and your path, shown on a small live map), **My routes** opens your routes, and the **suggested route** is the best route for now.
+After a walk or run StepUp recognises a route you already saved, or offers to **save the path as a route**. Mark a route **one-time** (a trip or holiday) and it is ignored in suggestions. On a route's page you see your progress (pace chart, how much faster you are than in your first times, where you do best by time of day and weather), your attempts, and **Start this route**: the route is drawn and a ghost of your best attempt shows whether you are ahead or behind. You can also rename, delete a route (workouts stay), or link your earlier workouts to it. Route suggestions favour the routes where you perform best at this time of day and in this weather, and that suit your usual distance.
+The map shows your path without a background map for now.
+
 ## Recommendations
 The star in the top bar opens **Recommendations**. Choose walk or run and see the best times today or tomorrow: your usual times when the weather suits them, good times by weather alone, and times better to avoid (heat, rain, wind, dark), with the reason. It learns your routine from the last weeks, so if you usually walk at 7 and 18 it suggests those hours first. The same screen has recommendations from your effort bar, steps and streak, and the dashboard has a Recommendations widget that opens it.
 Weather needs the internet. The first time, StepUp asks for your permission; only your approximate location (about 1 km) is sent to the free service Open-Meteo, and nothing else. Settings → Recommendations lets you turn it off ("Forget my location") or get a notification before your usual time when the weather is good.

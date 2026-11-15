@@ -3,6 +3,9 @@
 Ordered so that every phase ships something usable and the later phases build on the earlier ones. Status of each request lives in `REQUESTS.md`.
 Core idea: **clean, simple, self-explanatory**; a **Workout mode** that strips the screen to a few big buttons.
 
+## Status snapshot (0.5.0)
+Phase 7 (routes): saving, recognising, progress, suggestions, following with a ghost are done; the map BACKGROUND (tiles) and planning a route by tapping on a map need D2 (tile provider terms/keys, second network use).
+
 ## Status snapshot (0.4.0)
 D1 (network) was decided by the owner's request for weather recommendations: ONE opt-in forecast request (see ARCHITECTURE). Maps (D2) still undecided. Phase 8 forecast part is done in-app.
 

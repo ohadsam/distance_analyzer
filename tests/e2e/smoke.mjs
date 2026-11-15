@@ -54,6 +54,21 @@ async function seedHours(page, rows) {
   await page.evaluate(async (list) => { const S = await import('./js/store.js'); for (const r of list) { const d = new Date(Date.now()); d.setDate(d.getDate() - r.daysAgo); d.setHours(r.hour, 5, 0, 0); const start = d.getTime();
     await S.saveWorkout({ kind: r.kind || 'walk', startedAt: start, endedAt: start + r.min * 61000, pausedMs: 0, pausedAt: 0, distanceM: (r.km || 3) * 1000, movingMs: r.min * 60000, splits: [], points: [] }); } }, rows);
 }
+
+// Saves workouts that FOLLOW a path (corner points in metres east/north of a start), with real timestamps and points, so routes can be saved/matched.
+const PATHS = { L: [[0, 0], [600, 0], [600, 600]], other: [[0, 400], [600, 400], [600, 1000]] };
+async function seedTracks(page, rows) {
+  await page.evaluate(async ({ list, paths }) => {
+    const S = await import('./js/store.js'), M = 1 / 111195, C = Math.cos(32 * Math.PI / 180);
+    for (const r of list) {
+      const mps = 1000 / r.pace, corners = paths[r.path || 'L'], pts = []; let t = 0; const d0 = new Date(Date.now()); d0.setDate(d0.getDate() - r.daysAgo); d0.setHours(r.hour, 5, 0, 0); const start = d0.getTime();
+      for (let i = 1; i < corners.length; i++) { const [ax, ay] = corners[i - 1], [bx, by] = corners[i], n = Math.ceil(Math.hypot(bx - ax, by - ay) / mps); for (let k = i === 1 ? 0 : 1; k <= n; k++) { const f = k / n; pts.push([32 + (ay + (by - ay) * f) * M, 34.8 + (ax + (bx - ax) * f) * M / C, start + t * 1000]); t++; } }
+      const len = 1200;
+      await S.saveWorkout({ kind: r.kind || 'run', startedAt: start, endedAt: start + t * 1000, pausedMs: 0, pausedAt: 0, distanceM: len, movingMs: t * 1000, splits: [{ km: 1, atMs: Math.round(1000 / mps * 1000) }], points: pts });
+      if (r.weather) await S.updateWorkout(start, { weather: r.weather });
+    }
+  }, { list: rows, paths: PATHS });
+}
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
   await page.evaluate(axe.source); // evaluate (not addScriptTag): the page CSP forbids inline scripts
@@ -74,7 +89,7 @@ await step('English is LTR; settings switches language without a reload', async 
 
 await step('dashboard offers walk and run and eight widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 9); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 10); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
@@ -142,7 +157,7 @@ await step('dashboard: effort and steps widgets, drill-down, filters, customise 
   await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
   await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);
   await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
-  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); await page.click('[data-widget=steps] button[aria-label^="Move up"]');
+  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); for (let i = 0; i < 3; i++) { await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); }
   await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=pace]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
   assert.equal(await page.locator('[data-widget=pace]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
 });
@@ -215,10 +230,43 @@ await step('recommendation notification: shortly before the usual time and good 
   await page.evaluate(() => { for (const [k, v] of Object.entries({ onlineWx: '1', recoNotify: '1', loc: JSON.stringify({ lat: 32, lon: 34.8 }) })) localStorage.setItem('da.' + k, v); });
   await page.clock.runFor(31000); await page.waitForTimeout(800); /* the mocked network answers in real time; the fake clock must not run past the 8 s timeout meanwhile */ await page.clock.runFor(2000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Good time for a walk soon/); assert.equal(await page.locator('.alert').count(), 1, 'only once');
 });
+
+await step('routes: save a path as a route, link earlier workouts, progress, best context, one-time, rename, delete', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base);
+  await seedTracks(page, [{ daysAgo: 30, hour: 7, pace: 360 }, { daysAgo: 25, hour: 7, pace: 352 }, { daysAgo: 20, hour: 18, pace: 380 }, { daysAgo: 12, hour: 7, pace: 335 }, { daysAgo: 6, hour: 7, pace: 330 }, { daysAgo: 3, hour: 18, pace: 372 }, { daysAgo: 1, hour: 7, pace: 325 }, { daysAgo: 4, hour: 9, pace: 340, path: 'other' }]);
+  await page.goto(base + '#/history'); await page.waitForSelector('.item'); await page.click('.item >> nth=0'); await page.waitForSelector('#route-save'); assert.match(await page.textContent('.routebox'), /Save this path as a route/);
+  await page.fill('#route-name', 'Park loop'); await page.click('#route-save'); await page.waitForSelector('text=Route saved'); await page.click('.routebox a.btn'); await page.waitForSelector('#route-link');
+  assert.equal(await page.textContent('h1'), 'Park loop'); assert.match(await page.textContent('.rows'), /Attempts on this route/); await page.click('#route-link'); await page.waitForFunction(() => /\b[5-7]\b/.test(document.querySelector('.rows .row:nth-child(2) b')?.textContent || ''));
+  const attempts = Number(await page.textContent('.rows .row:nth-child(2) b')); assert.equal(attempts, 7, 'the 7 workouts on the same path are linked; the other street is not');
+  assert.match(await page.textContent('.route'), /faster than in your first times here/); assert.match(await page.textContent('.route'), /You do best here in the morning/); await shot(page, 'route-detail');
+  await page.fill('#route-rename', 'Riverside'); await page.click('#route-rename-save'); await page.waitForFunction(() => document.querySelector('h1')?.textContent === 'Riverside');
+  await page.check('#route-onetime'); await page.waitForSelector('h1 .tag'); await page.goto(base + '#/routes'); await page.waitForSelector('[data-route]'); assert.match(await page.textContent('[data-route]'), /One-time/);
+  assert.equal(await page.locator('[data-route-suggestion]').count(), 0, 'a one-time route is never suggested');
+  await page.click('[data-route]'); await page.waitForSelector('#route-delete'); page.once('dialog', (d) => d.accept()); await page.click('#route-delete'); await page.waitForSelector('text=No routes yet'); await page.goto(base + '#/history'); await page.waitForSelector('.item'); assert.equal(await page.locator('.item').count(), 8, 'the workouts stay');
+  assert.deepEqual(errors, []);
+});
+await step('route suggestions follow the time of day and the weather performance; quick actions; widget', async () => {
+  const { page } = await newPage({ lang: 'en', clock: true, clockAt: new Date(2026, 6, 15, 7, 10) }); await page.goto(base);
+  await seedTracks(page, [...[20, 17, 14, 11].map((d, i) => ({ daysAgo: d, hour: 7, pace: 320 + i })), ...[21, 18, 15, 12].map((d, i) => ({ daysAgo: d, hour: 18, pace: 360 + i })), ...[10, 8, 6].map((d, i) => ({ daysAgo: d, hour: 7, pace: 345 + i, path: 'other' })), ...[9, 7, 5].map((d, i) => ({ daysAgo: d, hour: 18, pace: 345 + i, path: 'other' }))]);
+  await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/route.js'), rows = await S.listWorkouts(); const a = rows.find((w) => w.movingMs / 1000 / 1.2 < 400 && w.points.length), mk = async (src, id, name) => { const r = await S.saveRoute(R.makeRoute(src.points, { id, name })); for (const w of rows) if (R.matchRoute(w.points, r).ok) await S.updateWorkout(w.startedAt, { routeId: id }); }; await mk(rows.find((w) => w.points[0][0] < 32.002 && w.startedAt === Math.min(...rows.filter((x) => x.points[0][0] < 32.002).map((x) => x.startedAt))), 'rrida', 'Riverside'); await mk(rows.find((w) => w.points[0][0] > 32.003), 'rrdbb', 'Hills'); void a; });
+  await page.evaluate(() => localStorage.setItem('da.recoKind', 'run')); await page.goto(base + '#/'); await page.waitForSelector('#qa-measure'); assert.match(await page.textContent('#qa-suggested'), /Riverside/, 'in the morning the morning route is suggested'); await shot(page, 'dashboard-quick');
+  await page.goto(base + '#/routes'); await page.waitForSelector('[data-route-suggestion]'); assert.equal(await page.locator('[data-route-suggestion]').first().getAttribute('data-route-suggestion'), 'rrida'); assert.match(await page.textContent('[data-route-suggestion]'), /time of day/);
+  await page.goto(base + '#/'); await page.waitForSelector('[data-widget=routes]'); assert.match(await page.textContent('[data-widget=routes]'), /2/); await page.click('[data-widget=routes]'); await page.waitForSelector('.routesbox [data-route]'); await shot(page, 'routes');
+  await page.goto(base + '#/reco'); await page.click('.chip[data-area=routes]'); await page.waitForSelector('[data-route-suggestion]');
+});
+await step('quick action "Measure now" starts at once; live map; following a route shows the route and a ghost of the best attempt', async () => {
+  const { page, ctx, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('#qa-measure'); await page.click('#qa-measure'); await page.waitForSelector('.workout[data-phase="running"]');
+  assert.ok(await page.locator('.livemap').count()); for (let i = 1; i <= 3; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } assert.ok(await page.locator('.livemap .track-line').count() >= 1 || await page.locator('.livemap .me').count() >= 1);
+  await shot(page, 'measure-now'); await page.click('.controls .btn.ghost'); await page.click('.confirm .btn.danger'); await page.waitForSelector('.start-card');
+  await seedTracks(page, [{ daysAgo: 3, hour: 7, pace: 300 }, { daysAgo: 2, hour: 7, pace: 310 }]);
+  await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/route.js'), w = (await S.listWorkouts())[0]; const r = await S.saveRoute(R.makeRoute(w.points, { id: 'rghost', name: 'Ghost loop' })); for (const x of await S.listWorkouts()) await S.updateWorkout(x.startedAt, { routeId: r.id }); });
+  await page.goto(base + '#/workout/run/go/r/rghost'); await page.waitForSelector('.workout[data-phase="running"]'); await page.waitForSelector('text=Following: Ghost loop');
+  for (let i = 1; i <= 3; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } await page.waitForSelector('.ghost:not([hidden])'); assert.match(await page.textContent('.ghost'), /your best|best pace/); assert.ok(await page.locator('.livemap .route-line').count() >= 1); assert.deepEqual(errors, []);
+});
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });
-    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/reco', '#/d/reco']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
+    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/reco', '#/d/reco', '#/routes', '#/d/routes']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
     for (const pack of ['ocean', 'high-contrast', 'mono']) { await page.goto(base + '#/'); await page.evaluate((p) => { document.documentElement.dataset.pack = p; }, pack); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} pack ${pack}`); }
     await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout`);
     await page.click('.big-btn'); await page.click('.controls button.round[aria-label]:last-child'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);
@@ -226,7 +274,7 @@ await step('axe-core: zero violations on every screen (he light, en dark)', asyn
 });
 await step('320 px: no horizontal scroll', async () => {
   const { page } = await newPage({ width: 320 });
-  for (const route of ['#/', '#/settings', '#/history', '#/workout/run', '#/alerts', '#/search', '#/d/effort', '#/d/distance', '#/reco']) { await page.goto(base + route); await page.waitForSelector('main > *'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route); }
+  for (const route of ['#/', '#/settings', '#/history', '#/workout/run', '#/alerts', '#/search', '#/d/effort', '#/d/distance', '#/reco', '#/routes']) { await page.goto(base + route); await page.waitForSelector('main > *'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route); }
 });
 
 await browser.close(); server.close();
