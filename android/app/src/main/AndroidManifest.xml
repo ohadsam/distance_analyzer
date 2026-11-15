@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. The app makes no network request (no INTERNET). -->
+    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. Network: only the opt-in forecast request (see below). -->
+    <!-- Recommendations by weather (opt-in, off by default): one request to the weather service (api.open-meteo.com) with the approximate location, only while the person uses recommendations. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Workout tracking: the GPS position, read only while a workout is on screen (the page asks; MainActivity answers for our own origin only). -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>

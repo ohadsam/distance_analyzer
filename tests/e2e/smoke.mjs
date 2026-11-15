@@ -35,6 +35,25 @@ async function seed(page, rows) {
   }, rows);
 }
 const weeks = (n, per = 3) => Array.from({ length: n * per }, (_, i) => ({ daysAgo: 8 + Math.floor(i / per) * 7 + (i % per) * 2, km: 5, min: 30 }));
+
+// A synthetic Open-Meteo answer for a hot summer day (cool dawn, 38 degrees in the afternoon) for the local days of `base`, today and tomorrow.
+function hotForecast(base, over = {}) {
+  const time = [], T = [], A = [], P = [], R = [], W = [], U = [], D = [];
+  for (let i = 0; i < 48; i++) { const d = new Date(base.getFullYear(), base.getMonth(), base.getDate(), i, 0), h = i % 24, p = (n) => String(n).padStart(2, '0'), feels = Math.round(24 + 14 * Math.exp(-((h - 15) ** 2) / 18));
+    time.push(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:00`); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); }
+  return { hourly: { time, temperature_2m: T, apparent_temperature: A, precipitation_probability: P, precipitation: R, wind_speed_10m: W, uv_index: U, is_day: D } };
+}
+const SUMMER = new Date(2026, 6, 15, 5, 30);
+// Routes the weather service in a page to the synthetic answer and counts the requests (the privacy check: none before consent).
+async function mockWeather(page, json, { fail = false } = {}) {
+  const calls = []; await page.route('https://api.open-meteo.com/**', (route) => { calls.push(route.request().url()); return fail ? route.abort() : route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(json) }); });
+  return calls;
+}
+// Workouts at given hours: [{ daysAgo, hour, kind, min, km }] relative to the page's (fake) clock.
+async function seedHours(page, rows) {
+  await page.evaluate(async (list) => { const S = await import('./js/store.js'); for (const r of list) { const d = new Date(Date.now()); d.setDate(d.getDate() - r.daysAgo); d.setHours(r.hour, 5, 0, 0); const start = d.getTime();
+    await S.saveWorkout({ kind: r.kind || 'walk', startedAt: start, endedAt: start + r.min * 61000, pausedMs: 0, pausedAt: 0, distanceM: (r.km || 3) * 1000, movingMs: r.min * 60000, splits: [], points: [] }); } }, rows);
+}
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
   await page.evaluate(axe.source); // evaluate (not addScriptTag): the page CSP forbids inline scripts
@@ -55,7 +74,7 @@ await step('English is LTR; settings switches language without a reload', async 
 
 await step('dashboard offers walk and run and eight widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 8); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 9); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
@@ -123,7 +142,7 @@ await step('dashboard: effort and steps widgets, drill-down, filters, customise 
   await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
   await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);
   await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
-  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); await page.click('[data-widget=steps] button[aria-label^="Move up"]');
+  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); await page.click('[data-widget=steps] button[aria-label^="Move up"]');
   await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=pace]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
   assert.equal(await page.locator('[data-widget=pace]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
 });
@@ -157,10 +176,49 @@ await step('reminders: a fixed reminder fires on time into the inbox; the smart 
   assert.equal(await page.locator('#s-smart').isChecked(), false, 'smart nudges are off until the person turns them on');
   await page.clock.runFor(45000); await page.evaluate(() => dispatchEvent(new HashChangeEvent('hashchange'))); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Time for a walk/);
 });
+
+await step('recommendations: nothing is sent before consent; then best times by weather, avoid the hot afternoon, today/tomorrow, run vs walk', async () => {
+  const { page, errors } = await newPage({ lang: 'en', clock: true, clockAt: SUMMER }); const calls = await mockWeather(page, hotForecast(SUMMER));
+  await page.goto(base + '#/reco'); await page.waitForSelector('#reco-consent'); assert.equal(calls.length, 0, 'no request before consent'); assert.match(await page.textContent('.consent'), /approximate location/); await shot(page, 'reco-consent');
+  await page.click('#reco-consent'); await page.waitForSelector('[data-reco=best]'); assert.equal(calls.length, 1); assert.match(calls[0], /latitude=32&longitude=34\.8&/, 'rounded coordinates only'); assert.ok(!/\bkey\b|token/i.test(calls[0]));
+  const best = await page.locator('[data-reco=best] .num').allTextContents(); assert.ok(best.length >= 1 && best.every((r) => Number(r.slice(0, 2)) < 11 || Number(r.slice(0, 2)) >= 18), `best ${best}`);
+  assert.ok(await page.locator('[data-reco=avoid]').count() >= 1, 'the hot afternoon is to be avoided'); assert.match(await page.textContent('[data-reco=avoid]'), /hot/); assert.match(await page.textContent('.recos'), /Open-Meteo/); await shot(page, 'reco-results');
+  await page.click('.chip:has-text("Tomorrow")'); await page.waitForSelector('[data-reco] small:has-text("Tomorrow"), .note'); await page.selectOption('#reco-kind', 'run'); await page.waitForSelector('[data-reco]');
+  assert.equal(calls.length, 1, 'the forecast is cached, not re-fetched'); assert.deepEqual(errors, []);
+});
+await step('recommendations follow the routine: a person who walks at 7 and 18 gets "your usual time" around those hours', async () => {
+  const { page } = await newPage({ lang: 'en', clock: true, clockAt: SUMMER }); await mockWeather(page, hotForecast(SUMMER, { feels: 22 })); await page.goto(base);
+  await seedHours(page, Array.from({ length: 30 }, (_, i) => [{ daysAgo: i + 1, hour: 7, min: 30 }, { daysAgo: i + 1, hour: 18, min: 30 }]).flat());
+  await page.evaluate(() => { localStorage.setItem('da.onlineWx', '1'); localStorage.setItem('da.loc', JSON.stringify({ lat: 32, lon: 34.8 })); }); await page.goto(base + '#/reco'); await page.waitForSelector('[data-reco=habit]');
+  const times = (await page.locator('[data-reco=habit] .num').allTextContents()).map((r) => Number(r.slice(0, 2))); assert.ok(times.some((h) => Math.abs(h - 7) <= 1) && times.some((h) => Math.abs(h - 18) <= 1), `habit ${times}`);
+  await shot(page, 'reco-habit');
+});
+await step('recommendations: dashboard widget and drill-down, toolbar button, effort recommendations, failure and retry', async () => {
+  const { page } = await newPage({ lang: 'en', clock: true, clockAt: SUMMER }); const calls = await mockWeather(page, hotForecast(SUMMER), { fail: true }); await page.goto(base); await page.waitForSelector('[data-widget=reco]');
+  assert.match(await page.textContent('[data-widget=reco]'), /Allow the forecast/); await page.click('[data-widget=reco]'); await page.waitForSelector('#reco-consent'); assert.equal(await page.textContent('h1'), 'Recommendations');
+  await page.click('#reco-consent'); await page.waitForSelector('#reco-retry'); assert.match(await page.textContent('.recobox'), /Could not load the forecast/);
+  await page.unroute('https://api.open-meteo.com/**'); await mockWeather(page, hotForecast(SUMMER)); await page.click('#reco-retry'); await page.waitForSelector('[data-reco=best]');
+  await page.goto(base + '#/'); await page.waitForSelector('[data-widget=reco] .big'); assert.match(await page.textContent('[data-widget=reco]'), /Best time today|Your usual time|Good time/);
+  await page.click('a[aria-label="Recommendations"]'); await page.waitForSelector('.recos'); await page.click('.chip[data-area=effort]'); await page.waitForSelector('.chip[data-area=effort][aria-pressed=true]');
+});
+await step('settings: the online forecast is off by default, opt-in stores only rounded coordinates, turning it off forgets them; notification needs it', async () => {
+  const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.waitForSelector('#s-online');
+  assert.equal(await page.locator('#s-online').isChecked(), false); assert.equal(await page.evaluate(() => localStorage.getItem('da.loc')), null);
+  await page.click('#s-reco-notify'); assert.equal(await page.locator('#s-reco-notify').isChecked(), false, 'needs the online forecast first'); assert.match(await page.textContent('#online-msg'), /stays off/);
+  await page.check('#s-online'); await page.waitForSelector('#loc-saved'); assert.match(await page.textContent('#loc-saved'), /32, 34\.8/); assert.equal(await page.evaluate(() => localStorage.getItem('da.onlineWx')), '1');
+  await page.check('#s-reco-notify'); assert.equal(await page.evaluate(() => localStorage.getItem('da.recoNotify')), '1');
+  await page.uncheck('#s-online'); await page.waitForFunction(() => !document.getElementById('loc-saved')); assert.equal(await page.evaluate(() => [localStorage.getItem('da.loc'), localStorage.getItem('da.recoNotify')].join()), 'null,0');
+});
+await step('recommendation notification: shortly before the usual time and good weather, once', async () => {
+  const at = new Date(2026, 6, 15, 6, 20); const { page } = await newPage({ lang: 'en', clock: true, clockAt: at }); await mockWeather(page, hotForecast(at, { feels: 20 })); await page.goto(base);
+  await seedHours(page, Array.from({ length: 30 }, (_, i) => ({ daysAgo: i + 1, hour: 7, min: 30 })));
+  await page.evaluate(() => { for (const [k, v] of Object.entries({ onlineWx: '1', recoNotify: '1', loc: JSON.stringify({ lat: 32, lon: 34.8 }) })) localStorage.setItem('da.' + k, v); });
+  await page.clock.runFor(95000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Good time for a walk soon/); assert.equal(await page.locator('.alert').count(), 1, 'only once');
+});
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });
-    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
+    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/reco', '#/d/reco']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
     for (const pack of ['ocean', 'high-contrast', 'mono']) { await page.goto(base + '#/'); await page.evaluate((p) => { document.documentElement.dataset.pack = p; }, pack); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} pack ${pack}`); }
     await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout`);
     await page.click('.big-btn'); await page.click('.controls button.round[aria-label]:last-child'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);
@@ -168,7 +226,7 @@ await step('axe-core: zero violations on every screen (he light, en dark)', asyn
 });
 await step('320 px: no horizontal scroll', async () => {
   const { page } = await newPage({ width: 320 });
-  for (const route of ['#/', '#/settings', '#/history', '#/workout/run', '#/alerts', '#/search', '#/d/effort', '#/d/distance']) { await page.goto(base + route); await page.waitForSelector('main > *'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route); }
+  for (const route of ['#/', '#/settings', '#/history', '#/workout/run', '#/alerts', '#/search', '#/d/effort', '#/d/distance', '#/reco']) { await page.goto(base + route); await page.waitForSelector('main > *'); assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), route); }
 });
 
 await browser.close(); server.close();

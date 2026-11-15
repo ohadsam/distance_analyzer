@@ -11,10 +11,11 @@ import { stepSeries, recommendedSteps } from '../steps.js';
 import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
 import { barChart, lineChart } from '../charts.js';
 import { workoutRow } from './home.js';
+import { recoSummary, mountReco } from './reco.js';
 
-export const WIDGETS = ['effort', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
+export const WIDGETS = ['effort', 'reco', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
 const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
-export const W_KEY = { effort: 'wEffort', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
+export const W_KEY = { effort: 'wEffort', reco: 'wReco', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 export function loadLayout() {
@@ -76,6 +77,10 @@ export const W = {
     summary: (c) => { const pb = personalBests(c.rows); return pb.longest ? h('div', { class: 'rows flat' }, row(t('recLongest'), fmtKm(pb.longest.distanceM)), pb.fastest ? row(t('recFastest'), fmtPaceUnit(paceSec(pb.fastest))) : null, pb.bestKm ? row(t('recBestKm'), fmtClock(pb.bestKm.ms)) : null) : h('p', { class: 'note' }, t('recNone')); },
     detail: (c) => [W.records.summary(c)],
   },
+  reco: {
+    summary: () => { const box = h('div', null, h('p', { class: 'note' }, '…')); recoSummary().then((el) => setChildren(box, el)); return box; },
+    detail: () => { const box = h('div', { class: 'recobox' }); const draw = () => { box.alive = true; mountReco(box, 'all', { redraw: draw }); }; draw(); return [box]; },
+  },
   alerts: {
     summary: (c) => { const l = c.alerts.slice(0, 2); return l.length ? h('div', { class: 'rows flat' }, l.map((a) => row(t(a.title, a.params), a.read ? '' : '●'))) : h('p', { class: 'note' }, t('alertsEmpty')); },
     detail: () => [h('a', { class: 'btn', href: '#/alerts' }, t('alertsTitle'))],
@@ -129,9 +134,9 @@ export function renderDrill(id) {
   async function draw() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return;
     setChildren(el, h('a', { class: 'link back', href: '#/' }, icon('back', 20), t('dashboard')), h('h1', null, t(W_KEY[id])),
-      id === 'effort' || id === 'steps' || id === 'alerts' ? null : filterBar(c, draw), h('div', { class: 'detail' }, W[id].detail(c)),
-      id === 'alerts' ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
-      id === 'alerts' ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
+      id === 'effort' || id === 'steps' || id === 'alerts' || id === 'reco' ? null : filterBar(c, draw), h('div', { class: 'detail' }, W[id].detail(c)),
+      id === 'alerts' || id === 'reco' ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
+      id === 'alerts' || id === 'reco' ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
   }
   draw(); el.cleanup = () => { el.alive = false; };
   return el;

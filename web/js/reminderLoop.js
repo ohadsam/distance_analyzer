@@ -6,7 +6,9 @@ import { pushAlert } from './ui/notify.js';
 import { dayStart } from './stats.js';
 import { stepSeries, recommendedSteps } from './steps.js';
 import { weekStatus } from './effort.js';
-import { active } from './store.js';
+import { active, getPref } from './store.js';
+import { onlineOn, fetchForecast } from './weatherApi.js';
+import { routineProfile, recommend } from './reco.js';
 
 const TICK = 30000;
 let last = Date.now(), timer = 0;
@@ -20,6 +22,11 @@ async function runChecks(now, prevCheck) {
   last = now;
   const list = sanitizeReminders(getJson('rems', [])), smart = sanitizeSmart(getJson('smart', {}));
   for (const r of dueReminders(list, prevCheck, now)) pushAlert({ id: `rem-${r.id}-${dayStart(now)}-${r.time}`, kind: 'reminder', title: r.kind === 'walk' ? 'rem_walk' : 'rem_move', lines: [r.kind === 'walk' ? 'rem_walk_body' : 'rem_move_body'], href: '#/workout/walk' });
+  await smartPart(smart, now);
+  await recoPart(now);
+}
+
+async function smartPart(smart, now) {
   const nd = getJson('nudge', {}), cheap = { lastMoveAt: 0, nudgesToday: nd.day === dayStart(now) ? nd.n | 0 : 0, lastNudgeAt: nd.last | 0, stepsToday: 0, goalSteps: 0, weekBehind: false, activeNow: !!active.load() };
   if (!smartNudge(smart, cheap, now)) return; // the hour, the daily cap, the spacing and a running workout are decided before any data is loaded
   const rows = await listWorkouts({ points: false }), prof = profile(), today = rows.filter((w) => dayStart(w.startedAt) === dayStart(now)), n = getJson('nudge', {});
@@ -30,4 +37,20 @@ async function runChecks(now, prevCheck) {
   setJson('nudge', { day, n: state.n + 1, last: now });
   pushAlert({ id: `nudge-${now}`, kind: 'reminder', title: d.kind === 'walk' ? 'rem_walk' : 'rem_move', lines: [d.why === 'behind' ? 'rem_behind_body' : 'rem_idle_body'], href: d.kind === 'walk' ? '#/workout/walk' : '' });
 }
+
+/** A notification shortly before the person's usual time when the forecast says the weather is good (opt-in; uses the saved forecast, at most one request an hour). */
+async function recoPart(now) {
+  if (getPref('recoNotify', '0') !== '1' || !onlineOn() || active.load()) return;
+  const day = dayStart(now), sent = getJson('recoSent', {}), ids = sent.day === day ? sent.ids || [] : [];
+  const res = await fetchForecast({ now }); if (!res) return;
+  const rows = await listWorkouts({ points: false }), kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk', prof = routineProfile(rows, now);
+  for (const i of recommend(res.list, prof, kind, now).items) {
+    const startMs = day + i.start * 3600000;
+    if (i.type !== 'habit' || i.day !== 0 || i.score < 60 || ids.includes(i.id) || startMs - now > 45 * 60000 || startMs - now < 0) continue;
+    setJson('recoSent', { day, ids: [...ids, i.id] });
+    pushAlert({ id: `reco-${day}-${i.id}`, kind: 'reminder', title: `rec_notify_${kind}`, lines: ['rec_notify_body'], params: { range: `${String(i.start).padStart(2, '0')}:00-${String(i.end % 24).padStart(2, '0')}:00`, temp: i.params.temp }, href: '#/reco' });
+    return;
+  }
+}
+
 export function startReminderLoop() { if (!timer) timer = setInterval(() => { checkReminders().catch(() => { /* a failed check must never break the app */ }); }, TICK); }

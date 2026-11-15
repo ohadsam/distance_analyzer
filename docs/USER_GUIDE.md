@@ -23,6 +23,10 @@ Steps are estimated from your tracked walks and runs. Brisk, unbroken stretches 
 ## Reminders
 Settings → Reminders: add reminders for a walk or a movement break at set times and days. Turn on **Smart nudges** to get a gentle prompt when there was no movement for a long time (only in your waking hours, a few times a day at most, never during a workout). Allow notifications to also see them outside the app. For now reminders arrive while StepUp is open.
 
+## Recommendations
+The star in the top bar opens **Recommendations**. Choose walk or run and see the best times today or tomorrow: your usual times when the weather suits them, good times by weather alone, and times better to avoid (heat, rain, wind, dark), with the reason. It learns your routine from the last weeks, so if you usually walk at 7 and 18 it suggests those hours first. The same screen has recommendations from your effort bar, steps and streak, and the dashboard has a Recommendations widget that opens it.
+Weather needs the internet. The first time, StepUp asks for your permission; only your approximate location (about 1 km) is sent to the free service Open-Meteo, and nothing else. Settings → Recommendations lets you turn it off ("Forget my location") or get a notification before your usual time when the weather is good.
+
 ## Search
 The magnifier searches everything: settings, screens, widgets, workouts and alerts, in Hebrew or English. Tap a result to go there.
 

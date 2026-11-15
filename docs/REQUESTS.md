@@ -41,5 +41,8 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 26 | Global search across everything (settings, history, alerts...) | ✅ 0.3.0 |
 | 27 | Push to `main` | ✅ done (CI on main) |
 | 28 | Logo and icons look too simple: improve them significantly | 🟡 round-3 design prompt written (`docs/prompts/ROUND3_PROMPT.txt`), waiting for ChatGPT results |
+| 29 | Recommendations for walking/running by weather: the preferred times of day, considering the historical routine (usual hours, 2-3 sessions a day) and giving general best hours | ✅ 0.4.0 (live forecast format to verify on a device) |
+| 30 | A recommendations widget with drill-down on the dashboard, and a toolbar button to a recommendations screen (weather, effort bar, ...) | ✅ 0.4.0 |
+| 31 | Optional notifications about good times (setting) | ✅ 0.4.0 while the app is open; background delivery pending |
 | 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |

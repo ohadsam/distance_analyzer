@@ -5,6 +5,7 @@ import { native } from '../native.js';
 import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js';
 import { notifyState, askNotify } from './notify.js';
 import { checkReminders } from '../reminderLoop.js';
+import { onlineOn, getLoc, setLoc, locate, forgetWeather } from '../weatherApi.js';
 
 const PACKS = [['momentum', 'packMomentum'], ['ocean', 'packOcean'], ['forest', 'packForest'], ['sunset', 'packSunset'], ['violet', 'packViolet'], ['slate', 'packSlate'], ['mono', 'packMono'], ['high-contrast', 'packHigh']];
 const opt = (value, label, cur) => h('option', { value, selected: value === cur }, label);
@@ -50,6 +51,14 @@ export function renderSettings(focusId) {
     field(t('age'), num('s-age', 'age', 35, 5, 100), 's-age'), field(t('height'), num('s-height', 'height', 170, 100, 230), 's-height'), field(`${t('weight')} (${t('kg')})`, num('s-weight', 'weight', 70, 30, 250), 's-weight'),
     h('h2', null, t('wEffort')),
     check('s-effort', `${t('effortAlerts')}`, getPref('effortAlerts', '1') === '1', (on) => setPref('effortAlerts', on ? '1' : '0')), h('p', { class: 'note' }, t('effortAlertsHint')),
+    h('h2', { id: 'f-s-reco' }, t('recoTitle')),
+    check('s-online', t('setOnline'), onlineOn(), async (on) => { // opt-in: needs the approximate location; turning it off forgets it
+      if (!on) { forgetWeather(); return redraw(); }
+      try { setLoc(await locate()); setPref('onlineWx', '1'); } catch { const m = document.getElementById('online-msg'); if (m) m.textContent = t('setLocNeed'); document.getElementById('s-online').checked = false; return; }
+      redraw();
+    }), h('p', { class: 'note' }, t('setOnlineHint')), h('p', { class: 'err', id: 'online-msg', role: 'status' }),
+    getLoc() ? h('p', { class: 'note', id: 'loc-saved' }, t('setLocSaved', getLoc())) : null,
+    check('s-reco-notify', t('setRecoNotify'), getPref('recoNotify', '0') === '1' && onlineOn(), (on) => { if (on && !onlineOn()) { document.getElementById('s-reco-notify').checked = false; const m = document.getElementById('online-msg'); if (m) m.textContent = t('setLocNeed'); return; } setPref('recoNotify', on ? '1' : '0'); }), h('p', { class: 'note' }, t('setRecoNotifyHint')),
     h('h2', { id: 'f-s-rem' }, t('remTitle')), remindersBlock(),
     check('s-smart', t('remSmart'), smart.on, (on) => saveSmart({ on })), h('p', { class: 'note' }, t('remSmartHint')),
     field(t('remFrom'), num('s-from', 'smartFrom', smart.fromHour, 0, 23), 's-from'), field(t('remTo'), num('s-to', 'smartTo', smart.toHour, 1, 24), 's-to'),

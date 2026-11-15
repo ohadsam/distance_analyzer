@@ -28,7 +28,8 @@ export function renderAlerts() {
         h('button', { type: 'button', class: 'btn danger', onclick: () => { alertStore.save([]); dispatchEvent(new CustomEvent('stepup-alerts')); draw(); } }, t('clearAll'))) : null,
       list.length ? h('div', { class: 'list' }, list.map((a) => alertCard(a, { onChange: draw }))) : h('p', { class: 'note' }, t('alertsEmpty')));
   }
-  draw(); // opening the inbox marks everything as read after a moment, so the unread dot disappears without hiding what is new on screen
-  el.cleanup = () => { alertStore.save(markAllRead(alertStore.load())); dispatchEvent(new CustomEvent('stepup-alerts')); };
+  const onNew = () => { if (el.alive !== false) draw(); }; // an alert that arrives while the inbox is open appears at once
+  addEventListener('stepup-alerts', onNew); draw();
+  el.cleanup = () => { el.alive = false; removeEventListener('stepup-alerts', onNew); alertStore.save(markAllRead(alertStore.load())); dispatchEvent(new CustomEvent('stepup-alerts')); }; // leaving the inbox marks everything as read
   return el;
 }

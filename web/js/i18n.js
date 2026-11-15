@@ -1,4 +1,5 @@
 import { EN, HE } from './strings02.js';
+import { EN as EN3, HE as HE3 } from './strings03.js';
 // Hebrew + English. `t(key, params)` looks up the active language, falls back to English, then to the key.
 // Layout uses CSS logical properties, so flipping <html dir> is all RTL needs. Every key must exist in BOTH languages (unit test).
 export const STR = {
@@ -38,7 +39,7 @@ export const STR = {
   },
 };
 
-Object.assign(STR.en, EN); Object.assign(STR.he, HE);
+Object.assign(STR.en, EN, EN3); Object.assign(STR.he, HE, HE3);
 
 let lang = 'he';
 export const getLang = () => lang;

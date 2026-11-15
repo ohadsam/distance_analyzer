@@ -3,6 +3,9 @@
 Ordered so that every phase ships something usable and the later phases build on the earlier ones. Status of each request lives in `REQUESTS.md`.
 Core idea: **clean, simple, self-explanatory**; a **Workout mode** that strips the screen to a few big buttons.
 
+## Status snapshot (0.4.0)
+D1 (network) was decided by the owner's request for weather recommendations: ONE opt-in forecast request (see ARCHITECTURE). Maps (D2) still undecided. Phase 8 forecast part is done in-app.
+
 ## Status snapshot (0.3.0)
 Phase 1 (core tracking): done for the foreground; background service pending. Phase 2: steps estimated from workouts, sensor pending. Phase 3 (stats), 4 (live indicators): dashboard + drill-down done; live "about to break a record" banner NOT yet built. Phase 5 (effort bar): done (alerts, gentle raise). Phase 6 (training plans): not started. Phase 7 (maps): waiting for D1/D2. Phase 8: reminders done in-app; weather waiting for D1/D3. Phase 9 (widgets): not started (Android home-screen widgets). Phase 10: ideas, per approval.
 
