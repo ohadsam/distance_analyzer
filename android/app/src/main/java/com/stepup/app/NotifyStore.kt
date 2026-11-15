@@ -44,7 +44,8 @@ object NotifyStore {
 
     @SuppressLint("MissingPermission") // checked in allowed()
     fun fireDue(ctx: Context) {
-        val now = System.currentTimeMillis(), list = load(ctx)
+        val now = System.currentTimeMillis()
+        val list = load(ctx)
         if (allowed(ctx)) {
             val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel(CHANNEL, "StepUp", NotificationManager.IMPORTANCE_DEFAULT))
