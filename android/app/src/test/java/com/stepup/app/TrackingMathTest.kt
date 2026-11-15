@@ -19,7 +19,7 @@ class TrackingMathTest {
     @Test fun oneMovingFixInterruptsTheCount() {
         var interval = TrackingMath.FAST_MS; var count = 0
         repeat(TrackingMath.STILL_FIXES - 1) { val (i, c) = TrackingMath.next(interval, count, 0.1f); interval = i; count = c }
-        val (i1, c1) = TrackingMath.next(interval, count, 0.5f); assertEquals(0, c1); assertEquals(TrackingMath.FAST_MS, i1)
+        val (i1, c1) = TrackingMath.next(interval, count, 0.5f); assertEquals(0, c1); assertEquals(TrackingMath.FAST_MS, i1); interval = i1; count = c1
         repeat(TrackingMath.STILL_FIXES - 1) { val (i, c) = TrackingMath.next(interval, count, 0.1f); interval = i; count = c }
         assertEquals(TrackingMath.FAST_MS, interval) // 14 + 1 moving + 14 is not 15 in a row
     }
