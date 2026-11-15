@@ -78,7 +78,7 @@ export const W = {
     detail: (c) => [W.records.summary(c)],
   },
   reco: {
-    summary: () => { const box = h('div', null, h('p', { class: 'note' }, '…')); recoSummary().then((el) => setChildren(box, el)); return box; },
+    summary: (c) => recoSummary(c),
     detail: () => { const box = h('div', { class: 'recobox' }); const draw = () => { box.alive = true; mountReco(box, 'all', { redraw: draw }); }; draw(); return [box]; },
   },
   alerts: {
@@ -138,6 +138,6 @@ export function renderDrill(id) {
       id === 'alerts' || id === 'reco' ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
       id === 'alerts' || id === 'reco' ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
   }
-  draw(); el.cleanup = () => { el.alive = false; };
+  draw(); el.cleanup = () => { el.alive = false; for (const b of el.querySelectorAll('.recobox')) b.alive = false; }; // also stops a recommendation load that is still running
   return el;
 }

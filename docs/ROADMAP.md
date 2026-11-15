@@ -12,7 +12,7 @@ Phase 1 (core tracking): done for the foreground; background service pending. Ph
 ## Open decisions (need the owner's OK before the phase that depends on them)
 | # | Decision | Recommendation | Needed by |
 |---|---|---|---|
-| D1 | **Network.** Maps (tiles) and weather need internet; the skeleton has none (no `INTERNET`, CSP `'self'`). | Core tracking, steps, stats, plans, widgets stay 100 % offline. Network only on screens that need it (map, weather), fixed hosts listed in the CSP and in `ARCHITECTURE.md`, nothing sent except coordinates/tiles requested; the rest degrades gracefully offline. | Phase 7-8 |
+| D1 | **Network.** DECIDED for weather (0.4.0): one opt-in forecast request to Open-Meteo, see ARCHITECTURE "Network (0.4)". Maps (tiles) would be a second network use and still need a decision. | Core tracking, steps, stats, plans, widgets stay 100 % offline. Network only on screens that need it (map, weather), fixed hosts listed in the CSP and in `ARCHITECTURE.md`, nothing sent except coordinates/tiles requested; the rest degrades gracefully offline. | Phase 7-8 |
 | D2 | **Map source.** OSM's public tile servers forbid heavy app use; commercial ones need keys. | Verify licence/usage policy first (checklist rule 8). Prefer a free no-key tile source + a small in-house tile renderer (zero dependencies) over a map library; fall back to a plain track drawing (no tiles) when offline. | Phase 7 |
 | D3 | **Weather source.** | Open-Meteo (free, no key, forecast by lat/lon); verify terms for an app. | Phase 8 |
 | D4 | **Health data.** Step counting and heart rate. | Android step sensor (no account). Optional later: Health Connect import (watches, other apps). PWA cannot count steps: that part is Android-only and hidden in the browser. | Phase 2, 10 |

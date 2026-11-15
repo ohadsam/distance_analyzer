@@ -16,11 +16,11 @@ export function comfort(h, kind = 'walk') {
   const score = Math.round(clamp(100 - Object.values(pen).reduce((s, x) => s + x, 0), 0, 100));
   const bad = Object.entries(pen).filter(([, v]) => v >= 8).sort((a, b) => b[1] - a[1]).map(([k]) => k);
   const reasons = []; if (!pen.heat && !pen.cold) reasons.push('temp'); if (!pen.rain && h.rainP < 20) reasons.push('dry'); if (!pen.wind && h.wind < 15) reasons.push('calm'); if (h.day) reasons.push('daylight');
-  return { score, reasons, bad };
+  return { score, reasons, bad, pen };
 }
 
 // ---------- the person's routine ----------
-const HALF_LIFE = 28 * DAY, SPAN = 56 * DAY;
+const HALF_LIFE = 28 * DAY, SPAN = 56 * DAY, MIN_ROUTINE = 5;
 const startHour = (ts) => { const d = new Date(ts); return d.getHours(); };
 const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
@@ -28,8 +28,9 @@ const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) =>
  * Habits from the last 8 weeks (recent workouts count more). Returns { n, habit(weekday, hour) in 0..1, sessions(weekday) 1..3,
  * typicalMin(kind), hours: top habitual start hours overall }. With fewer than 5 workouts there is no routine yet (n small -> the weather decides).
  */
-export function routineProfile(rows, now) {
-  const recent = rows.filter((w) => w.startedAt >= now - SPAN && w.startedAt <= now + DAY);
+export function routineProfile(rows, now, kind = '') {
+  const inSpan = (w) => w.startedAt >= now - SPAN && w.startedAt <= now + DAY, mine = kind ? rows.filter((w) => w.kind === kind && inSpan(w)) : [];
+  const recent = kind && mine.length >= MIN_ROUTINE ? mine : rows.filter(inSpan); // a person who runs at 6 and walks at 19 gets walk times from the walks (all workouts only when there are too few of that kind)
   const byDay = Array.from({ length: 7 }, () => new Array(24).fill(0)), all = new Array(24).fill(0), perDay = new Map();
   for (const w of recent) {
     const wt = Math.pow(0.5, Math.max(0, now - w.startedAt) / HALF_LIFE), d = new Date(w.startedAt).getDay(), h = startHour(w.startedAt);
@@ -50,7 +51,7 @@ export function routineProfile(rows, now) {
 }
 
 // ---------- the best times ----------
-const MIN_ROUTINE = 5, WAKING = [6, 22];
+const WAKING = [6, 22];
 const win = (hours, a, len) => hours.slice(a, a + len);
 
 /**
@@ -59,8 +60,8 @@ const win = (hours, a, len) => hours.slice(a, a + len);
  *  - habit: near the person's usual hours and comfortable; best: the most comfortable windows overall; avoid: stretches that are poor.
  */
 export function recommend(forecast, profile, kind, now, { tomorrow = false } = {}) {
-  const today = dayStart(now), out = { hours: [], items: [] };
-  const span = forecast.filter((h) => h.t >= now - 3600000 + 1 && h.t < today + (tomorrow ? 2 : 1) * DAY + 3600000 && new Date(h.t).getHours() >= WAKING[0] - 1);
+  const today = dayStart(now), out = { hours: [], items: [] }, dayEnd = (n) => { const d = new Date(today); d.setDate(d.getDate() + n); return d.getTime(); }; // calendar days (a clock-change day is not 24 h)
+  const span = forecast.filter((h) => h.t >= now - 3600000 + 1 && h.t < dayEnd(tomorrow ? 2 : 1) + 3600000 && new Date(h.t).getHours() >= WAKING[0] - 1);
   for (const h of span) {
     const c = comfort(h, kind), d = new Date(h.t), hab = profile.n >= MIN_ROUTINE ? profile.habit(d.getDay(), d.getHours()) : 0;
     out.hours.push({ t: h.t, hour: d.getHours(), day: dayStart(h.t) === today ? 0 : 1, comfort: c.score, habit: hab, fit: profile.n >= MIN_ROUTINE ? Math.round(c.score * 0.6 + hab * 40) : c.score, c, f: h });
@@ -68,17 +69,17 @@ export function recommend(forecast, profile, kind, now, { tomorrow = false } = {
   const len = Math.max(1, Math.min(2, Math.ceil(profile.typicalMin(kind) / 60)));
   for (const day of tomorrow ? [0, 1] : [0]) {
     const hrs = out.hours.filter((h) => h.day === day && h.hour >= WAKING[0] && h.hour < WAKING[1]); if (!hrs.length) continue;
-    const taken = new Set(), pick = (key, minScore) => {
+    const taken = new Set(), pick = (key, minScore, minComfort = 0) => {
       let best = null;
       for (let a = 0; a + len <= hrs.length; a++) {
         const w = win(hrs, a, len); if (w.some((h) => taken.has(h.hour))) continue; if (w[w.length - 1].hour - w[0].hour !== len - 1) continue; // contiguous
-        const score = w.reduce((s, h) => s + h[key], 0) / len; if (score >= minScore && (!best || score > best.score)) best = { w, score };
+        const score = w.reduce((s, h) => s + h[key], 0) / len; if (score >= minScore && w.reduce((s, h) => s + h.comfort, 0) / len >= minComfort && (!best || score > best.score)) best = { w, score };
       }
       return best;
     };
     const d0 = new Date(hrs[0].t).getDay(), wanted = profile.n >= MIN_ROUTINE ? profile.sessions(d0) : 1;
     for (let i = 0; i < wanted; i++) { // habit windows: best "fit" (comfort + routine)
-      const b = pick('fit', OK); if (!b) break;
+      const b = pick('fit', OK, OK); if (!b) break; // a usual hour only counts when the weather is also acceptable
       b.w.forEach((h) => taken.add(h.hour)); const isHabit = profile.n >= MIN_ROUTINE && b.w[0].habit >= 0.4;
       out.items.push(item(isHabit ? 'habit' : 'best', day, b.w, b.score, kind));
     }
@@ -88,18 +89,18 @@ export function recommend(forecast, profile, kind, now, { tomorrow = false } = {
     let run = null; // avoid: contiguous poor hours
     for (const h of [...hrs, null]) {
       if (h && h.comfort < BAD) { run = run ? { ...run, hs: [...run.hs, h] } : { hs: [h] }; continue; }
-      if (run && run.hs.length >= 2) { const worst = run.hs.flatMap((x) => x.c.bad)[0]; out.items.push({ id: `avoid-${day}-${run.hs[0].hour}`, type: 'avoid', day, start: run.hs[0].hour, end: run.hs[run.hs.length - 1].hour + 1, score: Math.round(run.hs.reduce((s, x) => s + x.comfort, 0) / run.hs.length), reasons: [], bad: worst ? [worst] : [], params: params(run.hs) }); }
+      if (run && run.hs.length >= 2) { const sum = {}; for (const x of run.hs) for (const [k, v] of Object.entries(x.c.pen)) sum[k] = (sum[k] || 0) + v; const worst = Object.entries(sum).sort((a, b) => b[1] - a[1])[0]?.[0]; /* the problem with the biggest total penalty over the stretch */ out.items.push({ id: `avoid-${day}-${run.hs[0].hour}`, type: 'avoid', day, start: run.hs[0].hour, end: run.hs[run.hs.length - 1].hour + 1, score: Math.round(run.hs.reduce((s, x) => s + x.comfort, 0) / run.hs.length), reasons: [], bad: worst ? [worst] : [], params: params(run.hs) }); }
       run = null;
     }
   }
   out.items.sort((a, b) => a.day - b.day || a.start - b.start);
   const merged = []; // neighbouring "good time" windows read better as one stretch (06:00-09:00)
-  for (const it of out.items) { const p = merged[merged.length - 1]; if (p && it.type === 'best' && p.type === 'best' && p.day === it.day && p.end === it.start) { p.end = it.end; p.score = Math.round((p.score + it.score) / 2); p.reasons = [...new Set([...p.reasons, ...it.reasons])]; } else merged.push({ ...it }); }
+  for (const it of out.items) { const p = merged[merged.length - 1]; if (p && it.type === 'best' && p.type === 'best' && p.day === it.day && p.end === it.start) { p.end = it.end; p.score = Math.round((p.score + it.score) / 2); p.comfort = Math.round((p.comfort + it.comfort) / 2); p.reasons = [...new Set([...p.reasons, ...it.reasons])]; } else merged.push({ ...it }); }
   out.items = merged;
   return out;
 }
 const params = (hs) => ({ temp: Math.round(hs.reduce((s, h) => s + h.f.feels, 0) / hs.length), rain: Math.round(Math.max(...hs.map((h) => h.f.rainP))), wind: Math.round(Math.max(...hs.map((h) => h.f.wind))) });
-const item = (type, day, w, score, kind) => ({ id: `${type}-${day}-${w[0].hour}-${kind}`, type, day, start: w[0].hour, end: w[w.length - 1].hour + 1, score: Math.round(score), reasons: [...new Set(w.flatMap((h) => h.c.reasons))], bad: [], params: params(w), habit: w[0].habit >= 0.4 });
+const item = (type, day, w, score, kind) => ({ id: `${type}-${day}-${w[0].hour}-${kind}`, type, day, start: w[0].hour, end: w[w.length - 1].hour + 1, score: Math.round(score), comfort: Math.round(w.reduce((s, h) => s + h.comfort, 0) / w.length), reasons: [...new Set(w.flatMap((h) => h.c.reasons))], bad: [], params: params(w), habit: w[0].habit >= 0.4 });
 
 // ---------- recommendations from the effort bar, steps and streak ----------
 /**

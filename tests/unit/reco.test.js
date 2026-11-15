@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { forecastUrl, normalizeForecast, roundCoord, validCoords } from '../../web/js/forecast.js';
+import { forecastUrl, normalizeForecast, sanitizeHours, roundCoord, validCoords } from '../../web/js/forecast.js';
 import { comfort, routineProfile, recommend, generalRecs } from '../../web/js/reco.js';
 
 const NOW = new Date(2026, 6, 15, 5, 30).getTime(); // Wednesday 15 July 2026, 05:30 (a hot-summer day)
@@ -10,11 +10,12 @@ const hotDay = (over = {}) => Array.from({ length: 48 }, (_, i) => { const t = n
 const run = (daysAgo, hour, kind = 'run', min = 35) => { const d = new Date(NOW); d.setDate(d.getDate() - daysAgo); d.setHours(hour, 10, 0, 0); return { kind, startedAt: d.getTime(), distanceM: 5000, movingMs: min * 60000, elapsedMs: min * 61000, splits: [] }; };
 
 test('forecast: URL has only rounded coordinates; hostile answers are normalised', () => {
-  const u = forecastUrl(32.08123, 34.78987); assert.match(u, /^https:\/\/api\.open-meteo\.com\/v1\/forecast\?latitude=32\.08&longitude=34\.79&hourly=/); assert.equal(roundCoord(34.78987), 34.79);
+  const u = forecastUrl(32.08123, 34.78987); assert.match(u, /^https:\/\/api\.open-meteo\.com\/v1\/forecast\?latitude=32\.08&longitude=34\.79&hourly=.*&timezone=GMT&timeformat=unixtime$/); assert.equal(roundCoord(34.78987), 34.79);
   assert.throws(() => forecastUrl(95, 0)); assert.throws(() => forecastUrl(NaN, 0)); assert.equal(validCoords(1, 200), false);
-  const f = normalizeForecast({ hourly: { time: ['2026-07-15T06:00', 'garbage', '2026-07-15T07:00'], temperature_2m: [20, 21, 'x'], apparent_temperature: [22, 0, 0], precipitation_probability: [500, 0, 0], precipitation: [0, 0, 0], wind_speed_10m: [10, 0, 0], uv_index: [3, 0, 0], is_day: [1, 1, 1] } });
+  const f = normalizeForecast({ hourly: { time: [1784084400, 'garbage', 1784088000], temperature_2m: [20, 21, 'x'], apparent_temperature: [22, 0, 0], precipitation_probability: [500, 0, 0], precipitation: [0, 0, 0], wind_speed_10m: [10, 0, 0], uv_index: [3, 0, 0], is_day: [1, 1, 1] } });
   assert.equal(f.length, 1); assert.equal(f[0].feels, 22); assert.equal(f[0].rainP, 100, 'clamped'); assert.equal(f[0].day, true);
-  assert.deepEqual(normalizeForecast(null), []); assert.deepEqual(normalizeForecast({ hourly: { time: 'x' } }), []); assert.equal(normalizeForecast({ hourly: { time: new Array(500).fill('2026-07-15T06:00'), temperature_2m: new Array(500).fill(20) } }).length, 72);
+  assert.deepEqual(normalizeForecast(null), []); assert.deepEqual(normalizeForecast({ hourly: { time: 'x' } }), []); assert.equal(normalizeForecast({ hourly: { time: new Array(500).fill(1784084400), temperature_2m: new Array(500).fill(20) } }).length, 72);
+  assert.equal(f[0].t % 3600000, 0, 'aligned to the hour'); assert.deepEqual(sanitizeHours([{ t: 1.8e12, temp: 70, feels: 'x', rainP: 500, rain: 0, wind: 0, uv: 0, day: 1 }, { t: 5, temp: 1 }, null]), [{ t: 1.8e12, temp: 60, feels: 0, rainP: 100, rain: 0, wind: 0, uv: 0, day: false }]);
 });
 test('comfort: cool dry calm daylight is great; heat, rain, wind, darkness and UV reduce it, and the worst problem is named first', () => {
   const ok = { feels: 14, rainP: 0, rain: 0, wind: 6, uv: 2, day: true };
@@ -63,4 +64,18 @@ test('generalRecs: behind the bar late in the week, ahead, heavy, low steps in t
   assert.ok(ids({ weekStatus: st('ahead', 200, 180, 1.1) }).includes('effort-ahead')); assert.ok(ids({ weekStatus: st('ahead', 260, 180, 1.44) }).includes('effort-heavy'));
   assert.ok(ids({ weekStatus: st('on', 90, 180, 0.5), hour: 17 }).includes('steps-low')); assert.ok(!ids({ weekStatus: st('on', 90, 180, 0.5), hour: 10 }).includes('steps-low'));
   assert.ok(ids({ weekStatus: st('on', 90, 180, 0.5), daysSinceLast: 4 }).includes('restart')); assert.ok(ids({ weekStatus: st('on', 90, 180, 0.5), streak: 5 }).includes('streak'));
+});
+
+test('regression: the walk/run choice changes the usual times (a person who runs at 6 and walks at 19)', () => {
+  const rows = []; for (let d = 1; d <= 30; d++) { rows.push(run(d, 6, 'run', 35)); rows.push(run(d, 19, 'walk', 30)); }
+  const walk = routineProfile(rows, NOW, 'walk'), runP = routineProfile(rows, NOW, 'run'), all = routineProfile(rows, NOW);
+  assert.ok(walk.habit(3, 19) > 0.8 && walk.habit(3, 6) < 0.2, 'walk -> evening'); assert.ok(runP.habit(3, 6) > 0.8 && runP.habit(3, 19) < 0.2, 'run -> morning'); assert.ok(all.habit(3, 6) > 0.8 && all.habit(3, 19) > 0.8);
+  assert.equal(routineProfile([run(1, 6, 'run', 30)], NOW, 'walk').n, 1, 'too few walks: falls back to all workouts');
+});
+test('regression: a habit window needs acceptable weather; an avoid stretch names the problem with the biggest total penalty', () => {
+  const rows = []; for (let d = 1; d <= 40; d++) rows.push(run(d, 7, 'walk', 30));
+  const awful = hotDay().map((h) => ({ ...h, feels: 38, temp: 38, wind: 30 }));
+  const r = recommend(awful, routineProfile(rows, NOW, 'walk'), 'walk', NOW); assert.ok(!r.items.some((i) => i.type === 'habit'), 'no usual-time card in awful weather');
+  const mixed = hotDay().map((h) => { const hr = new Date(h.t).getHours(); return hr >= 12 && hr <= 18 ? { ...h, feels: 38, temp: 37, wind: hr === 12 ? 45 : 8 } : { ...h, feels: 20, temp: 20 }; });
+  const av = recommend(mixed, routineProfile([], NOW), 'walk', NOW).items.find((i) => i.type === 'avoid'); assert.ok(av); assert.equal(av.bad[0], 'heat');
 });

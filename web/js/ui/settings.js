@@ -58,6 +58,7 @@ export function renderSettings(focusId) {
       redraw();
     }), h('p', { class: 'note' }, t('setOnlineHint')), h('p', { class: 'err', id: 'online-msg', role: 'status' }),
     getLoc() ? h('p', { class: 'note', id: 'loc-saved' }, t('setLocSaved', getLoc())) : null,
+    getLoc() ? h('button', { type: 'button', class: 'btn ghost', id: 'loc-forget', onclick: () => { forgetWeather(); redraw(); } }, t('setLocClear')) : null,
     check('s-reco-notify', t('setRecoNotify'), getPref('recoNotify', '0') === '1' && onlineOn(), (on) => { if (on && !onlineOn()) { document.getElementById('s-reco-notify').checked = false; const m = document.getElementById('online-msg'); if (m) m.textContent = t('setLocNeed'); return; } setPref('recoNotify', on ? '1' : '0'); }), h('p', { class: 'note' }, t('setRecoNotifyHint')),
     h('h2', { id: 'f-s-rem' }, t('remTitle')), remindersBlock(),
     check('s-smart', t('remSmart'), smart.on, (on) => saveSmart({ on })), h('p', { class: 'note' }, t('remSmartHint')),

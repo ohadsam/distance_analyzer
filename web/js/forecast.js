@@ -12,7 +12,7 @@ export const validCoords = (lat, lon) => Number.isFinite(lat) && Number.isFinite
 
 export function forecastUrl(lat, lon) {
   if (!validCoords(lat, lon)) throw new Error('bad coordinates');
-  return `${API}?latitude=${roundCoord(lat)}&longitude=${roundCoord(lon)}&hourly=${HOURLY.join(',')}&forecast_days=3&timezone=auto`;
+  return `${API}?latitude=${roundCoord(lat)}&longitude=${roundCoord(lon)}&hourly=${HOURLY.join(',')}&forecast_days=3&timezone=GMT&timeformat=unixtime`; // GMT + epoch seconds: no timezone or DST confusion between the place and the phone
 }
 
 /** json -> [{ t (ms, hour start), temp, feels (deg C), rainP (0-100), rain (mm), wind (km/h), uv, day (bool) }], oldest first, bounded. */
@@ -22,10 +22,16 @@ export function normalizeForecast(json) {
   const num = (a, i, lo, hi, d = 0) => (Array.isArray(a) && Number.isFinite(a[i]) ? clamp(a[i], lo, hi) : d);
   const out = [];
   for (let i = 0; i < Math.min(h.time.length, MAX_HOURS); i++) {
-    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):00$/.exec(String(h.time[i])); if (!m) continue;
-    const t = new Date(+m[1], +m[2] - 1, +m[3], +m[4]).getTime(); if (!Number.isFinite(t)) continue;
+    const t = Number.isFinite(h.time[i]) ? Math.floor(h.time[i] / 3600) * 3600000 : NaN; if (!(t > 1e12 && t < 4e12)) continue; // epoch seconds -> the start of that hour
     const temp = num(h.temperature_2m, i, -60, 60, NaN); if (!Number.isFinite(temp)) continue;
     out.push({ t, temp, feels: num(h.apparent_temperature, i, -70, 70, temp), rainP: num(h.precipitation_probability, i, 0, 100), rain: num(h.precipitation, i, 0, 200), wind: num(h.wind_speed_10m, i, 0, 250), uv: num(h.uv_index, i, 0, 20), day: Number(h.is_day?.[i]) === 1 });
   }
   return out;
+}
+
+/** A list read back from our own cache -> only valid, clamped hours (the cache is storage, so it is untrusted too). */
+export function sanitizeHours(list) {
+  if (!Array.isArray(list)) return [];
+  const n = (v, lo, hi) => (Number.isFinite(v) ? clamp(v, lo, hi) : 0);
+  return list.slice(0, MAX_HOURS).filter((h) => h && Number.isFinite(h.t) && h.t > 1e12 && h.t < 4e12 && Number.isFinite(h.temp)).map((h) => ({ t: h.t, temp: clamp(h.temp, -60, 60), feels: n(h.feels, -70, 70), rainP: n(h.rainP, 0, 100), rain: n(h.rain, 0, 200), wind: n(h.wind, 0, 250), uv: n(h.uv, 0, 20), day: h.day === true }));
 }

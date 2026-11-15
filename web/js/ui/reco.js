@@ -20,19 +20,21 @@ const TYPE_KEY = { habit: 'typeHabit', best: 'typeBest', avoid: 'typeAvoid' };
 /** Sentence of reasons from keys, e.g. "pleasant temperature, dry, calm wind". */
 const because = (i) => (i.type === 'avoid' ? i.bad : i.reasons).map((k) => t(i.type === 'avoid' ? `bad_${k}` : `why_${k}`, i.params)).join(', ');
 
-async function context(now = Date.now()) {
-  const rows = await listWorkouts({ points: false }), prof = profile(), kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk';
-  const series = stepSeries(rows, 14, now, prof.heightCm), ov = getJson('barOv', null), d = new Date(now);
-  const last = Math.max(0, ...rows.map((w) => w.startedAt));
-  return { rows, prof, kind, now, routine: routineProfile(rows, now), general: generalRecs({ weekStatus: weekStatus(rows, prof.age, now, ov), steps: { today: series[series.length - 1].quality, goal: recommendedSteps(series, prof.age) }, streak: streak(rows, now), daysSinceLast: last ? Math.floor((dayStart(now) - dayStart(last)) / DAY) : 0, hour: d.getHours(), weekday: d.getDay() }) };
+/** Everything the screen needs. `pre` = the dashboard's already loaded context (rows, profile, steps, status): no second read. */
+function build(rows, prof, now, series, status) {
+  const kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk', d = new Date(now), last = Math.max(0, ...rows.map((w) => w.startedAt));
+  return { rows, prof, kind, now, routine: routineProfile(rows, now, kind), general: generalRecs({ weekStatus: status, steps: { today: series[series.length - 1].quality, goal: recommendedSteps(series, prof.age) }, streak: streak(rows, now), daysSinceLast: last ? Math.floor((dayStart(now) - dayStart(last)) / DAY) : 0, hour: d.getHours(), weekday: d.getDay() }) };
 }
-
+async function context(now = Date.now()) {
+  const rows = await listWorkouts({ points: false }), prof = profile();
+  return build(rows, prof, now, stepSeries(rows, 14, now, prof.heightCm), weekStatus(rows, prof.age, now, getJson('barOv', null)));
+}
 /** Sync summary for the dashboard widget: only the saved forecast, never the network. */
-export async function recoSummary() {
-  const c = await context(), f = onlineOn() ? cachedForecast(c.now) : null;
+export function recoSummary(dash) {
+  const c = build(dash.all, dash.prof, dash.now, dash.steps, dash.status), f = onlineOn() ? cachedForecast(c.now) : null;
   if (!f?.length) return h('p', { class: 'note' }, onlineOn() ? t('recoOpen') : t('recoWidgetNone'));
   const best = recommend(f, c.routine, c.kind, c.now).items.find((i) => i.type !== 'avoid' && i.day === 0);
-  return h('div', null, best ? h('div', { class: 'stat' }, h('b', { class: 'big num' }, range(best)), h('small', null, `${t(TYPE_KEY[best.type])} · ${because(best)}`)) : h('p', { class: 'note' }, t('recoNoneToday')), c.general[0] ? h('p', { class: 'note' }, t(c.general[0].title)) : null);
+  return h('div', null, best ? h('div', { class: 'stat' }, h('b', { class: 'big num' }, range(best)), h('small', null, `${t('recoBestToday')} · ${t(TYPE_KEY[best.type])} · ${because(best)}`)) : h('p', { class: 'note' }, t('recoNoneToday')), c.general[0] ? h('p', { class: 'note' }, t(c.general[0].title)) : null);
 }
 
 function card(i) {
@@ -54,8 +56,9 @@ export async function mountReco(box, area = 'all', { redraw } = {}) {
 
 async function weatherPart(c, day, box, redraw) {
   if (!onlineOn() || !getLoc()) return [consentCard(redraw)];
-  const res = await fetchForecast();
-  if (!res) return [h('div', { class: 'card' }, h('p', null, t('recoFail')), h('button', { type: 'button', class: 'btn', id: 'reco-retry', onclick: () => redraw?.() }, t('recoRetry')))];
+  if (!box.hasChildNodes()) setChildren(box, h('p', { class: 'note', role: 'status' }, t('recoLoading')));
+  const res = await fetchForecast({ force: !!box.dataset.retry }); delete box.dataset.retry;
+  if (!res) return [h('div', { class: 'card' }, h('p', null, t('recoFail')), h('button', { type: 'button', class: 'btn', id: 'reco-retry', onclick: () => { box.dataset.retry = '1'; redraw?.(); } }, t('recoRetry')))];
   const r = recommend(res.list, c.routine, c.kind, c.now, { tomorrow: true }), items = r.items.filter((i) => i.day === day);
   const hours = r.hours.filter((x) => x.day === day && x.hour >= 6 && x.hour < 22);
   const mark = (hr) => { const it = items.find((i) => hr.hour >= i.start && hr.hour < i.end); return it?.type === 'avoid' ? 'bad' : it ? 'now' : ''; };

@@ -39,8 +39,8 @@ const weeks = (n, per = 3) => Array.from({ length: n * per }, (_, i) => ({ daysA
 // A synthetic Open-Meteo answer for a hot summer day (cool dawn, 38 degrees in the afternoon) for the local days of `base`, today and tomorrow.
 function hotForecast(base, over = {}) {
   const time = [], T = [], A = [], P = [], R = [], W = [], U = [], D = [];
-  for (let i = 0; i < 48; i++) { const d = new Date(base.getFullYear(), base.getMonth(), base.getDate(), i, 0), h = i % 24, p = (n) => String(n).padStart(2, '0'), feels = Math.round(24 + 14 * Math.exp(-((h - 15) ** 2) / 18));
-    time.push(`${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:00`); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); }
+  for (let i = 0; i < 48; i++) { const d = new Date(base.getFullYear(), base.getMonth(), base.getDate(), i, 0), h = i % 24, feels = Math.round(24 + 14 * Math.exp(-((h - 15) ** 2) / 18));
+    time.push(d.getTime() / 1000); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); }
   return { hourly: { time, temperature_2m: T, apparent_temperature: A, precipitation_probability: P, precipitation: R, wind_speed_10m: W, uv_index: U, is_day: D } };
 }
 const SUMMER = new Date(2026, 6, 15, 5, 30);
@@ -180,7 +180,7 @@ await step('reminders: a fixed reminder fires on time into the inbox; the smart 
 await step('recommendations: nothing is sent before consent; then best times by weather, avoid the hot afternoon, today/tomorrow, run vs walk', async () => {
   const { page, errors } = await newPage({ lang: 'en', clock: true, clockAt: SUMMER }); const calls = await mockWeather(page, hotForecast(SUMMER));
   await page.goto(base + '#/reco'); await page.waitForSelector('#reco-consent'); assert.equal(calls.length, 0, 'no request before consent'); assert.match(await page.textContent('.consent'), /approximate location/); await shot(page, 'reco-consent');
-  await page.click('#reco-consent'); await page.waitForSelector('[data-reco=best]'); assert.equal(calls.length, 1); assert.match(calls[0], /latitude=32&longitude=34\.8&/, 'rounded coordinates only'); assert.ok(!/\bkey\b|token/i.test(calls[0]));
+  await page.click('#reco-consent'); await page.waitForSelector('[data-reco=best]'); assert.equal(calls.length, 1); assert.match(calls[0], /latitude=32&longitude=34\.8&/, 'rounded coordinates only'); assert.match(calls[0], /timezone=GMT&timeformat=unixtime/); assert.ok(!/\bkey\b|token/i.test(calls[0]));
   const best = await page.locator('[data-reco=best] .num').allTextContents(); assert.ok(best.length >= 1 && best.every((r) => Number(r.slice(0, 2)) < 11 || Number(r.slice(0, 2)) >= 18), `best ${best}`);
   assert.ok(await page.locator('[data-reco=avoid]').count() >= 1, 'the hot afternoon is to be avoided'); assert.match(await page.textContent('[data-reco=avoid]'), /hot/); assert.match(await page.textContent('.recos'), /Open-Meteo/); await shot(page, 'reco-results');
   await page.click('.chip:has-text("Tomorrow")'); await page.waitForSelector('[data-reco] small:has-text("Tomorrow"), .note'); await page.selectOption('#reco-kind', 'run'); await page.waitForSelector('[data-reco]');
@@ -213,7 +213,7 @@ await step('recommendation notification: shortly before the usual time and good 
   const at = new Date(2026, 6, 15, 6, 20); const { page } = await newPage({ lang: 'en', clock: true, clockAt: at }); await mockWeather(page, hotForecast(at, { feels: 20 })); await page.goto(base);
   await seedHours(page, Array.from({ length: 30 }, (_, i) => ({ daysAgo: i + 1, hour: 7, min: 30 })));
   await page.evaluate(() => { for (const [k, v] of Object.entries({ onlineWx: '1', recoNotify: '1', loc: JSON.stringify({ lat: 32, lon: 34.8 }) })) localStorage.setItem('da.' + k, v); });
-  await page.clock.runFor(95000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Good time for a walk soon/); assert.equal(await page.locator('.alert').count(), 1, 'only once');
+  await page.clock.runFor(31000); await page.waitForTimeout(800); /* the mocked network answers in real time; the fake clock must not run past the 8 s timeout meanwhile */ await page.clock.runFor(2000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Good time for a walk soon/); assert.equal(await page.locator('.alert').count(), 1, 'only once');
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

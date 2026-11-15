@@ -39,14 +39,16 @@ async function smartPart(smart, now) {
 }
 
 /** A notification shortly before the person's usual time when the forecast says the weather is good (opt-in; uses the saved forecast, at most one request an hour). */
+let nextReco = 0;
 async function recoPart(now) {
-  if (getPref('recoNotify', '0') !== '1' || !onlineOn() || active.load()) return;
+  if (getPref('recoNotify', '0') !== '1' || !onlineOn() || active.load() || now < nextReco) return;
+  nextReco = now + 5 * 60000; // the routine and the forecast change slowly: look every 5 minutes, not every tick
   const day = dayStart(now), sent = getJson('recoSent', {}), ids = sent.day === day ? sent.ids || [] : [];
   const res = await fetchForecast({ now }); if (!res) return;
-  const rows = await listWorkouts({ points: false }), kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk', prof = routineProfile(rows, now);
+  const rows = await listWorkouts({ points: false }), kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk', prof = routineProfile(rows, now, kind);
   for (const i of recommend(res.list, prof, kind, now).items) {
-    const startMs = day + i.start * 3600000;
-    if (i.type !== 'habit' || i.day !== 0 || i.score < 60 || ids.includes(i.id) || startMs - now > 45 * 60000 || startMs - now < 0) continue;
+    const startMs = new Date(day).setHours(i.start, 0, 0, 0); // local clock time (a clock-change day is not 24 h)
+    if (i.type !== 'habit' || i.day !== 0 || i.comfort < 60 || ids.includes(i.id) || startMs - now > 45 * 60000 || startMs - now < 0) continue;
     setJson('recoSent', { day, ids: [...ids, i.id] });
     pushAlert({ id: `reco-${day}-${i.id}`, kind: 'reminder', title: `rec_notify_${kind}`, lines: ['rec_notify_body'], params: { range: `${String(i.start).padStart(2, '0')}:00-${String(i.end % 24).padStart(2, '0')}:00`, temp: i.params.temp }, href: '#/reco' });
     return;
