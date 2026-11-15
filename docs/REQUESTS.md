@@ -57,3 +57,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |
 | 41 | Live in-workout indications: about to pass last distance / record, faster than last time | ✅ 0.8.1 (feel on a real run unverified) |
 | 42 | Easier usability: bottom navigation, collapsible settings, fewer default widgets, first-run welcome | ✅ 0.9.0 |
+| 43 | More widget types and designed widget backgrounds | 🟡 0.9.1: Last workout + Next session widgets and a vector gradient/hills background; launcher check and ChatGPT background art pending |

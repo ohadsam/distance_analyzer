@@ -1,5 +1,5 @@
 // Offline-first service worker. VERSION is kept equal to version.json by scripts/bump-version.mjs (a unit test enforces it).
-const VERSION = '0.9.0';
+const VERSION = '0.9.1';
 const CACHE = `stepup-${VERSION}`;
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'version.json', 'icon.svg', 'css/packs.css', 'css/app.css',
   'js/app.js', 'js/theme-boot.js', 'js/util.js', 'js/i18n.js', 'js/native.js', 'js/icons.js', 'js/brand.js', 'js/brandData.js', 'js/iconData.js', 'js/geo.js', 'js/workout.js', 'js/metronome.js', 'js/cadence.js', 'js/audio.js', 'js/format.js', 'js/store.js', 'js/ui/home.js', 'js/plan.js', 'js/indicators.js', 'js/strings06.js', 'js/ui/plan.js', 'js/schedule.js', 'js/widgetData.js', 'js/syncNative.js', 'js/strings05.js', 'js/route.js', 'js/routeReco.js', 'js/strings04.js', 'js/ui/routes.js', 'js/ui/livemap.js', 'js/forecast.js', 'js/reco.js', 'js/weatherApi.js', 'js/strings03.js', 'js/ui/reco.js', 'js/stats.js', 'js/steps.js', 'js/effort.js', 'js/reminders.js', 'js/alerts.js', 'js/search.js', 'js/charts.js', 'js/reminderLoop.js', 'js/strings02.js', 'js/ui/dashboard.js', 'js/ui/alerts.js', 'js/ui/search.js', 'js/ui/notify.js', 'js/ui/settings.js', 'js/ui/history.js', 'js/ui/workout.js', 'js/ui/rhythm.js',

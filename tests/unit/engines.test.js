@@ -139,6 +139,8 @@ test('schedule: fixed reminders expand over the next days, sorted and bounded; r
 import { widgetSnapshot } from '../../web/js/widgetData.js';
 test('widget snapshot: rounded goals, translated texts, kind limited to walk/run', () => {
   const t = (k) => `T:${k}`, s = widgetSnapshot({ goalSteps: 7999.6, status: { done: 119.6, plan: { minutes: 180.2 }, status: 'on' }, kind: '../x' }, t);
-  assert.deepEqual(s, { stepsGoal: 8000, effortDone: 120, effortPlan: 180, kind: 'walk', stepsTitle: 'T:wSteps', effortTitle: 'T:wEffort', effortSub: 'T:effOn', quickTitle: 'T:qaMeasure', quickHint: 'T:walk' });
+  assert.deepEqual(s, { stepsGoal: 8000, effortDone: 120, effortPlan: 180, kind: 'walk', stepsTitle: 'T:wSteps', effortTitle: 'T:wEffort', effortSub: 'T:effOn', quickTitle: 'T:qaMeasure', quickHint: 'T:walk', lastTitle: 'T:wLast', lastValue: '–', lastSub: 'T:wLastNone', nextTitle: 'T:wNext', nextValue: '–', nextSub: 'T:wNextNone' });
+  const full = widgetSnapshot({ goalSteps: 1, status: { done: 0, plan: { minutes: 1 }, status: 'on' }, kind: 'run', last: { value: '5.00 km\n'.repeat(20), sub: '30:00' }, next: { value: 'Easy 30 min', sub: 'Sun' } }, t);
+  assert.equal(full.lastValue.length, 40); assert.ok(!/[\n]/.test(full.lastValue)); assert.equal(full.nextValue, 'Easy 30 min');
   assert.equal(widgetSnapshot({ goalSteps: -5, status: { done: 0, plan: { minutes: 30 }, status: 'behind' }, kind: 'run' }, t).stepsGoal, 0);
 });

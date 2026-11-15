@@ -41,7 +41,7 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun requestActivity() { if (Build.VERSION.SDK_INT >= 29) activity.ask(Manifest.permission.ACTIVITY_RECOGNITION); StepStore.arm(ctx) }
 
     /** Goals and texts for the home-screen widgets (validated in WidgetMath). */
-    @JavascriptInterface fun setWidgetData(json: String) { if (BridgeLimits.within(json, 4000)) Widgets.save(ctx, json) }
+    @JavascriptInterface fun setWidgetData(json: String) { if (BridgeLimits.within(json, 6000)) Widgets.save(ctx, json) }
 
     // ---- notifications that fire while the app is closed ----
     @JavascriptInterface fun notificationsAllowed(): Boolean = NotifyStore.allowed(ctx)

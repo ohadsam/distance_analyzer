@@ -4,5 +4,7 @@
     <color name="widget_bg">#1C2732</color>
     <color name="widget_text">#F5F8FA</color>
     <color name="widget_muted">#B8C6D2</color>
+    <color name="widget_bg_end">#16363D</color>
+    <color name="widget_art">#339CE5D6</color>
     <color name="widget_accent">#9CE5D6</color>
 </resources>

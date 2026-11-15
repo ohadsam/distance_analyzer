@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1
+- **Two more Android widgets**: **Last workout** (distance; time, pace and date) and **Next session** (the next planned training session and its date); both open the matching screen. The widget snapshot grew (`lastTitle/Value/Sub`, `nextTitle/Value/Sub`; every text is cleaned and capped on both sides) and the bridge limit rose to 6000 characters.
+- **Designed widget background**: a soft gradient (light and dark) with the "Little Trail" hills in the corner, drawn as Android vector resources. It is my own vector motif in the brand style, not ChatGPT art; the final background art is still pending in `PENDING_CHATGPT_PROMPTS.md`.
+- Verified: unit tests (snapshot caps/cleaning), Kotlin parse test (compiled in CI). Not verified: how the widgets look in a real launcher (sizes, dark mode, contrast over the gradient).
+
 ## 0.9.0
 - **Simpler to use**: a **bottom navigation** (Home, Routes, Plan, Recommendations) on every screen except workout mode; the top bar keeps only search, alerts and settings. **Settings** are grouped into collapsible sections (Look and Profile open, the rest closed; the open/closed state survives a redraw; a search jump opens its own section). A new person sees **seven essential dashboard widgets** (pace, consistency, records and alerts are one tap away in Customise; saved layouts are untouched). A **welcome card** on the first run asks for the age (so the effort bar fits) and disappears for good; it never shows to people who already have workouts.
 - Verified: e2e for the welcome card, the navigation (current page, hidden in workout mode) and collapsed sections; axe zero violations and 320 px unchanged. Not verified: how this feels on a real phone.

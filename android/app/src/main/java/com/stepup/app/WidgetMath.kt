@@ -6,6 +6,7 @@ import org.json.JSONObject
 data class WidgetSnapshot(
     val stepsGoal: Int, val effortDone: Int, val effortPlan: Int, val kind: String,
     val stepsTitle: String, val effortTitle: String, val effortSub: String, val quickTitle: String, val quickHint: String,
+    val lastTitle: String, val lastValue: String, val lastSub: String, val nextTitle: String, val nextValue: String, val nextSub: String,
 )
 
 object WidgetMath {
@@ -17,6 +18,7 @@ object WidgetMath {
         return WidgetSnapshot(
             stepsGoal = o.optInt("stepsGoal", 0).coerceIn(0, 100_000), effortDone = o.optInt("effortDone", 0).coerceIn(0, 100_000), effortPlan = o.optInt("effortPlan", 0).coerceIn(0, 100_000), kind = kind,
             stepsTitle = text(o, "stepsTitle", 40), effortTitle = text(o, "effortTitle", 40), effortSub = text(o, "effortSub", 60), quickTitle = text(o, "quickTitle", 40), quickHint = text(o, "quickHint", 60),
+            lastTitle = text(o, "lastTitle", 40), lastValue = text(o, "lastValue", 40), lastSub = text(o, "lastSub", 60), nextTitle = text(o, "nextTitle", 40), nextValue = text(o, "nextValue", 40), nextSub = text(o, "nextSub", 60),
         )
     }
 

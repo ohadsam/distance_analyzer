@@ -6,5 +6,7 @@
     <color name="widget_bg">#FFFFFF</color>
     <color name="widget_text">#17232D</color>
     <color name="widget_muted">#526474</color>
+    <color name="widget_bg_end">#DDEFEA</color>
+    <color name="widget_art">#33006B60</color>
     <color name="widget_accent">#006B60</color>
 </resources>

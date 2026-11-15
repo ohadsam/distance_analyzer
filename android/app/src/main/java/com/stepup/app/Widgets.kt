@@ -29,6 +29,8 @@ object Widgets {
         push(ctx, am, StepsWidget::class.java, R.layout.widget_steps) { fillSteps(ctx, it) }
         push(ctx, am, EffortWidget::class.java, R.layout.widget_effort) { fillEffort(ctx, it) }
         push(ctx, am, QuickWidget::class.java, R.layout.widget_quick) { fillQuick(ctx, it) }
+        push(ctx, am, LastWidget::class.java, R.layout.widget_text) { fillLast(ctx, it) }
+        push(ctx, am, NextWidget::class.java, R.layout.widget_text) { fillNext(ctx, it) }
     }
 
     private fun push(ctx: Context, am: AppWidgetManager, cls: Class<*>, layout: Int, fill: (RemoteViews) -> Unit) {
@@ -58,6 +60,22 @@ object Widgets {
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 32, "#/d/effort"))
     }
 
+    private fun fillLast(ctx: Context, v: RemoteViews) {
+        val s = snapshot(ctx)
+        v.setTextViewText(R.id.title, s?.lastTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_last_label))
+        v.setTextViewText(R.id.value, s?.lastValue?.ifEmpty { null } ?: "–")
+        v.setTextViewText(R.id.sub, s?.lastSub ?: "")
+        v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 34, "#/history"))
+    }
+
+    private fun fillNext(ctx: Context, v: RemoteViews) {
+        val s = snapshot(ctx)
+        v.setTextViewText(R.id.title, s?.nextTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_next_label))
+        v.setTextViewText(R.id.value, s?.nextValue?.ifEmpty { null } ?: "–")
+        v.setTextViewText(R.id.sub, s?.nextSub ?: "")
+        v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 35, "#/plan"))
+    }
+
     private fun fillQuick(ctx: Context, v: RemoteViews) {
         val s = snapshot(ctx)
         v.setTextViewText(R.id.value, s?.quickTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_quick_label))
@@ -69,3 +87,5 @@ object Widgets {
 class StepsWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { StepStore.sample(context) { Widgets.updateAll(context) } } }
 class EffortWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
 class QuickWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
+class LastWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
+class NextWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }

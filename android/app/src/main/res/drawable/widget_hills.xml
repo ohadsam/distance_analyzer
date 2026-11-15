@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- the "Little Trail" hills in a soft tint: decoration only, drawn in the corner so the text keeps its contrast -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="120dp" android:height="48dp" android:viewportWidth="120" android:viewportHeight="48">
+    <path android:fillColor="@color/widget_art" android:pathData="M0,48 L0,34 C14,14 30,14 46,30 C58,42 70,40 82,28 C96,14 110,18 120,26 L120,48 Z"/>
+    <path android:fillColor="@color/widget_art" android:pathData="M30,48 C46,38 62,40 76,44 C90,48 104,44 120,40 L120,48 Z"/>
+</vector>
