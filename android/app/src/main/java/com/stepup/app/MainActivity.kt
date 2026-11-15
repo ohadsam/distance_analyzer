@@ -39,12 +39,18 @@ class MainActivity : ComponentActivity() {
     @Volatile private var pickedBackup = ""
     private val saveBackupFile = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         val data = pendingBackup; pendingBackup = ""
-        val ok = uri != null && runCatching { contentResolver.openOutputStream(uri)!!.use { it.write(data.toByteArray(Charsets.UTF_8)) } }.isSuccess
+        // an empty field means this Activity was recreated while the dialog was open: never write (or claim) an empty file
+        val ok = uri != null && data.isNotEmpty() && runCatching { contentResolver.openOutputStream(uri)!!.use { it.write(data.toByteArray(Charsets.UTF_8)) } }.isSuccess
         deliver(JSONObject().put("type", "backup-saved").put("ok", ok))
     }
     private val pickBackupFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        pickedBackup = uri?.let { runCatching { contentResolver.openInputStream(it)!!.use { s -> BackupMath.readLimited(s) } }.getOrNull() } ?: ""
-        deliver(JSONObject().put("type", "backup-picked").put("ok", pickedBackup.isNotEmpty()))
+        if (uri == null) deliver(JSONObject().put("type", "backup-picked").put("ok", false).put("reason", "cancel"))
+        else Thread { // the read can be slow (a cloud-backed file): never on the UI thread
+            val read = runCatching { contentResolver.openInputStream(uri)!!.use { s -> BackupMath.readLimited(s) } }
+            pickedBackup = read.getOrNull() ?: ""
+            val reason = if (read.isFailure) "error" else if (read.getOrNull() == null) "size" else if (pickedBackup.isEmpty()) "empty" else ""
+            deliver(JSONObject().put("type", "backup-picked").put("ok", pickedBackup.isNotEmpty()).put("reason", reason))
+        }.start()
     }
     fun startBackupSave(name: String, json: String) = runOnUiThread { pendingBackup = json; saveBackupFile.launch(BackupMath.safeName(name)) }
     fun startBackupPick() = runOnUiThread { pickBackupFile.launch(arrayOf("application/json", "text/plain")) }

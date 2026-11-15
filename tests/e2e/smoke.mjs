@@ -133,15 +133,15 @@ await step('illustrations: empty states and the welcome card load the kit art (l
 
 await step('backup: save to a file, wipe, restore (web file picker); hostile files refused; Android file dialogs', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  await seedHours(page, [{ daysAgo: 2, hour: 7, min: 30 }, { daysAgo: 5, hour: 18, min: 40, km: 5 }]); await page.evaluate(() => { localStorage.setItem('da.age', '61'); localStorage.setItem('da.loc', '{"lat":1,"lon":2}'); });
+  await seedHours(page, [{ daysAgo: 2, hour: 7, min: 30 }, { daysAgo: 5, hour: 18, min: 40, km: 5 }]); await page.evaluate(async () => { localStorage.setItem('da.age', '61'); localStorage.setItem('da.loc', '{"lat":1,"lon":2}'); localStorage.setItem('da.wxc', '{"k":"1,2"}'); const S = await import('./js/store.js'); const [w] = await S.listWorkouts({ points: false }); await S.updateWorkout(w.startedAt, { weather: { tempC: 12, cond: 'rain' } }); });
   await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#backup-save');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#backup-save')]); assert.match(dl.suggestedFilename(), /^stepup-backup-\d{4}-\d{2}-\d{2}\.json$/);
   const fs = await import('node:fs'); const path = await dl.path(); const text = fs.readFileSync(path, 'utf8'); const j = JSON.parse(text);
-  assert.equal(j.format, 'stepup-backup'); assert.equal(j.workouts.length, 2); assert.equal(j.prefs.age, '61'); assert.equal(j.prefs.loc, undefined, 'location is never exported');
+  assert.equal(j.format, 'stepup-backup'); assert.equal(j.workouts.length, 2); assert.equal(j.prefs.age, '61'); assert.equal(j.prefs.loc, undefined, 'location is never exported'); assert.equal(j.prefs.wxc, undefined, 'the weather cache holds the location too');
   await page.evaluate(async () => { const S = await import('./js/store.js'); for (const w of await S.listWorkouts({ points: false })) await S.deleteWorkout(w.startedAt); localStorage.setItem('da.age', '30'); });
   page.once('dialog', (d) => { assert.match(d.message(), /Restore 2 workouts/); d.accept(); }); await page.setInputFiles('#backup-file', { name: 'b.json', mimeType: 'application/json', buffer: Buffer.from(text) });
   await page.waitForFunction(() => /Restored: 2 workouts/.test(document.getElementById('backup-msg')?.textContent || '')); await page.waitForLoadState('load'); await page.waitForTimeout(1500);
-  assert.equal(await page.evaluate(async () => (await (await import('./js/store.js')).listWorkouts({ points: false })).length), 2); assert.equal(await page.evaluate(() => localStorage.getItem('da.age')), '61');
+  assert.equal(await page.evaluate(async () => (await (await import('./js/store.js')).listWorkouts({ points: false })).length), 2); assert.equal(await page.evaluate(async () => (await (await import('./js/store.js')).listWorkouts({ points: false })).filter((w) => w.weather?.cond === 'rain').length), 1, 'weather survives a restore'); assert.equal(await page.evaluate(() => localStorage.getItem('da.age')), '61');
   await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); page.once('dialog', (d) => d.accept());
   await page.setInputFiles('#backup-file', { name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"format":"nope"}') }); await page.waitForFunction(() => /not a StepUp backup/.test(document.getElementById('backup-msg').textContent));
   assert.deepEqual(errors, []);

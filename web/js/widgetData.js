@@ -16,5 +16,6 @@ export function widgetSnapshot({ goalSteps, status, kind, last = null, next = nu
     lastTitle: t('wLast'), lastValue: short(last?.value) || '–', lastSub: short(last?.sub, 60) || t('wLastNone'),
     nextTitle: t('wNext'), nextValue: short(next?.value) || '–', nextSub: short(next?.sub, 60) || t('wNextNone'),
     weekTitle: t('wWeekBars'), weekMin: Array.isArray(week?.mins) && week.mins.length === 7 ? week.mins.map((m) => Math.max(0, Math.min(1000, Math.round(Number(m) || 0)))) : Array(7).fill(0),
-    weekToday: Math.max(0, Math.min(6, Math.round(Number(week?.today) || 0))), weekLabels: Array.isArray(week?.labels) && week.labels.length === 7 ? week.labels.map((l) => short(String(l), 3)) : ['', '', '', '', '', '', ''] };
+    weekToday: Math.max(0, Math.min(6, Math.round(Number(week?.today) || 0))), weekStart: Number.isFinite(week?.start) ? Math.round(week.start) : 0, weekDesc: short(week?.desc, 240),
+    weekLabels: Array.isArray(week?.labels) && week.labels.length === 7 ? week.labels.map((l) => short(String(l), 3)) : ['', '', '', '', '', '', ''] };
 }

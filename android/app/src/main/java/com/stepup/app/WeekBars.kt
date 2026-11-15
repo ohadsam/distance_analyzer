@@ -11,7 +11,8 @@ object WeekBars {
     private const val W = 560
     private const val H = 190
 
-    fun draw(ctx: Context, mins: List<Int>, today: Int, labels: List<String>): Bitmap {
+    /** [today] is the highlighted bar (-1 none); [rtl] mirrors the order so the first day is on the right, like the app's own charts in Hebrew. */
+    fun draw(ctx: Context, mins: List<Int>, today: Int, labels: List<String>, rtl: Boolean): Bitmap {
         val bmp = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888)
         val c = Canvas(bmp)
         val accent = ctx.getColor(R.color.widget_accent); val muted = ctx.getColor(R.color.widget_muted)
@@ -20,7 +21,7 @@ object WeekBars {
         val max = maxOf(30, mins.maxOrNull() ?: 0).toFloat()
         for (i in 0 until 7) {
             val h = if (mins[i] <= 0) 6f else maxOf(10f, (mins[i] / max) * (base - top))
-            val x = i * slot + (slot - bw) / 2f
+            val x = (if (rtl) 6 - i else i) * slot + (slot - bw) / 2f
             bar.color = if (i == today) accent else (accent and 0x00FFFFFF) or 0x66000000
             c.drawRoundRect(RectF(x, base - h, x + bw, base), 12f, 12f, bar)
             text.isFakeBoldText = i == today; text.color = if (i == today) accent else muted

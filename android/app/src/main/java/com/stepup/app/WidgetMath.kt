@@ -7,7 +7,7 @@ data class WidgetSnapshot(
     val stepsGoal: Int, val effortDone: Int, val effortPlan: Int, val kind: String,
     val stepsTitle: String, val effortTitle: String, val effortSub: String, val quickTitle: String, val quickHint: String,
     val lastTitle: String, val lastValue: String, val lastSub: String, val nextTitle: String, val nextValue: String, val nextSub: String,
-    val weekTitle: String, val weekMin: List<Int>, val weekToday: Int, val weekLabels: List<String>,
+    val weekTitle: String, val weekMin: List<Int>, val weekToday: Int, val weekLabels: List<String>, val weekStart: Long, val weekDesc: String,
 )
 
 object WidgetMath {
@@ -24,8 +24,18 @@ object WidgetMath {
             stepsGoal = o.optInt("stepsGoal", 0).coerceIn(0, 100_000), effortDone = o.optInt("effortDone", 0).coerceIn(0, 100_000), effortPlan = o.optInt("effortPlan", 0).coerceIn(0, 100_000), kind = kind,
             stepsTitle = text(o, "stepsTitle", 40), effortTitle = text(o, "effortTitle", 40), effortSub = text(o, "effortSub", 60), quickTitle = text(o, "quickTitle", 40), quickHint = text(o, "quickHint", 60),
             lastTitle = text(o, "lastTitle", 40), lastValue = text(o, "lastValue", 40), lastSub = text(o, "lastSub", 60), nextTitle = text(o, "nextTitle", 40), nextValue = text(o, "nextValue", 40), nextSub = text(o, "nextSub", 60),
-            weekTitle = text(o, "weekTitle", 40), weekMin = week(o), weekToday = o.optInt("weekToday", 0).coerceIn(0, 6), weekLabels = labels(o),
+            weekTitle = text(o, "weekTitle", 40), weekMin = week(o), weekToday = o.optInt("weekToday", 0).coerceIn(0, 6), weekLabels = labels(o), weekStart = o.optLong("weekStart", 0L).coerceIn(0L, 4_102_444_800_000L), weekDesc = text(o, "weekDesc", 240),
         )
+    }
+
+    /**
+     * Which bar is today, from the day the snapshot's week began: 0..6 while that week is still running, or null once it is over
+     * (the widget then shows an empty week instead of last week's bars). [offsetMs] is the time zone's offset at [nowMs].
+     */
+    fun todayIndex(weekStartMs: Long, nowMs: Long, offsetMs: Long): Int? {
+        if (weekStartMs <= 0L) return null
+        val d = Math.floorDiv(nowMs + offsetMs, 86_400_000L) - Math.floorDiv(weekStartMs + offsetMs, 86_400_000L)
+        return if (d in 0..6) d.toInt() else null
     }
 
     /** 0..100, never more (a goal passed shows a full bar), 0 when there is no goal. */

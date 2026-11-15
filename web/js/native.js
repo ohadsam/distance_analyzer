@@ -29,8 +29,8 @@ export const native = {
   /** The "#/route" a tapped notification asked for (once), or ''. */
   takePendingHref: () => { const h = call('takePendingHref'); return typeof h === 'string' && /^#\/[\w/-]{0,60}$/.test(h) ? h : ''; },
   /** Backup files through Android's own file dialogs. Each resolves with { ok } when the dialog closes; takeBackup then returns the chosen file's text once. */
-  saveBackup: (json, name) => (call('saveBackup', json, name) === true ? nativeOnce('backup-saved') : Promise.resolve({ ok: false })),
-  pickBackup: () => (call('pickBackup') === true ? nativeOnce('backup-picked') : Promise.resolve({ ok: false })),
+  saveBackup: (json, name) => (call('saveBackup', json, name) === true ? nativeOnce('backup-saved') : Promise.resolve({ ok: false, refused: true })),
+  pickBackup: () => (call('pickBackup') === true ? nativeOnce('backup-picked') : Promise.resolve({ ok: false, reason: 'error' })),
   takeBackup: () => { const s = call('takeBackup'); return typeof s === 'string' ? s : ''; },
   /** Keeps the screen on during a workout. */
   keepAwake: (on) => call('keepAwake', !!on),

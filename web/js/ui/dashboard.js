@@ -7,7 +7,7 @@ import { icon } from '../icons.js';
 import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
-import { monthSeries, filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
+import { monthSeries, monthToDate, filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
 import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
 import { barChart, lineChart } from '../charts.js';
@@ -64,8 +64,8 @@ export const W = {
       h('div', { class: 'rows' }, row(t('stepsQuality'), String(today.quality)), row(t('stepsRaw'), String(today.steps)), today.sensor ? row(t('stepsPhone'), '') : null, row(t('stepsBrisk'), String(today.brisk)), row(t('stepsGoal', { n: rec }), ''), row(t('stepsLongest', { km: (today.longestM / 1000).toFixed(1) }), '')), h('p', { class: 'note' }, t('stepsHow'))]; },
   },
   month: {
-    summary: (c) => { const [prev, cur] = monthSeries(c.all, c.now, 2), d = (cur.distanceM - prev.distanceM) / 1000, km = Math.abs(d).toFixed(1);
-      return h('div', null, stat(fmtKm(cur.distanceM), t('count', { n: cur.n })), h('p', { class: 'note' }, !prev.n ? t('monthFirst') : Math.abs(d) < 0.1 ? t('monthSame') : t(d > 0 ? 'monthMore' : 'monthLess', { km }))); },
+    summary: (c) => { const cur = monthSeries(c.all, c.now, 1)[0], earlier = c.all.some((w) => w.startedAt < cur.t), prev = monthToDate(c.all, c.now, 1), d = (cur.distanceM - prev.distanceM) / 1000, km = Math.abs(d).toFixed(1);
+      return h('div', null, stat(fmtKm(cur.distanceM), t('count', { n: cur.n })), h('p', { class: 'note' }, !c.all.length ? t('drillNone') : !earlier ? t('monthFirst') : Math.abs(d) < 0.1 ? t('monthSame') : t(d > 0 ? 'monthMore' : 'monthLess', { km }))); },
     detail: (c) => { const ms = monthSeries(c.all, c.now, 12), best = ms.reduce((a, m) => (m.distanceM > a.distanceM ? m : a), ms[0]), cur = ms[ms.length - 1];
       return [barChart(ms.map((m, i) => ({ v: m.distanceM / 1000, label: new Date(m.t).toLocaleDateString(getLang() === 'he' ? 'he-IL' : 'en-GB', { month: 'narrow' }), cls: i === ms.length - 1 ? 'now' : '' }))),
         h('div', { class: 'rows' }, row(t('total'), fmtKm(cur.distanceM)), row(t('time'), fmtClock(cur.movingMs)), row(t('recLongest'), fmtKm(cur.longestM)), best.distanceM > 0 ? row(t('monthBest'), `${new Date(best.t).toLocaleDateString(getLang() === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })} · ${fmtKm(best.distanceM)}`) : null)];

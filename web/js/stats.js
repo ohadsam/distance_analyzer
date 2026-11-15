@@ -29,6 +29,12 @@ export function monthSeries(rows, now, n = 12) {
   return out;
 }
 
+/** Totals of the month `back` months before now's month, counting only up to the same day of the month as `now` (a fair comparison while the month is still running). */
+export function monthToDate(rows, now, back = 0) {
+  const n = new Date(now), first = new Date(n.getFullYear(), n.getMonth() - back, 1), last = new Date(n.getFullYear(), n.getMonth() - back + 1, 1), day = n.getDate();
+  return totals(rows.filter((w) => w.startedAt >= first.getTime() && w.startedAt < last.getTime() && new Date(w.startedAt).getDate() <= day));
+}
+
 /** Buckets by the start of the day/week: [{ t, distanceM, movingMs, n }] for the `count` periods ending at `now`, oldest first, empty ones included. */
 export function bucketize(rows, unit, count, now) {
   const step = unit === 'week' ? WEEK : DAY, startOf = unit === 'week' ? weekStart : dayStart;

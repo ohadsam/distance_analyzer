@@ -85,8 +85,12 @@ object Widgets {
     private fun fillWeek(ctx: Context, v: RemoteViews) {
         val s = snapshot(ctx)
         v.setTextViewText(R.id.title, s?.weekTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_week_label))
-        v.setImageViewBitmap(R.id.week_img, WeekBars.draw(ctx, s?.weekMin ?: List(7) { 0 }, s?.weekToday ?: 0, s?.weekLabels ?: List(7) { "" }))
-        v.setContentDescription(R.id.week_img, (s?.weekMin ?: List(7) { 0 }).joinToString(", ") { "$it" })
+        val now = System.currentTimeMillis()
+        val today = if (s == null) null else WidgetMath.todayIndex(s.weekStart, now, java.util.TimeZone.getDefault().getOffset(now).toLong()) // null: the saved week is over
+        val mins = if (today != null && s != null) s.weekMin else List(7) { 0 }
+        val rtl = ctx.resources.configuration.layoutDirection == android.view.View.LAYOUT_DIRECTION_RTL
+        v.setImageViewBitmap(R.id.week_img, WeekBars.draw(ctx, mins, today ?: -1, s?.weekLabels ?: List(7) { "" }, rtl))
+        v.setContentDescription(R.id.week_img, if (today != null) s?.weekDesc ?: "" else "")
         v.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_effort)
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 36, "#/d/effort"))
     }
