@@ -34,6 +34,22 @@ class MainActivity : ComponentActivity() {
         val ok = res[Manifest.permission.ACCESS_FINE_LOCATION] == true || res[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         geoPending?.let { (origin, cb) -> cb.invoke(origin, ok, false) }; geoPending = null
     }
+    // Backup files: the system file dialogs (no storage permission needed). The JSON travels through these two fields, never through a path the page controls.
+    private var pendingBackup = ""
+    @Volatile private var pickedBackup = ""
+    private val saveBackupFile = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val data = pendingBackup; pendingBackup = ""
+        val ok = uri != null && runCatching { contentResolver.openOutputStream(uri)!!.use { it.write(data.toByteArray(Charsets.UTF_8)) } }.isSuccess
+        deliver(JSONObject().put("type", "backup-saved").put("ok", ok))
+    }
+    private val pickBackupFile = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        pickedBackup = uri?.let { runCatching { contentResolver.openInputStream(it)!!.use { s -> BackupMath.readLimited(s) } }.getOrNull() } ?: ""
+        deliver(JSONObject().put("type", "backup-picked").put("ok", pickedBackup.isNotEmpty()))
+    }
+    fun startBackupSave(name: String, json: String) = runOnUiThread { pendingBackup = json; saveBackupFile.launch(BackupMath.safeName(name)) }
+    fun startBackupPick() = runOnUiThread { pickBackupFile.launch(arrayOf("application/json", "text/plain")) }
+    fun takeBackup(): String { val s = pickedBackup; pickedBackup = ""; return s }
+
     // One launcher for the other runtime permissions the page asks for (location for background tracking, notifications, step counter).
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
     fun ask(vararg wanted: String) = runOnUiThread {

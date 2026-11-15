@@ -75,7 +75,8 @@ function fakeAndroid(init) {
   const n = window.__n = { started: 0, stopped: 0, fixes: JSON.parse(sessionStorage.getItem('__fixes') || '[]') /* the native buffer survives a page reload */, steps: {}, notes: null, href: '', sampled: 0, reqNotif: 0, reqActivity: 0, ...init };
   window.StepUpNative = { appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
     trackDrain() { const f = JSON.stringify(n.fixes); n.fixes = []; return f; }, stepsAvailable: () => true, stepsSample() { n.sampled++; }, stepsDays: () => JSON.stringify(n.steps), requestActivity() { n.reqActivity++; },
-    setWidgetData(j) { n.widget = JSON.parse(j); }, share(x) { n.shared = x; return true; }, notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
+    setWidgetData(j) { n.widget = JSON.parse(j); }, share(x) { n.shared = x; return true; }, saveBackup(j, name) { n.backup = j; n.backupName = name; queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'backup-saved', ok: true } }))); return true; },
+    pickBackup() { queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'backup-picked', ok: !!n.picked } }))); return true; }, takeBackup() { const p = n.picked || ''; n.picked = ''; return p; }, notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
 }
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
@@ -128,6 +129,25 @@ await step('illustrations: empty states and the welcome card load the kit art (l
     }
     assert.deepEqual(bad, []); assert.deepEqual(errors, []);
   }
+});
+
+await step('backup: save to a file, wipe, restore (web file picker); hostile files refused; Android file dialogs', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
+  await seedHours(page, [{ daysAgo: 2, hour: 7, min: 30 }, { daysAgo: 5, hour: 18, min: 40, km: 5 }]); await page.evaluate(() => { localStorage.setItem('da.age', '61'); localStorage.setItem('da.loc', '{"lat":1,"lon":2}'); });
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#backup-save');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#backup-save')]); assert.match(dl.suggestedFilename(), /^stepup-backup-\d{4}-\d{2}-\d{2}\.json$/);
+  const fs = await import('node:fs'); const path = await dl.path(); const text = fs.readFileSync(path, 'utf8'); const j = JSON.parse(text);
+  assert.equal(j.format, 'stepup-backup'); assert.equal(j.workouts.length, 2); assert.equal(j.prefs.age, '61'); assert.equal(j.prefs.loc, undefined, 'location is never exported');
+  await page.evaluate(async () => { const S = await import('./js/store.js'); for (const w of await S.listWorkouts({ points: false })) await S.deleteWorkout(w.startedAt); localStorage.setItem('da.age', '30'); });
+  page.once('dialog', (d) => { assert.match(d.message(), /Restore 2 workouts/); d.accept(); }); await page.setInputFiles('#backup-file', { name: 'b.json', mimeType: 'application/json', buffer: Buffer.from(text) });
+  await page.waitForFunction(() => /Restored: 2 workouts/.test(document.getElementById('backup-msg')?.textContent || '')); await page.waitForLoadState('load'); await page.waitForTimeout(1500);
+  assert.equal(await page.evaluate(async () => (await (await import('./js/store.js')).listWorkouts({ points: false })).length), 2); assert.equal(await page.evaluate(() => localStorage.getItem('da.age')), '61');
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); page.once('dialog', (d) => d.accept());
+  await page.setInputFiles('#backup-file', { name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"format":"nope"}') }); await page.waitForFunction(() => /not a StepUp backup/.test(document.getElementById('backup-msg').textContent));
+  assert.deepEqual(errors, []);
+  const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base + '#/settings'); await a.page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await a.page.waitForSelector('#backup-save');
+  await a.page.click('#backup-save'); await a.page.waitForFunction(() => /Backup saved/.test(document.getElementById('backup-msg').textContent)); assert.match(await a.page.evaluate(() => window.__n.backupName), /^stepup-backup-/); assert.equal(JSON.parse(await a.page.evaluate(() => window.__n.backup)).format, 'stepup-backup');
+  await a.page.evaluate((t) => { window.__n.picked = t; }, text); a.page.once('dialog', (d) => d.accept()); await a.page.click('#backup-restore'); await a.page.waitForFunction(() => /Restored: 2 workouts/.test(document.getElementById('backup-msg').textContent));
 });
 
 await step('dashboard offers walk and run and the essential widgets', async () => {
@@ -361,7 +381,7 @@ await step('training plan: an in-app reminder fires at the chosen hour on the da
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });
-    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/reco', '#/d/reco', '#/routes', '#/d/routes', '#/plan']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
+    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/d/month', '#/reco', '#/d/reco', '#/routes', '#/d/routes', '#/plan']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
     for (const pack of ['ocean', 'high-contrast', 'mono']) { await page.goto(base + '#/'); await page.evaluate((p) => { document.documentElement.dataset.pack = p; }, pack); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} pack ${pack}`); }
     await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout`);
     await page.click('.big-btn'); await page.click('.controls button.round[aria-label]:last-child'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);

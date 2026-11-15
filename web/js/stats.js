@@ -21,6 +21,14 @@ export function totals(rows) {
   return rows.reduce((a, w) => ({ n: a.n + 1, distanceM: a.distanceM + w.distanceM, movingMs: a.movingMs + w.movingMs, longestM: Math.max(a.longestM, w.distanceM) }), { n: 0, distanceM: 0, movingMs: 0, longestM: 0 });
 }
 
+/** The `n` calendar months ending with the month of `now`, oldest first: [{ t (first day, local), distanceM, movingMs, n, longestM }]. */
+export function monthSeries(rows, now, n = 12) {
+  const end = new Date(now), out = [];
+  for (let i = n - 1; i >= 0; i--) out.push({ t: new Date(end.getFullYear(), end.getMonth() - i, 1).getTime(), distanceM: 0, movingMs: 0, n: 0, longestM: 0 });
+  for (const w of rows) { const d = new Date(w.startedAt), t0 = new Date(d.getFullYear(), d.getMonth(), 1).getTime(), m = out.find((x) => x.t === t0); if (m) { m.distanceM += w.distanceM; m.movingMs += w.movingMs; m.n++; m.longestM = Math.max(m.longestM, w.distanceM); } }
+  return out;
+}
+
 /** Buckets by the start of the day/week: [{ t, distanceM, movingMs, n }] for the `count` periods ending at `now`, oldest first, empty ones included. */
 export function bucketize(rows, unit, count, now) {
   const step = unit === 'week' ? WEEK : DAY, startOf = unit === 'week' ? weekStart : dayStart;

@@ -41,6 +41,14 @@ class NativeBridge(private val activity: MainActivity) {
         return true
     }
 
+    // ---- backup files (system file dialogs) ----
+    @JavascriptInterface fun saveBackup(json: String, name: String): Boolean {
+        if (json.isBlank() || !BridgeLimits.within(json, BackupMath.MAX_BYTES) || !BridgeLimits.within(name, 80)) return false
+        activity.startBackupSave(name, json); return true
+    }
+    @JavascriptInterface fun pickBackup(): Boolean { activity.startBackupPick(); return true }
+    @JavascriptInterface fun takeBackup(): String = activity.takeBackup()
+
     // ---- all-day steps from the step counter ----
     @JavascriptInterface fun stepsAvailable(): Boolean = StepStore.available(ctx)
     @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.sample(ctx) } } }

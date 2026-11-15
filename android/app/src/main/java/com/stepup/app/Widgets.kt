@@ -31,6 +31,7 @@ object Widgets {
         push(ctx, am, QuickWidget::class.java, R.layout.widget_quick) { fillQuick(ctx, it) }
         push(ctx, am, LastWidget::class.java, R.layout.widget_text) { fillLast(ctx, it) }
         push(ctx, am, NextWidget::class.java, R.layout.widget_text) { fillNext(ctx, it) }
+        push(ctx, am, WeekWidget::class.java, R.layout.widget_week) { fillWeek(ctx, it) }
     }
 
     private fun push(ctx: Context, am: AppWidgetManager, cls: Class<*>, layout: Int, fill: (RemoteViews) -> Unit) {
@@ -80,6 +81,16 @@ object Widgets {
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 35, "#/plan"))
     }
 
+    /** Seven bars (effort minutes per day, today highlighted) drawn into a bitmap: RemoteViews cannot draw shapes itself. */
+    private fun fillWeek(ctx: Context, v: RemoteViews) {
+        val s = snapshot(ctx)
+        v.setTextViewText(R.id.title, s?.weekTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_week_label))
+        v.setImageViewBitmap(R.id.week_img, WeekBars.draw(ctx, s?.weekMin ?: List(7) { 0 }, s?.weekToday ?: 0, s?.weekLabels ?: List(7) { "" }))
+        v.setContentDescription(R.id.week_img, (s?.weekMin ?: List(7) { 0 }).joinToString(", ") { "$it" })
+        v.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_effort)
+        v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 36, "#/d/effort"))
+    }
+
     private fun fillQuick(ctx: Context, v: RemoteViews) {
         val s = snapshot(ctx)
         v.setTextViewText(R.id.value, s?.quickTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_quick_label))
@@ -93,3 +104,4 @@ class EffortWidget : AppWidgetProvider() { override fun onUpdate(context: Contex
 class QuickWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
 class LastWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
 class NextWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
+class WeekWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }

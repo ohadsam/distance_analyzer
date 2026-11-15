@@ -139,8 +139,27 @@ test('schedule: fixed reminders expand over the next days, sorted and bounded; r
 import { widgetSnapshot } from '../../web/js/widgetData.js';
 test('widget snapshot: rounded goals, translated texts, kind limited to walk/run', () => {
   const t = (k) => `T:${k}`, s = widgetSnapshot({ goalSteps: 7999.6, status: { done: 119.6, plan: { minutes: 180.2 }, status: 'on' }, kind: '../x' }, t);
-  assert.deepEqual(s, { stepsGoal: 8000, effortDone: 120, effortPlan: 180, kind: 'walk', stepsTitle: 'T:wSteps', effortTitle: 'T:wEffort', effortSub: 'T:effOn', quickTitle: 'T:qaMeasure', quickHint: 'T:walk', lastTitle: 'T:wLast', lastValue: '–', lastSub: 'T:wLastNone', nextTitle: 'T:wNext', nextValue: '–', nextSub: 'T:wNextNone' });
+  assert.deepEqual(s, { stepsGoal: 8000, effortDone: 120, effortPlan: 180, kind: 'walk', stepsTitle: 'T:wSteps', effortTitle: 'T:wEffort', effortSub: 'T:effOn', quickTitle: 'T:qaMeasure', quickHint: 'T:walk', lastTitle: 'T:wLast', lastValue: '–', lastSub: 'T:wLastNone', nextTitle: 'T:wNext', nextValue: '–', nextSub: 'T:wNextNone', weekTitle: 'T:wWeekBars', weekMin: [0, 0, 0, 0, 0, 0, 0], weekToday: 0, weekLabels: ['', '', '', '', '', '', ''] });
   const full = widgetSnapshot({ goalSteps: 1, status: { done: 0, plan: { minutes: 1 }, status: 'on' }, kind: 'run', last: { value: '5.00 km\n'.repeat(20), sub: '30:00' }, next: { value: 'Easy 30 min', sub: 'Sun' } }, t);
   assert.equal(full.lastValue.length, 40); assert.ok(!/[\n]/.test(full.lastValue)); assert.equal(full.nextValue, 'Easy 30 min');
   assert.equal(widgetSnapshot({ goalSteps: -5, status: { done: 0, plan: { minutes: 30 }, status: 'behind' }, kind: 'run' }, t).stepsGoal, 0);
+});
+
+import { weekDays } from '../../web/js/widgetData.js';
+test('week bars: minutes per day of this week (Sunday first), today index, hostile week input bounded', () => {
+  const now = new Date(2026, 10, 11, 12, 0).getTime(); // Wednesday
+  const at = (dayOffset, h) => new Date(2026, 10, 8 + dayOffset, h).getTime(); // 8 Nov 2026 is a Sunday
+  const wk = weekDays([{ startedAt: at(0, 7) }, { startedAt: at(0, 18) }, { startedAt: at(3, 7) }, { startedAt: at(-1, 7) }, { startedAt: at(8, 7) }], now, () => 20);
+  assert.deepEqual(wk, { mins: [40, 0, 0, 20, 0, 0, 0], today: 3 });
+  const s = widgetSnapshot({ goalSteps: 1, status: { done: 0, plan: { minutes: 1 }, status: 'on' }, kind: 'walk', week: { mins: [5000, -3, 'x', 1, 2, 3, 4], today: 99, labels: ['S', 'M', 'T', 'W', 'T', 'F', 'Sabbath'] } }, (k) => k);
+  assert.deepEqual(s.weekMin, [1000, 0, 0, 1, 2, 3, 4]); assert.equal(s.weekToday, 6); assert.equal(s.weekLabels[6], 'Sab');
+});
+
+import { monthSeries } from '../../web/js/stats.js';
+test('monthSeries: calendar months ending now, oldest first, empty months included, across a year boundary', () => {
+  const now = new Date(2026, 0, 15, 12).getTime(); // 15 Jan 2026
+  const w = (y, m, d, km) => ({ startedAt: new Date(y, m, d, 8).getTime(), distanceM: km * 1000, movingMs: km * 360000 });
+  const s = monthSeries([w(2026, 0, 2, 5), w(2026, 0, 9, 10), w(2025, 11, 31, 3), w(2024, 0, 1, 99)], now, 3);
+  assert.deepEqual(s.map((m) => new Date(m.t).getMonth()), [10, 11, 0]); assert.deepEqual(s.map((m) => m.n), [0, 1, 2]);
+  assert.equal(s[2].distanceM, 15000); assert.equal(s[2].longestM, 10000); assert.equal(s[0].distanceM, 0);
 });

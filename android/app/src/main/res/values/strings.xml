@@ -11,5 +11,7 @@
     <string name="widget_last_desc">Distance, time and pace of your latest workout</string>
     <string name="widget_next_label">Next session</string>
     <string name="widget_next_desc">Your next planned training session</string>
+    <string name="widget_week_label">This week</string>
+    <string name="widget_week_desc">Seven bars: your effort minutes each day this week</string>
     <string name="widget_open_app">Open StepUp</string>
 </resources>

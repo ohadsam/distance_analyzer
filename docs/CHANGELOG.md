@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.0
+- **Backup and restore** (Settings -> Your data): one JSON file with your workouts (with their routes' points), saved routes and settings. **Web**: downloads the file / restores from a file you pick. **Android**: the system "save as" and "open" dialogs (no storage permission; bounded reads, safe names). Restore asks first, **adds what is missing** (workouts by start time, routes by id) and brings back the settings; where you are (saved location), the workout in progress and caches are never exported. A restored or foreign file goes through the same sanitisers as storage; wrong or huge files are refused with a clear message.
+- **New Android widget "This week"**: seven bars, one per day, with today highlighted (drawn into a bitmap by `WeekBars.kt`; the snapshot grew `weekMin/weekToday/weekLabels`, all bounded on both sides). Opens the weekly effort screen.
+- **Monthly summary** widget (Customise to show it; drill-down: last 12 months, this month's total/time/longest and your best month) with a plain comparison to last month.
+- Auto-pause was considered and **not added**: standing still already adds neither distance nor moving time (pace and splits use moving time), so it would only change the clock.
+- Verified: unit tests (backup parsing of hostile files, preference collection, month series, week bars + snapshot bounds), Kotlin tests (bounded read, safe names, week parsing - compiled in CI), e2e (web save + wipe + restore, hostile file refused, Android dialogs through the stand-in, month drill-down axe). Not verified: the Android file dialogs and the week widget on a real phone.
+
 ## 0.12.0
 - **Rhythm coach, new look** (design kit): a breathing disc (halo, disc, hollow core) with a beat dot in the middle; while the cadence is still being learned, four calm bars. The picture **never pulses faster than 75 times a minute** (flash safety, from the kit's motion spec); the clicks keep the real cadence. Reduced motion shows the still picture.
 - **Charts, kit language**: bars with rounder corners, faint guide lines, the current period in the warm colour **plus a dot** (not colour alone), a muted dashed target line, thicker round lines with larger dots.

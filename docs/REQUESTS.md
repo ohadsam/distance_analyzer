@@ -61,3 +61,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 44 | Download the newest APK from inside the app (web and Android), check for updates, share the app | ✅ 0.10.0 (install/share on a real phone unverified) |
 | 45 | Use the round-5 ChatGPT kit (widget backgrounds, empty states, weather, badges, splash) | ✅ 0.11.0 (rhythm keyframes, chart spec, portrait splash not yet used; device look unverified) |
 | 46 | Better look and flow: kit rhythm visuals (flash-safe), chart language, folded filters, spoken cues | ✅ 0.12.0 (voice and device look unverified) |
+| 47 | Backup and restore of data; weekly bars widget; monthly summary | ✅ 0.13.0 (Android dialogs and widget unverified on a device) |

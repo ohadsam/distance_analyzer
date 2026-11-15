@@ -7,10 +7,10 @@ import { sanitizePlan, sessionDate } from './plan.js';
 import { onlineOn, cachedForecast } from './weatherApi.js';
 import { routineProfile, recommend } from './reco.js';
 import { debounce } from './util.js';
-import { widgetSnapshot } from './widgetData.js';
+import { widgetSnapshot, weekDays } from './widgetData.js';
 import { profile } from './store.js';
 import { stepSeries, recommendedSteps } from './steps.js';
-import { weekStatus } from './effort.js';
+import { weekStatus, effortMinutes } from './effort.js';
 import { fmtKm, fmtPaceUnit, fmtClock, fmtDate } from './format.js';
 import { paceSec } from './stats.js';
 import { getLang } from './i18n.js';
@@ -24,6 +24,11 @@ export function planReminders(from) {
   return planEntries(plan, from, Number(getPref('planHour', '18')) || 18, (s) => ({ title: t('planRemindTitle'), body: t('planRemindBody', { what: t(`ty${cap(s.type)}`), min: s.minutes }) }), (s) => sessionDate(plan, s));
 }
 
+/** Narrow weekday letters, Sunday first, in the app's language. */
+function dayLabels(now) {
+  const sun = new Date(now); sun.setDate(sun.getDate() - sun.getDay());
+  return Array.from({ length: 7 }, (_, i) => { const d = new Date(sun); d.setDate(sun.getDate() + i); return d.toLocaleDateString(getLang() === 'he' ? 'he-IL' : 'en-GB', { weekday: 'narrow' }); });
+}
 /** The newest workout as two short lines: distance, and time - pace - date. */
 function lastText(rows) {
   const w = rows.reduce((a, b) => (!a || b.startedAt > a.startedAt ? b : a), null); if (!w) return null;
@@ -48,7 +53,7 @@ async function sync() {
   native.setNotifications(buildSchedule(fixed, reco, planReminders(now)));
   // home-screen widgets: the weekly effort, the steps goal and the quick-start activity
   const rows = await listWorkouts({ points: false }), prof = profile(), series = stepSeries(rows, 14, now, prof.heightCm, native.stepsDays());
-  native.setWidgetData(widgetSnapshot({ goalSteps: recommendedSteps(series, prof.age), status: weekStatus(rows, prof.age, now, getJson('barOv', null)), kind: getPref('recoKind', 'walk'), last: lastText(rows), next: nextText(now) }, t));
+  native.setWidgetData(widgetSnapshot({ goalSteps: recommendedSteps(series, prof.age), status: weekStatus(rows, prof.age, now, getJson('barOv', null)), kind: getPref('recoKind', 'walk'), last: lastText(rows), next: nextText(now), week: { ...weekDays(rows, now, effortMinutes), labels: dayLabels(now) } }, t));
 }
 /** Call whenever reminders, language or recommendation settings change (debounced). */
 export const syncNative = debounce(() => { sync().catch(() => { /* a failed sync must never break the app */ }); }, 1500);

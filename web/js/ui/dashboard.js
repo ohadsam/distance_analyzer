@@ -7,7 +7,7 @@ import { icon } from '../icons.js';
 import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
-import { filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
+import { monthSeries, filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
 import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
 import { barChart, lineChart } from '../charts.js';
@@ -17,13 +17,13 @@ import { recoSummary, mountReco } from './reco.js';
 import { quickActions, routesBody, suggest } from './routes.js';
 import { planSummary, mountPlan } from './plan.js';
 
-export const WIDGETS = ['effort', 'plan', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
+export const WIDGETS = ['effort', 'plan', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts', 'month'];
 const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
-export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan: 'wPlan', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
+export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan: 'wPlan', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts', month: 'wMonth' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 // a new person sees the essentials; everything else is one tap away in Customise
-const DEFAULT_HIDDEN = ['pace', 'consistency', 'records', 'alerts'];
+const DEFAULT_HIDDEN = ['pace', 'consistency', 'records', 'alerts', 'month'];
 // only for a brand-new install (nothing saved, no workouts, welcome not yet answered): existing people keep every widget
 export function loadLayout() {
   const raw = getJson('dash', {}), order = Array.isArray(raw.order) ? raw.order.filter((x, i, a) => WIDGETS.includes(x) && a.indexOf(x) === i) : [];
@@ -62,6 +62,14 @@ export const W = {
     summary: (c) => { const today = c.steps[c.steps.length - 1], rec = recommendedSteps(c.steps, c.prof.age); return h('div', null, stat(today.quality.toLocaleString(getLang() === 'he' ? 'he-IL' : 'en-GB'), t('stepsGoal', { n: rec.toLocaleString(getLang() === 'he' ? 'he-IL' : 'en-GB') })), meter(today.quality / rec, t('stepsQuality'))); },
     detail: (c) => { const today = c.steps[c.steps.length - 1], rec = recommendedSteps(c.steps, c.prof.age); return [barChart(c.steps.map((d, i) => ({ v: d.quality, label: dayLabel(d.t), cls: i === c.steps.length - 1 ? 'now' : '' })), { target: rec }),
       h('div', { class: 'rows' }, row(t('stepsQuality'), String(today.quality)), row(t('stepsRaw'), String(today.steps)), today.sensor ? row(t('stepsPhone'), '') : null, row(t('stepsBrisk'), String(today.brisk)), row(t('stepsGoal', { n: rec }), ''), row(t('stepsLongest', { km: (today.longestM / 1000).toFixed(1) }), '')), h('p', { class: 'note' }, t('stepsHow'))]; },
+  },
+  month: {
+    summary: (c) => { const [prev, cur] = monthSeries(c.all, c.now, 2), d = (cur.distanceM - prev.distanceM) / 1000, km = Math.abs(d).toFixed(1);
+      return h('div', null, stat(fmtKm(cur.distanceM), t('count', { n: cur.n })), h('p', { class: 'note' }, !prev.n ? t('monthFirst') : Math.abs(d) < 0.1 ? t('monthSame') : t(d > 0 ? 'monthMore' : 'monthLess', { km }))); },
+    detail: (c) => { const ms = monthSeries(c.all, c.now, 12), best = ms.reduce((a, m) => (m.distanceM > a.distanceM ? m : a), ms[0]), cur = ms[ms.length - 1];
+      return [barChart(ms.map((m, i) => ({ v: m.distanceM / 1000, label: new Date(m.t).toLocaleDateString(getLang() === 'he' ? 'he-IL' : 'en-GB', { month: 'narrow' }), cls: i === ms.length - 1 ? 'now' : '' }))),
+        h('div', { class: 'rows' }, row(t('total'), fmtKm(cur.distanceM)), row(t('time'), fmtClock(cur.movingMs)), row(t('recLongest'), fmtKm(cur.longestM)), best.distanceM > 0 ? row(t('monthBest'), `${new Date(best.t).toLocaleDateString(getLang() === 'he' ? 'he-IL' : 'en-GB', { month: 'long', year: 'numeric' })} · ${fmtKm(best.distanceM)}`) : null)];
+    },
   },
   distance: {
     summary: (c) => { const tt = totals(c.rows); return h('div', null, stat(fmtKm(tt.distanceM), t('count', { n: tt.n })), barChart(bucketize(c.rows, 'day', 7, c.now).map((b) => ({ v: b.distanceM / 1000 })), { h: 60 })); },

@@ -13,6 +13,9 @@ class WidgetMathTest {
         assertEquals("", bad.lastValue)
         val full = WidgetMath.parse("""{"lastValue":"5.00 km","lastSub":"30:00 · 6:00 /km","nextValue":"Easy 30 min","nextSub":"Sun"}""")!!
         assertEquals("5.00 km", full.lastValue); assertEquals("Easy 30 min", full.nextValue)
+        val wk = WidgetMath.parse("""{"weekMin":[5000,-3,20],"weekToday":9,"weekLabels":["S","M","Tuesday"]}""")!!
+        assertEquals(listOf(1000, 0, 20, 0, 0, 0, 0), wk.weekMin); assertEquals(6, wk.weekToday); assertEquals("Tue", wk.weekLabels[2]); assertEquals("", wk.weekLabels[6])
+        assertEquals(List(7) { 0 }, bad.weekMin)
         assertNull(WidgetMath.parse("not json"))
     }
     @Test fun percentIsBounded() { assertEquals(0, WidgetMath.percent(5, 0)); assertEquals(50, WidgetMath.percent(4000, 8000)); assertEquals(100, WidgetMath.percent(9000, 8000)); assertEquals(0, WidgetMath.percent(-3, 8000)) }

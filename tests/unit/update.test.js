@@ -47,3 +47,12 @@ test('spoken cues: sentences wait for each other, a backlog is dropped, the lang
   assert.deepEqual(said, ['en-US:Kilometre 3', 'en-US:New record', 'cancel', 'he-IL:קילומטר']);
   assert.equal(speak('x', 'en', undefined, U), false); assert.equal(speak('  ', 'en', synth, U), false); assert.equal(speak('x', 'en', { speak() { throw new Error('no'); } }, U), false);
 });
+
+import { parseBackup, collectPrefs, MAX_BACKUP_CHARS } from '../../web/js/backup.js';
+test('backup files are untrusted: wrong format, huge or hostile content never gets through', () => {
+  assert.equal(parseBackup('not json').error, 'format'); assert.equal(parseBackup('{"format":"x","v":1}').error, 'format'); assert.equal(parseBackup('x'.repeat(MAX_BACKUP_CHARS + 1)).error, 'size'); assert.equal(parseBackup(5).error, 'size');
+  const p = parseBackup(JSON.stringify({ format: 'stepup-backup', v: 1, workouts: [{ evil: '<script>' }, null, 7], routes: 'x', prefs: { age: '40', 'bad key': 'x', loc: '{"lat":1}', active: '{}', big: 'x'.repeat(20001), n: 5 } }));
+  assert.deepEqual(p.workouts, []); assert.deepEqual(p.routes, []); assert.deepEqual(p.prefs, { age: '40' });
+  const store = new Map([['da.age', '30'], ['da.loc', 'x'], ['da.active', '{}'], ['other', '1'], ['da.pack', 'ocean']]); const st = { get length() { return store.size; }, key: (i) => [...store.keys()][i], getItem: (k) => store.get(k) };
+  assert.deepEqual(collectPrefs(st), { age: '30', pack: 'ocean' });
+});

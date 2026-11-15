@@ -3,6 +3,7 @@ import { refreshArt } from '../art.js';
 import { t, setLang } from '../i18n.js';
 import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
 import { aboutBlock } from './about.js';
+import { backupBlock } from './backup.js';
 import { native } from '../native.js';
 import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js';
 import { notifyState, askNotify } from './notify.js';
@@ -93,6 +94,7 @@ export function renderSettings(focusId) {
     field(t('volume'), h('input', { id: 's-vol', type: 'range', min: 0, max: 100, step: 5, value: getNum('volume', 60, 0, 100), oninput: (e) => setPref('volume', e.target.value) }), 's-vol'),
     field(t('defaultBpm'), num('s-bpm', 'bpm', 170, 100, 230), 's-bpm'),
     h('p', { class: 'note' }, t('stepsNote')),
+    h('h2', { id: 'f-s-backup' }, t('bkTitle')), backupBlock(),
     h('h2', { id: 'f-s-about' }, t('aboutTitle')), aboutBlock());
   // group each heading with what follows it into a collapsible section (Look and Profile start open); open/closed is remembered by the heading's text
   const secs = []; let cur = null;

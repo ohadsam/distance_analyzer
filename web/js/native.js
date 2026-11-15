@@ -3,6 +3,9 @@
 const B = globalThis.StepUpNative;
 const call = (name, ...args) => { try { return B?.[name]?.(...args); } catch (e) { console.warn('native', name, e); } };
 
+/** The next native event of this type ({ type, ok }). */
+const nativeOnce = (type) => new Promise((res) => { const f = (e) => { if (e.detail?.type === type) { globalThis.removeEventListener('stepup-native', f); res(e.detail); } }; globalThis.addEventListener('stepup-native', f); });
+
 export const native = {
   available: !!B,
   version: () => call('appVersion'),
@@ -25,6 +28,10 @@ export const native = {
   setNotifications: (list) => call('setNotifications', JSON.stringify(list)),
   /** The "#/route" a tapped notification asked for (once), or ''. */
   takePendingHref: () => { const h = call('takePendingHref'); return typeof h === 'string' && /^#\/[\w/-]{0,60}$/.test(h) ? h : ''; },
+  /** Backup files through Android's own file dialogs. Each resolves with { ok } when the dialog closes; takeBackup then returns the chosen file's text once. */
+  saveBackup: (json, name) => (call('saveBackup', json, name) === true ? nativeOnce('backup-saved') : Promise.resolve({ ok: false })),
+  pickBackup: () => (call('pickBackup') === true ? nativeOnce('backup-picked') : Promise.resolve({ ok: false })),
+  takeBackup: () => { const s = call('takeBackup'); return typeof s === 'string' ? s : ''; },
   /** Keeps the screen on during a workout. */
   keepAwake: (on) => call('keepAwake', !!on),
   /** Android's share sheet with a plain text; true only when the bridge accepted it. */

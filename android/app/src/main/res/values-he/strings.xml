@@ -11,5 +11,7 @@
     <string name="widget_last_desc">מרחק, זמן וקצב של האימון האחרון שלך</string>
     <string name="widget_next_label">האימון הבא</string>
     <string name="widget_next_desc">אימון התוכנית הבא שלך</string>
+    <string name="widget_week_label">השבוע</string>
+    <string name="widget_week_desc">שבעה עמודים: דקות המאמץ שלך בכל יום השבוע</string>
     <string name="widget_open_app">פתיחת StepUp</string>
 </resources>

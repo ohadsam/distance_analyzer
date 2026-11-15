@@ -39,7 +39,7 @@ Phase 1 (core tracking): done for the foreground; background service pending. Ph
 - Activity types: walk, run, hike, intervals/treadmill (manual entry).
 - Android: foreground location service (survives screen-off), `ACCESS_FINE_LOCATION` + notification; web: Geolocation while the page is open.
 - **Workout mode:** one big Start/Pause/Finish, live distance-time-pace, screen kept awake, almost no other buttons, optional lock against accidental taps, optional voice/vibration cues per km.
-- History list, workout detail, edit/delete, local storage (IndexedDB + memory fallback), backup/restore file.
+- History list, workout detail, edit/delete, local storage (IndexedDB + memory fallback) (backup/restore file: done in 0.13.0).
 
 **2. Steps**
 - Android step counter (`ACTIVITY_RECOGNITION`), daily total that survives reboot, day roll-over, goal, history; recalibrated stride length from GPS walks.

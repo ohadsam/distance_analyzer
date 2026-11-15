@@ -19,7 +19,7 @@ Run all: `npm run check && npm test && npm run e2e` (CI runs the same plus Andro
 - `reco.test.js`: forecast URL privacy + hostile answer normalisation, comfort factors, routine detection, best/avoid windows on a hot day, habit windows follow the routine, rain moves the window, tomorrow, effort/steps/streak recommendations.
 - `core.test.js`: `cleanText`/`clamp`, he/en string parity (keys and placeholders), language resolution. `version.test.js`: version.json = package.json = sw.js, CHANGELOG entry, user guide exists. `docs.test.js`: every source file is listed in `docs/CONTEXT.md`.
 
-- `indicators.test.js` (live indications: records, last time, per-km, once each, no "0 m"). `update.test.js`: version compare, hostile release JSON, update-check outcomes, share fallbacks, weather banner choice and that every art file exists, spoken cues (queue, language, no throw). `cadence.test.js` also checks the flash-safe visual divisor.
+- `update.test.js` also covers backup parsing and preferences; `engines.test.js` covers month series and week bars. `indicators.test.js` (live indications: records, last time, per-km, once each, no "0 m"). `update.test.js`: version compare, hostile release JSON, update-check outcomes, share fallbacks, weather banner choice and that every art file exists, spoken cues (queue, language, no throw). `cadence.test.js` also checks the flash-safe visual divisor.
 
 ## Kotlin tests (CI only)
 `FixBufferTest` (encode/parse/reject/JSON/bounds), `StepMathTest` (baseline, progress, reboot, new day), `WidgetMathTest` (parse/bounds/percent/grouping), `NotifyMathTest` (validation, href pattern, bounds, due/next/remaining), `BridgeLimitsTest`. Run by `gradle testDebugUnitTest`.
