@@ -32,7 +32,7 @@ test('sharing prefers Android, then the browser share sheet, then the clipboard,
 import { bannerName, badgeFor } from '../../web/js/art.js';
 import { existsSync } from 'node:fs';
 test('weather banner picks a scene; every scene and badge file exists in light and dark', () => {
-  assert.equal(bannerName({ tempC: 5, cond: 'clear' }), 'cold'); assert.equal(bannerName({ tempC: 30, cond: 'clear' }), 'hot'); assert.equal(bannerName({ tempC: 20, cond: 'rain' }), 'rain');
+  assert.equal(bannerName({ tempC: 5, cond: 'clear' }), 'cold'); assert.equal(bannerName({ tempC: 30, cond: 'clear' }), 'hot'); assert.equal(bannerName({ tempC: 20, cond: 'rain' }), 'rain'); assert.equal(bannerName({ tempC: 15, cond: 'clear' }), 'clear');
   assert.equal(bannerName({ tempC: 20, cond: 'windy' }), 'windy'); assert.equal(bannerName(null), null); assert.equal(bannerName({ tempC: NaN }), null);
   for (const n of ['clear', 'cloudy', 'rain', 'cold', 'hot', 'windy']) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/weather/${n}-${m}.svg`), `${n}-${m}`);
   for (const n of ['almost-distance', 'passed-distance', 'almost-record', 'new-record', 'faster-last', 'fastest-km']) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/badges/${n}-${m}.svg`), `${n}-${m}`);
@@ -41,9 +41,9 @@ test('weather banner picks a scene; every scene and badge file exists in light a
 });
 
 import { speak } from '../../web/js/voice.js';
-test('spoken cues: replace what is being said, pick the language, never throw, say nothing when unavailable', () => {
-  const said = []; const synth = { cancel() { said.push('cancel'); }, speak(u) { said.push(`${u.lang}:${u.text}`); } }; class U { constructor(t) { this.text = t; } }
-  assert.equal(speak('Kilometre 3', 'en', synth, U), true); assert.equal(speak('קילומטר', 'he', synth, U), true);
-  assert.deepEqual(said, ['cancel', 'en-US:Kilometre 3', 'cancel', 'he-IL:קילומטר']);
-  assert.equal(speak('x', 'en', undefined, U), false); assert.equal(speak('  ', 'en', synth, U), false); assert.equal(speak('x', 'en', { cancel() { throw new Error('no'); } }, U), false);
+test('spoken cues: sentences wait for each other, a backlog is dropped, the language is picked, nothing throws', () => {
+  const said = []; let pending = false; const synth = { get pending() { return pending; }, cancel() { said.push('cancel'); pending = false; }, speak(u) { said.push(`${u.lang}:${u.text}`); } }; class U { constructor(t) { this.text = t; } }
+  assert.equal(speak('Kilometre 3', 'en', synth, U), true); assert.equal(speak('New record', 'en', synth, U), true); pending = true; assert.equal(speak('קילומטר', 'he', synth, U), true);
+  assert.deepEqual(said, ['en-US:Kilometre 3', 'en-US:New record', 'cancel', 'he-IL:קילומטר']);
+  assert.equal(speak('x', 'en', undefined, U), false); assert.equal(speak('  ', 'en', synth, U), false); assert.equal(speak('x', 'en', { speak() { throw new Error('no'); } }, U), false);
 });

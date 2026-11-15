@@ -141,8 +141,7 @@ body[data-view="workout"] .livemap { max-block-size: 110px; }
 .welcome { display: grid; gap: 8px; } .welcome h2, .welcome p { margin: 0; } .welcome .row { display: flex; gap: 8px; flex-wrap: wrap; }
 /* illustrations from the design kit */
 .art { display: block; max-inline-size: 100%; block-size: auto; border-radius: var(--radius); } .empty { display: grid; justify-items: center; gap: 8px; text-align: center; padding-block: 8px; }
-.empty .art { inline-size: min(100%, 280px); } .welcome > .art { inline-size: min(100%, 280px); margin-inline: auto; } .banner { inline-size: 100%; margin-block: 8px; }
+.empty .art { inline-size: min(100%, 280px); } .welcome > .art { inline-size: min(100%, 200px); margin-inline: auto; } .banner { inline-size: 100%; margin-block: 8px; }
 .cue { display: flex; align-items: center; gap: 10px; } .cue .badge { flex: none; inline-size: 40px; block-size: 40px; }
 /* folded blocks (filters) */
 .fold { margin-block: 8px; } .fold > summary { min-block-size: 44px; display: flex; align-items: center; cursor: pointer; color: var(--primary); font-weight: 600; }
-.welcome > .art { inline-size: min(100%, 200px); }

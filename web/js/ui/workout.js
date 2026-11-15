@@ -95,7 +95,7 @@ export function renderWorkout(kind, go, routeId) {
   function feed(fix, src = 'native') {
     if (!w || phase !== 'running' || (src === 'page' && nativeOn)) return; // one source at a time: while the background service is on, its fixes are the only ones
     const n = w.splits.length;
-    if (addFix(w, fix)) { if (w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; say(sr.textContent); } checkIndicators(); }
+    if (addFix(w, fix)) { if (w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; say(t('speakSplit', { n: s.km, min: Math.floor(s.atMs / 60000), sec: Math.floor(s.atMs / 1000) % 60 })); } checkIndicators(); }
   }
   let nativeOn = false, trackTries = 0, trackNext = 0;
   const trackOn = () => { // false while the location permission is missing: asked again every 8 s, at most 5 times (the page's own GPS carries the workout meanwhile)

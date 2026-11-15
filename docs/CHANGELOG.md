@@ -5,6 +5,7 @@
 - **Charts, kit language**: bars with rounder corners, faint guide lines, the current period in the warm colour **plus a dot** (not colour alone), a muted dashed target line, thicker round lines with larger dots.
 - **Clearer home screen**: the filters are folded away (they open by themselves while one is active and show how many are on); the welcome card sits **below** the Start buttons and is smaller, so the main action is always first. In the workout, **distance and pace share a row**.
 - **Spoken cues** (Settings, off by default): the phone's own voice says each kilometre time and every live indication (Hebrew or English). Replaces what is being said, never queues.
+- Review fixes (10 findings): spoken kilometre time and an indication no longer cancel each other (sentences wait, a backlog is dropped) and the kilometre is spoken as words ("3 minutes 12 seconds", not a clock); the flash-safe pulse is derived from the last pulse so a changing divisor cannot cause a fast pulse; no "cloudy" banner is claimed (the forecast has no cloud data); pictures re-pick light/dark when the system look changes; the filters' open state comes only from taps; widget art is drawn at each widget's own shape (wide 750x210, Steps square 330x330) with circular corners, no stretching; duplicate CSS merged; ARCHITECTURE and TESTING brought up to date.
 - Verified: unit tests (flash-safe divisor, spoken cues), e2e + axe + 320 px. Not verified: the voice on real phones (depends on the installed speech engine) and the look on a device.
 
 ## 0.11.0

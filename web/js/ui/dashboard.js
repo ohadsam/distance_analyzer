@@ -108,7 +108,7 @@ function filterBar(c, redraw) {
   const f = { ...c.f }, upd = (k, v) => { f[k] = v; saveFilter(f); redraw(); };
   const sel = (label, key, opts) => h('label', { class: 'fsel' }, h('span', { class: 'cap' }, label), h('select', { onchange: (e) => upd(key, key === 'days' ? +e.target.value : e.target.value) }, opts.map(([v, l]) => h('option', { value: v, selected: String(v) === String(f[key]) }, l))));
   const active = (f.days !== 30 ? 1 : 0) + (f.kind ? 1 : 0) + (f.weather ? 1 : 0) + (f.text ? 1 : 0);
-  return h('details', { class: 'fold', open: filtersOpen || active > 0, ontoggle: (e) => { filtersOpen = e.target.open; } }, h('summary', null, t('filtersTitle'), active ? ` (${active})` : ''), h('div', { class: 'filters', role: 'group', 'aria-label': t('period') },
+  return h('details', { class: 'fold', open: filtersOpen || active > 0 }, h('summary', { onclick: (e) => { filtersOpen = !e.currentTarget.parentElement.open; } }, t('filtersTitle'), active ? ` (${active})` : ''), h('div', { class: 'filters', role: 'group', 'aria-label': t('period') },
     sel(t('period'), 'days', Object.entries(PERIODS).map(([d, k]) => [d, t(k)])), sel(t('kind'), 'kind', [['', t('kindAll')], ['walk', t('walk')], ['run', t('run')]]),
     sel(t('weatherFilter'), 'weather', [['', t('weatherAll')], ...WEATHER_BUCKETS.map((b) => [b, bucketLabel(b)])]),
     h('label', { class: 'fsel grow' }, h('span', { class: 'cap' }, t('filterText')), h('input', { type: 'search', value: f.text, maxLength: 40, onchange: (e) => upd('text', e.target.value.trim()) }))));

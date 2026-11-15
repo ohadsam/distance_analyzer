@@ -16,7 +16,7 @@ const now = () => performance.now();
 export const visualDivisor = (bpm) => Math.max(1, Math.ceil(bpm / 75));
 export function createRhythm({ onChange = () => {} } = {}) {
   const cad = createCadence(0), det = createStepDetector(), metro = createMetronome();
-  let on = false, running = false, raf = 0, tick = 0, sensorTimer = 0, gotMotion = false, lastBpm = 0, lastLabel = '', pattern = '3:2', noSensor = false;
+  let pulseI = -Infinity, on = false, running = false, raf = 0, tick = 0, sensorTimer = 0, gotMotion = false, lastBpm = 0, lastLabel = '', pattern = '3:2', noSensor = false;
 
   // design kit: a breathing disc (halo + disc + hollow core) with a beat dot in the middle; while the app is still learning the cadence it shows four calm bars instead
   const art = h('div', { class: 'rhythm-art', 'aria-hidden': 'true' }, h('span', { class: 'rhythm-lung' }, h('i'), h('i'), h('i')), h('span', { class: 'rhythm-beat' }), h('span', { class: 'rhythm-learn' }, h('i'), h('i'), h('i'), h('i')));
@@ -50,7 +50,7 @@ export function createRhythm({ onChange = () => {} } = {}) {
   }
   function frame() {
     raf = 0; if (!metro.running) return;
-    const p = metro.pos(), i = Math.floor(p), b = breathAt(i, pattern), q = p / visualDivisor(lastBpm), beat = Math.exp(-(q - Math.floor(q)) * 6); // the picture never pulses faster than 75 times a minute (flash-safe); the clicks keep the real cadence
+    const p = metro.pos(), i = Math.floor(p), b = breathAt(i, pattern), d = visualDivisor(lastBpm); if (i - pulseI >= d) pulseI = i; const beat = Math.exp(-(p - pulseI) * 6 / d); // flash-safe: a pulse starts at most every `d` beats (75 a minute at most), even when the divisor changes; the clicks keep the real cadence
     el.style.setProperty('--beat', beat.toFixed(3)); el.style.setProperty('--lung', lungAt(p, pattern).toFixed(3));
     const txt = b.phase === 'in' ? t('breatheIn') : b.phase === 'out' ? t('breatheOut') : '';
     if (txt !== lastLabel) { lastLabel = txt; cue.textContent = txt; }

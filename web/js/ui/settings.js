@@ -1,4 +1,5 @@
 import { h, setChildren } from '../util.js';
+import { refreshArt } from '../art.js';
 import { t, setLang } from '../i18n.js';
 import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
 import { aboutBlock } from './about.js';
@@ -19,6 +20,7 @@ export function applyLook() {
   const root = document.documentElement, rawTheme = getPref('theme', 'auto'), rawPack = getPref('pack', 'momentum'), theme = ['light', 'dark'].includes(rawTheme) ? rawTheme : 'auto', pack = PACKS.some(([v]) => v === rawPack) ? rawPack : 'momentum'; // storage is untrusted: only known values reach the DOM
   if (theme === 'auto') delete root.dataset.theme; else root.dataset.theme = theme;
   if (pack === 'momentum') delete root.dataset.pack; else root.dataset.pack = pack;
+  refreshArt();
   const bg = getComputedStyle(root).getPropertyValue('--background').trim(); if (bg) document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);
 }
 
