@@ -70,3 +70,9 @@ test('breathing pattern 3:2 cycles in-in-in-out-out', () => {
   assert.equal(breathAt(0, '3:2').first, true); assert.equal(breathAt(5, '3:2').first, true); assert.equal(breathAt(3, 'off').phase, 'none');
   assert.equal(lungAt(0, '3:2'), 0); assert.equal(lungAt(3, '3:2'), 1); assert.equal(lungAt(5, '3:2'), 0); assert.ok(lungAt(4, '3:2') === 0.5);
 });
+
+import { visualDivisor } from '../../web/js/ui/rhythm.js';
+test('the visual pulse never exceeds 75 a minute (flash safety): a divisor of the real cadence', () => {
+  assert.equal(visualDivisor(60), 1); assert.equal(visualDivisor(75), 1); assert.equal(visualDivisor(170), 3); assert.equal(visualDivisor(0), 1);
+  for (const bpm of [90, 120, 150, 170, 190, 230]) assert.ok(bpm / visualDivisor(bpm) <= 75, String(bpm));
+});

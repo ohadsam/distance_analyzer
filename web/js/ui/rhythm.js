@@ -12,11 +12,14 @@ const reduced = () => globalThis.matchMedia?.('(prefers-reduced-motion: reduce)'
 const now = () => performance.now();
 
 /** Returns { el, toggle(), setRunning(bool), isOn(), destroy() }. `onChange(on)` lets the caller reflect the on/off state on its button. */
+/** How many beats share one visual pulse so it stays at or below 75 a minute (the design kit's flash-safety rule). */
+export const visualDivisor = (bpm) => Math.max(1, Math.ceil(bpm / 75));
 export function createRhythm({ onChange = () => {} } = {}) {
   const cad = createCadence(0), det = createStepDetector(), metro = createMetronome();
   let on = false, running = false, raf = 0, tick = 0, sensorTimer = 0, gotMotion = false, lastBpm = 0, lastLabel = '', pattern = '3:2', noSensor = false;
 
-  const art = h('div', { class: 'rhythm-art', 'aria-hidden': 'true' }, h('span', { class: 'rhythm-ring' }), h('span', { class: 'rhythm-lung' }));
+  // design kit: a breathing disc (halo + disc + hollow core) with a beat dot in the middle; while the app is still learning the cadence it shows four calm bars instead
+  const art = h('div', { class: 'rhythm-art', 'aria-hidden': 'true' }, h('span', { class: 'rhythm-lung' }, h('i'), h('i'), h('i')), h('span', { class: 'rhythm-beat' }), h('span', { class: 'rhythm-learn' }, h('i'), h('i'), h('i'), h('i')));
   const big = h('div', { class: 'rhythm-bpm' }), label = h('div', { class: 'rhythm-label' }), cue = h('div', { class: 'rhythm-cue', 'aria-hidden': 'true' });
   const less = h('button', { type: 'button', class: 'round', 'aria-label': t('metroLess'), onclick: () => nudge(-2) }, icon('down')), more = h('button', { type: 'button', class: 'round', 'aria-label': t('metroMore'), onclick: () => nudge(2) }, icon('up'));
   const adjust = h('div', { class: 'rhythm-adjust' }, less, more);
@@ -47,7 +50,7 @@ export function createRhythm({ onChange = () => {} } = {}) {
   }
   function frame() {
     raf = 0; if (!metro.running) return;
-    const p = metro.pos(), i = Math.floor(p), b = breathAt(i, pattern), beat = Math.exp(-(p - i) * 6);
+    const p = metro.pos(), i = Math.floor(p), b = breathAt(i, pattern), q = p / visualDivisor(lastBpm), beat = Math.exp(-(q - Math.floor(q)) * 6); // the picture never pulses faster than 75 times a minute (flash-safe); the clicks keep the real cadence
     el.style.setProperty('--beat', beat.toFixed(3)); el.style.setProperty('--lung', lungAt(p, pattern).toFixed(3));
     const txt = b.phase === 'in' ? t('breatheIn') : b.phase === 'out' ? t('breatheOut') : '';
     if (txt !== lastLabel) { lastLabel = txt; cue.textContent = txt; }

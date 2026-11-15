@@ -103,13 +103,15 @@ export const W = {
 };
 
 // ---------- filter bar ----------
+let filtersOpen = false; // the filters stay folded until someone opens them (or one is active)
 function filterBar(c, redraw) {
   const f = { ...c.f }, upd = (k, v) => { f[k] = v; saveFilter(f); redraw(); };
   const sel = (label, key, opts) => h('label', { class: 'fsel' }, h('span', { class: 'cap' }, label), h('select', { onchange: (e) => upd(key, key === 'days' ? +e.target.value : e.target.value) }, opts.map(([v, l]) => h('option', { value: v, selected: String(v) === String(f[key]) }, l))));
-  return h('div', { class: 'filters', role: 'group', 'aria-label': t('period') },
+  const active = (f.days !== 30 ? 1 : 0) + (f.kind ? 1 : 0) + (f.weather ? 1 : 0) + (f.text ? 1 : 0);
+  return h('details', { class: 'fold', open: filtersOpen || active > 0, ontoggle: (e) => { filtersOpen = e.target.open; } }, h('summary', null, t('filtersTitle'), active ? ` (${active})` : ''), h('div', { class: 'filters', role: 'group', 'aria-label': t('period') },
     sel(t('period'), 'days', Object.entries(PERIODS).map(([d, k]) => [d, t(k)])), sel(t('kind'), 'kind', [['', t('kindAll')], ['walk', t('walk')], ['run', t('run')]]),
     sel(t('weatherFilter'), 'weather', [['', t('weatherAll')], ...WEATHER_BUCKETS.map((b) => [b, bucketLabel(b)])]),
-    h('label', { class: 'fsel grow' }, h('span', { class: 'cap' }, t('filterText')), h('input', { type: 'search', value: f.text, maxLength: 40, onchange: (e) => upd('text', e.target.value.trim()) })));
+    h('label', { class: 'fsel grow' }, h('span', { class: 'cap' }, t('filterText')), h('input', { type: 'search', value: f.text, maxLength: 40, onchange: (e) => upd('text', e.target.value.trim()) }))));
 }
 
 // first run: one friendly card (age fits the effort bar to you); gone after one tap and never shown to people who already have workouts
@@ -145,9 +147,9 @@ export function renderDashboard() {
     setChildren(el,
       h('div', { class: 'dash-top' }, h('h1', null, t('dashboard')), h('button', { type: 'button', class: 'btn ghost', 'aria-pressed': String(editing), onclick: () => { editing = !editing; draw(); } }, t(editing ? 'editDone' : 'edit'))),
       resume ? h('div', { class: 'card resume' }, icon(resume.kind, 28), h('span', { class: 'grow' }, h('b', null, t('resumeTitle')), h('small', null, fmtKm(resume.distanceM))), h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (confirm(t('discardAsk'))) { active.clear(); draw(); } } }, t('discard')), h('a', { class: 'btn', href: `#/workout/${resume.kind}` }, t('resumeBtn'))) : null,
-      welcome(c, draw),
       quickActions(suggest(c.routes, c.all)[0]?.route || null),
       h('div', { class: 'starts' }, startLink('walk'), startLink('run')),
+      welcome(c, draw),
       filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),
       h('a', { class: 'link', href: '#/history' }, t('allWorkouts')));
   }

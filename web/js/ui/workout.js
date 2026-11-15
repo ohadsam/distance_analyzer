@@ -1,4 +1,5 @@
 // Workout mode: one calm screen with big numbers and few buttons. Tracking (GPS) -> workout.js (pure); persistence -> store.js.
+import { speak } from '../voice.js';
 import { badgeFor } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
@@ -64,10 +65,11 @@ export function renderWorkout(kind, go, routeId) {
     if (w) indicators({ distM: w.distanceM, splits: w.splits }, refs, fired); // a resumed workout: what is already behind us is not news
     if (!routeId && refs.last && cuesOn()) { const full = await getWorkout(refs.last.startedAt); if (full && full.points.length > 5) { ghost = makeGhost(full.points, full.distanceM); ghostIsLast = true; } }
   })();
+  const say = (text) => { if (getPref('voice', '0') === '1') speak(text, getLang()); }; // spoken only when the person turned it on
   const cueQueue = [];
   function pumpCues() { // one calm message at a time (about 6 s each); the others wait their turn
     if (!cueQueue.length || !cueEl.hidden) return;
-    const { text, key } = cueQueue.shift(); cueEl.hidden = false; setChildren(cueEl, badgeFor(key), h('span', null, text)); sr.textContent = text;
+    const { text, key } = cueQueue.shift(); cueEl.hidden = false; setChildren(cueEl, badgeFor(key), h('span', null, text)); sr.textContent = text; say(text);
     if (getPref('cueVibrate', '1') !== '0') try { navigator.vibrate?.(60); } catch { /* not supported */ }
     clearTimeout(cueTimer); cueTimer = setTimeout(() => { cueEl.hidden = true; pumpCues(); }, 6000);
   }
@@ -93,7 +95,7 @@ export function renderWorkout(kind, go, routeId) {
   function feed(fix, src = 'native') {
     if (!w || phase !== 'running' || (src === 'page' && nativeOn)) return; // one source at a time: while the background service is on, its fixes are the only ones
     const n = w.splits.length;
-    if (addFix(w, fix)) { if (w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; } checkIndicators(); }
+    if (addFix(w, fix)) { if (w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; say(sr.textContent); } checkIndicators(); }
   }
   let nativeOn = false, trackTries = 0, trackNext = 0;
   const trackOn = () => { // false while the location permission is missing: asked again every 8 s, at most 5 times (the page's own GPS carries the workout meanwhile)
@@ -178,7 +180,7 @@ export function renderWorkout(kind, go, routeId) {
     const main = phase === 'ready' ? [icon('play', 36), t('start')] : phase === 'running' ? [icon('pause', 36), t('pause')] : [icon('play', 36), t('resume')];
     setChildren(mainBtn, main); mainBtn.classList.toggle('is-pause', phase === 'running');
     setChildren(body,
-      h('div', { class: 'metrics' }, metric(t('time'), vTime, 'wide'), metric(t('distance') + ` (${t('km')})`, vDist, 'wide'), metric(`${t('pace')} (${t('perKm')})`, vPace)),
+      h('div', { class: 'metrics' }, metric(t('time'), vTime, 'wide'), metric(t('distance') + ` (${t('km')})`, vDist), metric(`${t('pace')} (${t('perKm')})`, vPace)),
       mapBox, rhythm.el,
       phase === 'confirm' ? confirmBar : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, metroBtn));
   }

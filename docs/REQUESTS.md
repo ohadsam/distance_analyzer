@@ -60,3 +60,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 43 | More widget types and designed widget backgrounds | 🟡 0.9.1: Last workout + Next session widgets and a vector gradient/hills background; launcher check and ChatGPT background art pending |
 | 44 | Download the newest APK from inside the app (web and Android), check for updates, share the app | ✅ 0.10.0 (install/share on a real phone unverified) |
 | 45 | Use the round-5 ChatGPT kit (widget backgrounds, empty states, weather, badges, splash) | ✅ 0.11.0 (rhythm keyframes, chart spec, portrait splash not yet used; device look unverified) |
+| 46 | Better look and flow: kit rhythm visuals (flash-safe), chart language, folded filters, spoken cues | ✅ 0.12.0 (voice and device look unverified) |

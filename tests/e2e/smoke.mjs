@@ -199,7 +199,7 @@ await step('dashboard: effort and steps widgets, drill-down, filters, customise 
   assert.match(await page.textContent('[data-widget=effort]'), /of \d+ min/); await shot(page, 'dashboard-en');
   await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
   await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);
-  await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
+  await page.evaluate(() => { const d = document.querySelector('details.fold'); if (d) d.open = true; }); await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
   await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=weather] button.btn'); for (let i = 0; i < 4; i++) { await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); }
   await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=weather]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
   assert.equal(await page.locator('[data-widget=weather]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
@@ -209,7 +209,7 @@ await step('weather: add it to a workout, the weather widget and filter use it',
   await page.goto(base + '#/history'); await page.waitForSelector('.item'); await page.click('.item >> nth=0'); await page.waitForSelector('#wx-save');
   await page.selectOption('#wx-cond', 'rain'); await page.fill('#wx-temp', '12'); await page.click('#wx-save'); await page.waitForSelector('#wx-save'); assert.equal(await page.inputValue('#wx-temp'), '12');
   await page.goto(base + '#/'); await page.waitForSelector('[data-widget=weather]'); assert.match(await page.textContent('[data-widget=weather]'), /Rain/);
-  await page.selectOption('.filters select >> nth=2', 'rain'); await page.waitForSelector('[data-widget=distance]'); assert.match(await page.textContent('[data-widget=distance]'), /1 workouts/);
+  await page.evaluate(() => { const d = document.querySelector('details.fold'); if (d) d.open = true; }); await page.selectOption('.filters select >> nth=2', 'rain'); await page.waitForSelector('[data-widget=distance]'); assert.match(await page.textContent('[data-widget=distance]'), /1 workouts/);
 });
 await step('alerts: an effort alert explains what happened, why it matters and applies a gentler bar; the bell shows unread', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, weeks(5)); await page.reload(); await page.waitForSelector('.wcard');

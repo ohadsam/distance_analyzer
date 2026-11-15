@@ -39,3 +39,11 @@ test('weather banner picks a scene; every scene and badge file exists in light a
   for (const n of ['welcome', 'no-workouts', 'no-routes', 'no-plan', 'caught-up', 'offline']) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/onboarding/${n}-${m}.svg`), `${n}-${m}`);
   assert.equal(typeof badgeFor, 'function');
 });
+
+import { speak } from '../../web/js/voice.js';
+test('spoken cues: replace what is being said, pick the language, never throw, say nothing when unavailable', () => {
+  const said = []; const synth = { cancel() { said.push('cancel'); }, speak(u) { said.push(`${u.lang}:${u.text}`); } }; class U { constructor(t) { this.text = t; } }
+  assert.equal(speak('Kilometre 3', 'en', synth, U), true); assert.equal(speak('קילומטר', 'he', synth, U), true);
+  assert.deepEqual(said, ['cancel', 'en-US:Kilometre 3', 'cancel', 'he-IL:קילומטר']);
+  assert.equal(speak('x', 'en', undefined, U), false); assert.equal(speak('  ', 'en', synth, U), false); assert.equal(speak('x', 'en', { cancel() { throw new Error('no'); } }, U), false);
+});

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.12.0
+- **Rhythm coach, new look** (design kit): a breathing disc (halo, disc, hollow core) with a beat dot in the middle; while the cadence is still being learned, four calm bars. The picture **never pulses faster than 75 times a minute** (flash safety, from the kit's motion spec); the clicks keep the real cadence. Reduced motion shows the still picture.
+- **Charts, kit language**: bars with rounder corners, faint guide lines, the current period in the warm colour **plus a dot** (not colour alone), a muted dashed target line, thicker round lines with larger dots.
+- **Clearer home screen**: the filters are folded away (they open by themselves while one is active and show how many are on); the welcome card sits **below** the Start buttons and is smaller, so the main action is always first. In the workout, **distance and pace share a row**.
+- **Spoken cues** (Settings, off by default): the phone's own voice says each kilometre time and every live indication (Hebrew or English). Replaces what is being said, never queues.
+- Verified: unit tests (flash-safe divisor, spoken cues), e2e + axe + 320 px. Not verified: the voice on real phones (depends on the installed speech engine) and the look on a device.
+
 ## 0.11.0
 - **The ChatGPT round-5 kit is integrated** (`design/stepup/extension/`, CC0, README and validation inside): **empty-state illustrations** (no workouts, no routes, alerts all caught up, welcome card, plan builder), **weather banner** above the recommendations when a saved forecast exists (clear, cloudy, rain, cold, hot, windy), **live-indication badges** inside the workout banner (each indication has its own shape), light and dark pictures chosen by the current look (`art.js`, files in `web/art/`, precached for offline).
 - **Android**: the four widget backgrounds (Steps, Effort, Last workout, Next session) are now the kit's art in light and night (`scripts/make-android-art.mjs` renders them: `npm run android-art`); Measure now keeps the gradient/hills drawable. **Android 12+ splash screen** with the Little Trail mark (light and night).
