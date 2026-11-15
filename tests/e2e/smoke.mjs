@@ -89,15 +89,24 @@ await step('boots in Hebrew/RTL by default with no console errors', async () => 
   assert.equal(await page.evaluate(() => document.documentElement.dataset.pack), undefined, 'default pack = no attribute'); assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--primary').trim()), '#006B60', 'the design tokens are applied');
 });
 await step('English is LTR; settings switches language without a reload', async () => {
-  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.waitForSelector('h1');
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('h1');
   assert.equal(await page.getAttribute('html', 'dir'), 'ltr'); assert.equal(await page.textContent('h1'), 'Settings');
   await page.selectOption('select >> nth=0', 'he'); await page.waitForFunction(() => document.documentElement.dir === 'rtl');
   assert.equal(await page.textContent('h1'), 'הגדרות'); assert.deepEqual(errors, []);
 });
 
-await step('dashboard offers walk and run and eight widgets', async () => {
+await step('usability: welcome card saves the age once; bottom navigation marks the page and hides in workout mode; settings sections collapse', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('#welcome');
+  await page.fill('#welcome-age', '68'); await page.click('#welcome-ok'); await page.waitForSelector('#welcome', { state: 'detached' }); assert.equal(await page.locator('#welcome').count(), 0); assert.equal(await page.evaluate(() => localStorage.getItem('da.age')), '68');
+  assert.equal(await page.locator('.bn').count(), 4); assert.equal(await page.locator('.bn[aria-current=page]').count(), 1);
+  await page.click('.bn[href="#/plan"]'); await page.waitForSelector('.bn[href="#/plan"][aria-current=page]'); assert.equal(await page.getAttribute('.bn[aria-current=page]', 'href'), '#/plan');
+  await page.goto(base + '#/settings'); await page.waitForSelector('details.sec'); assert.ok(await page.locator('details.sec:not([open])').count() >= 4, 'later sections start closed');
+  await page.goto(base + '#/workout/walk'); await page.waitForSelector('.bottomnav', { state: 'hidden' }); assert.deepEqual(errors, []);
+});
+
+await step('dashboard offers walk and run and the essential widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 11); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 7); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
@@ -154,9 +163,9 @@ await step('rhythm coach without a motion sensor falls back to the manual rhythm
   await page.click('.rhythm-adjust button >> nth=1'); assert.equal(await page.getAttribute('.rhythm', 'data-bpm'), '172');
 });
 await step('settings: look, pack and rhythm options are saved', async () => {
-  const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.waitForSelector('#s-pack');
+  const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#s-pack');
   await page.selectOption('#s-pack', 'ocean'); assert.equal(await page.getAttribute('html', 'data-pack'), 'ocean');
-  await page.selectOption('#s-breath', '2:2'); await page.reload(); await page.waitForSelector('#s-breath'); assert.equal(await page.inputValue('#s-breath'), '2:2'); assert.equal(await page.getAttribute('html', 'data-pack'), 'ocean');
+  await page.selectOption('#s-breath', '2:2'); await page.reload(); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#s-breath'); assert.equal(await page.inputValue('#s-breath'), '2:2'); assert.equal(await page.getAttribute('html', 'data-pack'), 'ocean');
 });
 
 await step('dashboard: effort and steps widgets, drill-down, filters, customise (hide and reorder survive a reload)', async () => {
@@ -165,9 +174,9 @@ await step('dashboard: effort and steps widgets, drill-down, filters, customise 
   await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
   await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);
   await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
-  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); for (let i = 0; i < 4; i++) { await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); }
-  await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=pace]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
-  assert.equal(await page.locator('[data-widget=pace]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
+  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=weather] button.btn'); for (let i = 0; i < 4; i++) { await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); }
+  await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=weather]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
+  assert.equal(await page.locator('[data-widget=weather]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
 });
 await step('weather: add it to a workout, the weather widget and filter use it', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 6, min: 33 }, { daysAgo: 3, km: 6, min: 40 }]);
@@ -194,7 +203,7 @@ await step('global search: settings (both languages), workouts, screens; results
   await page.fill('#q', 'dashboard'); await page.waitForSelector('.result[data-type=screen]');
 });
 await step('reminders: a fixed reminder fires on time into the inbox; the smart nudge is optional and quiet by default', async () => {
-  const { page } = await newPage({ lang: 'en', clock: true, clockAt: new Date(2026, 10, 12, 17, 59, 40) }); await page.goto(base + '#/settings'); await page.waitForSelector('#rem-add');
+  const { page } = await newPage({ lang: 'en', clock: true, clockAt: new Date(2026, 10, 12, 17, 59, 40) }); await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#rem-add');
   await page.click('#rem-add'); await page.waitForSelector('.rem'); await page.fill('.rem input[type=time]', '18:00'); await page.locator('.rem input[type=time]').dispatchEvent('change');
   assert.equal(await page.locator('#s-smart').isChecked(), false, 'smart nudges are off until the person turns them on');
   await page.clock.runFor(45000); await page.evaluate(() => dispatchEvent(new HashChangeEvent('hashchange'))); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Time for a walk/);
@@ -225,7 +234,7 @@ await step('recommendations: dashboard widget and drill-down, toolbar button, ef
   await page.click('a[aria-label="Recommendations"]'); await page.waitForSelector('.recos'); await page.click('.chip[data-area=effort]'); await page.waitForSelector('.chip[data-area=effort][aria-pressed=true]');
 });
 await step('settings: the online forecast is off by default, opt-in stores only rounded coordinates, turning it off forgets them; notification needs it', async () => {
-  const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.waitForSelector('#s-online');
+  const { page } = await newPage({ lang: 'en' }); await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#s-online');
   assert.equal(await page.locator('#s-online').isChecked(), false); assert.equal(await page.evaluate(() => localStorage.getItem('da.loc')), null);
   await page.click('#s-reco-notify'); assert.equal(await page.locator('#s-reco-notify').isChecked(), false, 'needs the online forecast first'); assert.match(await page.textContent('#online-msg'), /stays off/);
   await page.check('#s-online'); await page.waitForSelector('#loc-saved'); assert.match(await page.textContent('#loc-saved'), /32, 34\.8/); assert.equal(await page.evaluate(() => localStorage.getItem('da.onlineWx')), '1');
@@ -287,9 +296,9 @@ await step('android background: the service records fixes (no page GPS), pause/f
   assert.ok(Number(await p2.page.textContent('.v-dist')) >= 0.02, 'the recorded fixes were applied');
 });
 await step('android: settings shows the background permissions only in the app; reminders are handed over for when the app is closed; a tapped notification opens its screen', async () => {
-  const plain = await newPage({ lang: 'en' }); await plain.page.goto(base + '#/settings'); await plain.page.waitForSelector('#s-lang'); assert.equal(await plain.page.locator('#f-s-bg').count(), 0, 'not in a browser');
+  const plain = await newPage({ lang: 'en' }); await plain.page.goto(base + '#/settings'); await plain.page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await plain.page.waitForSelector('#s-lang'); assert.equal(await plain.page.locator('#f-s-bg').count(), 0, 'not in a browser');
   const { page } = await newPage({ lang: 'en', native: { href: '#/reco' } }); await page.goto(base); await page.waitForFunction(() => location.hash === '#/reco'); assert.equal(await page.textContent('h1'), 'Recommendations');
-  await page.goto(base + '#/settings'); await page.waitForSelector('#f-s-bg'); await page.click('#bg-notify'); assert.equal(await page.evaluate(() => __n.reqNotif), 1);
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#f-s-bg'); await page.click('#bg-notify'); assert.equal(await page.evaluate(() => __n.reqNotif), 1);
   await page.waitForTimeout(1800); const wd = await page.evaluate(() => __n.widget); assert.ok(wd && wd.stepsGoal > 0 && wd.effortPlan > 0 && wd.stepsTitle === 'Steps' && wd.quickTitle === 'Measure now' && ['walk', 'run'].includes(wd.kind), JSON.stringify(wd));
   await page.click('#rem-add'); await page.waitForTimeout(2200); const notes = await page.evaluate(() => __n.notes);
   assert.ok(Array.isArray(notes) && notes.length >= 7, `reminders expanded over the week (${notes?.length})`); assert.equal(notes[0].title, 'Time for a walk'); assert.equal(notes[0].href, '#/workout/walk'); assert.ok(notes.every((x, i) => i === 0 || notes[i - 1].at <= x.at));

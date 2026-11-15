@@ -3,7 +3,7 @@
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
-import { active, listWorkouts, listRoutes, profile, getJson, setJson } from '../store.js';
+import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
 import { filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
@@ -21,10 +21,12 @@ const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
 export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan: 'wPlan', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
+// a new person sees the essentials; everything else is one tap away in Customise
+const DEFAULT_HIDDEN = ['pace', 'consistency', 'records', 'alerts'];
 export function loadLayout() {
   const raw = getJson('dash', {}), order = Array.isArray(raw.order) ? raw.order.filter((x, i, a) => WIDGETS.includes(x) && a.indexOf(x) === i) : [];
   for (const id of WIDGETS) if (!order.includes(id)) order.push(id);
-  return { order, hidden: Array.isArray(raw.hidden) ? raw.hidden.filter((x) => WIDGETS.includes(x)) : [] };
+  return { order, hidden: Array.isArray(raw.hidden) ? raw.hidden.filter((x) => WIDGETS.includes(x)) : DEFAULT_HIDDEN };
 }
 export function loadFilter() {
   const f = getJson('dashF', {});
@@ -108,6 +110,16 @@ function filterBar(c, redraw) {
     h('label', { class: 'fsel grow' }, h('span', { class: 'cap' }, t('filterText')), h('input', { type: 'search', value: f.text, maxLength: 40, onchange: (e) => upd('text', e.target.value.trim()) })));
 }
 
+// first run: one friendly card (age fits the effort bar to you); gone after one tap and never shown to people who already have workouts
+function welcome(c, redraw) {
+  if (getPref('welcomed', '') || c.all.length) return null;
+  const done = () => { setPref('welcomed', '1'); redraw(); };
+  const age = h('input', { id: 'welcome-age', type: 'number', inputMode: 'numeric', min: 5, max: 100, value: getPref('age', '') || '', placeholder: '35' });
+  return h('div', { class: 'card welcome', id: 'welcome' }, h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')),
+    h('label', { for: 'welcome-age' }, t('age')), age,
+    h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'welcome-ok', onclick: () => { const a = Number(age.value); if (a >= 5 && a <= 100) setPref('age', Math.round(a)); done(); } }, t('welcomeOk')), h('button', { type: 'button', class: 'btn ghost', onclick: done }, t('welcomeSkip'))));
+}
+
 export function renderDashboard() {
   const el = h('section', { class: 'dash' });
   let editing = false, seq = 0;
@@ -130,6 +142,7 @@ export function renderDashboard() {
     setChildren(el,
       h('div', { class: 'dash-top' }, h('h1', null, t('dashboard')), h('button', { type: 'button', class: 'btn ghost', 'aria-pressed': String(editing), onclick: () => { editing = !editing; draw(); } }, t(editing ? 'editDone' : 'edit'))),
       resume ? h('div', { class: 'card resume' }, icon(resume.kind, 28), h('span', { class: 'grow' }, h('b', null, t('resumeTitle')), h('small', null, fmtKm(resume.distanceM))), h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (confirm(t('discardAsk'))) { active.clear(); draw(); } } }, t('discard')), h('a', { class: 'btn', href: `#/workout/${resume.kind}` }, t('resumeBtn'))) : null,
+      welcome(c, draw),
       quickActions(suggest(c.routes, c.all)[0]?.route || null),
       h('div', { class: 'starts' }, startLink('walk'), startLink('run')),
       filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),

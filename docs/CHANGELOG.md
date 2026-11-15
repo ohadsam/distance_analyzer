@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0
+- **Simpler to use**: a **bottom navigation** (Home, Routes, Plan, Recommendations) on every screen except workout mode; the top bar keeps only search, alerts and settings. **Settings** are grouped into collapsible sections (Look and Profile open, the rest closed; the open/closed state survives a redraw; a search jump opens its own section). A new person sees **seven essential dashboard widgets** (pace, consistency, records and alerts are one tap away in Customise; saved layouts are untouched). A **welcome card** on the first run asks for the age (so the effort bar fits) and disappears for good; it never shows to people who already have workouts.
+- Verified: e2e for the welcome card, the navigation (current page, hidden in workout mode) and collapsed sections; axe zero violations and 320 px unchanged. Not verified: how this feels on a real phone.
+
 ## 0.8.1
 - **Live indications during a workout** (`indicators.js`, pure): a calm banner (also read aloud to screen readers, optional vibration) when you are about to pass your last distance or your distance record, when you pass them, when a kilometre is faster than the same kilometre last time (>= 3 s) or your fastest yet. Each cue fires once per workout, one at a time. Without a followed route, the ghost compares you with your **last workout of the same kind** ("ahead of last time by 12 m"). Settings: live indications on/off, vibrate on/off.
 - Verified: unit tests for the indication logic, e2e and axe still green. Not verified: how the cues feel on a real run.

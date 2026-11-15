@@ -1,5 +1,6 @@
 // Strings of the training plan (merged into STR by i18n.js). Hebrew + English, same keys, same {placeholders}.
 export const EN = {
+  menu: 'Main menu',
   planTitle: 'Training plan', wPlan: 'Training plan', planNone: 'No plan yet. Build one in a minute.', planBuild: 'Build a plan', planGoal: 'Goal', goalGeneral: 'Stay active and healthy', goal5k: 'Run 5 km', goal10k: 'Run 10 km', goalWeight: 'Lose weight gently',
   planLevel: 'Level', lvBeginner: 'Beginner', lvRegular: 'Regular', lvAdvanced: 'Advanced', planKind: 'Main activity', planSessions: 'Sessions per week', planWeeks: 'Length (weeks)', planTypes: 'Types of workouts',
   tyEasy: 'Easy', tyLong: 'Long', tyIntervals: 'Intervals', tyTempo: 'Tempo', tyStrength: 'Movement exercises', planStart: 'Start the plan', planDaysNote: 'Days follow your usual routine when possible. The plan starts on Sunday.',
@@ -15,6 +16,7 @@ export const EN = {
   exChair: 'Sit-to-stand from a chair: 2 × 8', exHeel: 'Heel raises holding a wall: 2 × 12', exBalance: 'Stand on one leg near a wall: 2 × 20 seconds', exMarch: 'March in place: 2 minutes', exReach: 'Gentle arm reaches: 2 × 10',
 };
 export const HE = {
+  menu: 'תפריט ראשי',
   planTitle: 'תוכנית אימון', wPlan: 'תוכנית אימון', planNone: 'אין עדיין תוכנית. אפשר לבנות אחת בדקה.', planBuild: 'בניית תוכנית', planGoal: 'מטרה', goalGeneral: 'להישאר פעילים ובריאים', goal5k: 'לרוץ 5 ק״מ', goal10k: 'לרוץ 10 ק״מ', goalWeight: 'ירידה עדינה במשקל',
   planLevel: 'רמה', lvBeginner: 'מתחיל', lvRegular: 'רגיל', lvAdvanced: 'מתקדם', planKind: 'פעילות עיקרית', planSessions: 'אימונים בשבוע', planWeeks: 'אורך (שבועות)', planTypes: 'סוגי אימונים',
   tyEasy: 'קל', tyLong: 'ארוך', tyIntervals: 'אינטרוולים', tyTempo: 'טמפו', tyStrength: 'תרגילי תנועה', planStart: 'התחלת התוכנית', planDaysNote: 'הימים מתאימים לשגרה הרגילה שלך ככל האפשר. התוכנית מתחילה ביום ראשון.',

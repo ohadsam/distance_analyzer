@@ -49,6 +49,7 @@ function backgroundBlock() {
     row(native.notificationsAllowed(), 'bgNotifyOn', 'bgNotifyAsk', () => native.requestNotifications(), 'bg-notify'), row(native.stepsAvailable(), 'bgStepsOn', 'bgStepsAsk', () => native.requestActivity(), 'bg-steps'));
 }
 
+const openSecs = new Set([0, 1]); // which sections are open survives a redraw (language change, toggles)
 export function renderSettings(focusId) {
   const redraw = () => dispatchEvent(new HashChangeEvent('hashchange'));
   const num = (id, key, def, lo, hi, step = 1) => h('input', { id, type: 'number', inputMode: 'numeric', min: lo, max: hi, step, value: getNum(key, def, lo, hi), onchange: (e) => setPref(key, Math.min(hi, Math.max(lo, Number(e.target.value) || def))) });
@@ -88,8 +89,12 @@ export function renderSettings(focusId) {
     field(t('volume'), h('input', { id: 's-vol', type: 'range', min: 0, max: 100, step: 5, value: getNum('volume', 60, 0, 100), oninput: (e) => setPref('volume', e.target.value) }), 's-vol'),
     field(t('defaultBpm'), num('s-bpm', 'bpm', 170, 100, 230), 's-bpm'),
     h('p', { class: 'note' }, t('stepsNote')), h('p', { class: 'note', id: 'ver' }, t('version', { v: native.version() || '' })));
+  // group each heading with what follows it into a collapsible section (Look and Profile open, the rest closed; a search jump opens its own section)
+  const secs = []; let cur = null;
+  for (const n of [...el.children].slice(1)) { if (n.tagName === 'H2') { const i = secs.length; cur = h('details', { class: 'sec', open: openSecs.has(secs.length), ontoggle: (e) => { e.target.open ? openSecs.add(i) : openSecs.delete(i); } }, h('summary', null, n)); secs.push(cur); } if (cur) cur.append(n.tagName === 'H2' ? '' : n); }
+  el.append(...secs);
   // the smart-nudge numbers are stored together in one JSON object (validated on every read)
   for (const [id, key] of [['s-from', 'fromHour'], ['s-to', 'toHour'], ['s-after', 'afterMin'], ['s-max', 'maxPerDay']]) el.querySelector(`#${id}`).onchange = (e) => saveSmart({ [key]: Number(e.target.value) });
-  if (focusId && /^[\w-]{1,30}$/.test(focusId)) queueMicrotask(() => { const f = el.querySelector(`#f-${CSS.escape(focusId)}`) || el.querySelector(`#${CSS.escape(focusId)}`); f?.scrollIntoView({ block: 'center' }); (f?.querySelector('select,input,button') || f)?.focus?.({ preventScroll: true }); });
+  if (focusId && /^[\w-]{1,30}$/.test(focusId)) queueMicrotask(() => { const f = el.querySelector(`#f-${CSS.escape(focusId)}`) || el.querySelector(`#${CSS.escape(focusId)}`); const box = f?.closest('details'); if (box) { box.open = true; } f?.scrollIntoView({ block: 'center' }); (f?.querySelector('select,input,button') || f)?.focus?.({ preventScroll: true }); });
   return el;
 }
