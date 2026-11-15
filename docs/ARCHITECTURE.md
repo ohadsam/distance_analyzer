@@ -17,7 +17,7 @@
 * **No server.** Data lives on the device (IndexedDB when persistence is added; always with a memory fallback when storage is blocked).
 * **Versioning.** `web/version.json` → PWA, service-worker cache name, APK `versionName/Code` (`npm run bump`).
 * **Trust boundaries.** (1) Imported/shared/restored data → sanitise + normalise on load. (2) Web → Android → `NativeBridge` argument validation and size caps. (3) CSP `'self'` only + escaped DOM building (`h()`; `innerHTML` & co. are banned by `scripts/static-checks.mjs`).
-* **Network.** Exactly one opt-in use: the weather forecast for recommendations (section "Network (0.4)" below; `INTERNET` + CSP `connect-src` for api.open-meteo.com only). Any other network use needs a written reason here.
+* **Network.** Two uses, both explicit: (1) the weather forecast for recommendations (opt-in), (2) the "Check for updates" button (`update.js`: one GET to api.github.com public release list, CSP `connect-src` has it too; nothing about the person is sent). Weather details: see section "Network (0.4)" below ( `INTERNET` + CSP `connect-src` for api.open-meteo.com only). Any other network use needs a written reason here.
 * **Permissions.** `ACCESS_FINE_LOCATION` / `ACCESS_COARSE_LOCATION`: workout distance from GPS, read only while a workout is on screen. The WebView's geolocation prompt is answered in `MainActivity` for our own origin only, after Android's runtime permission. The motion sensor (rhythm coach) needs no permission.
 
 ## Android background (0.6)

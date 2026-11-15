@@ -75,7 +75,7 @@ function fakeAndroid(init) {
   const n = window.__n = { started: 0, stopped: 0, fixes: JSON.parse(sessionStorage.getItem('__fixes') || '[]') /* the native buffer survives a page reload */, steps: {}, notes: null, href: '', sampled: 0, reqNotif: 0, reqActivity: 0, ...init };
   window.StepUpNative = { appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
     trackDrain() { const f = JSON.stringify(n.fixes); n.fixes = []; return f; }, stepsAvailable: () => true, stepsSample() { n.sampled++; }, stepsDays: () => JSON.stringify(n.steps), requestActivity() { n.reqActivity++; },
-    setWidgetData(j) { n.widget = JSON.parse(j); }, notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
+    setWidgetData(j) { n.widget = JSON.parse(j); }, share(x) { n.shared = x; return true; }, notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
 }
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
@@ -102,6 +102,21 @@ await step('usability: welcome card saves the age once; bottom navigation marks 
   await page.click('.bn[href="#/plan"]'); await page.waitForSelector('.bn[href="#/plan"][aria-current=page]'); assert.equal(await page.getAttribute('.bn[aria-current=page]', 'href'), '#/plan');
   await page.goto(base + '#/settings'); await page.waitForSelector('details.sec'); assert.ok(await page.locator('details.sec:not([open])').count() >= 4, 'later sections start closed');
   await page.goto(base + '#/workout/walk'); await page.waitForSelector('.bottomnav', { state: 'hidden' }); assert.deepEqual(errors, []);
+});
+
+await step('about: update check (newer / latest / offline), newest APK link, share (browser sheet and Android)', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); let release = { name: 'v99.0.0 (build 1)', body: 'Big news' };
+  await page.route('https://api.github.com/**', (route) => (release ? route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(release) }) : route.abort()));
+  await page.addInitScript(() => { window.__shared = null; navigator.share = async (o) => { window.__shared = o; }; });
+  await page.goto(base + '#/settings/s-about'); await page.waitForSelector('#upd-check');
+  assert.match(await page.textContent('#about-version'), /You have version \d+\.\d+\.\d+/); assert.match(await page.getAttribute('#upd-apk', 'href'), /releases\/latest\/download\/stepup\.apk$/);
+  await page.click('#upd-check'); await page.waitForSelector('#upd-refresh'); assert.match(await page.textContent('#upd-msg'), /99\.0\.0/); assert.match(await page.textContent('.upd-extra'), /Big news/);
+  release = { name: 'v0.0.1 (build 1)' }; await page.click('#upd-check'); await page.waitForFunction(() => /latest version/.test(document.getElementById('upd-msg').textContent)); assert.equal(await page.locator('#upd-refresh').count(), 0);
+  release = null; await page.click('#upd-check'); await page.waitForFunction(() => /Could not check/.test(document.getElementById('upd-msg').textContent));
+  await page.click('#share-app'); await page.waitForFunction(() => window.__shared); const sh = await page.evaluate(() => window.__shared); assert.match(sh.url, /^https:\/\/ohadsam\.github\.io\/distance_analyzer\/$/); assert.match(sh.text, /stepup\.apk/);
+  assert.deepEqual(errors.filter((e) => !/ERR_FAILED/.test(e)), []); // the aborted request is the offline case on purpose
+  const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base + '#/settings/s-about'); await a.page.waitForSelector('#share-app'); await a.page.click('#share-app'); await a.page.waitForFunction(() => window.__n.shared); assert.match(await a.page.evaluate(() => window.__n.shared), /Android app:/);
+  release = { name: 'v99.0.0 (build 1)' }; await a.page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(release) })); await a.page.click('#upd-check'); await a.page.waitForSelector('#upd-apk-new');
 });
 
 await step('dashboard offers walk and run and the essential widgets', async () => {

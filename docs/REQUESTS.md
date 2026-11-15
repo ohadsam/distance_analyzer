@@ -58,3 +58,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 41 | Live in-workout indications: about to pass last distance / record, faster than last time | ✅ 0.8.1 (feel on a real run unverified) |
 | 42 | Easier usability: bottom navigation, collapsible settings, fewer default widgets, first-run welcome | ✅ 0.9.0 |
 | 43 | More widget types and designed widget backgrounds | 🟡 0.9.1: Last workout + Next session widgets and a vector gradient/hills background; launcher check and ChatGPT background art pending |
+| 44 | Download the newest APK from inside the app (web and Android), check for updates, share the app | ✅ 0.10.0 (install/share on a real phone unverified) |

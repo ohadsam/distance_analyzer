@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0
+- **Updates and sharing** (Settings -> About and updates, also found by search): shows the running version; **Check for updates** (one request to GitHub's public release list, only when you press it; nothing about you is sent) says "latest", "new version X" with its notes or "could not check"; in the web app a new version offers **Update the app now** (refreshes the service worker and reloads), in the Android app it offers the new APK; **Download the latest Android app** (works in the web app and in the Android app: opens `releases/latest/download/stepup.apk`); **Share StepUp** opens Android's share sheet (bridge `share`, text only, max 600 characters), else the browser's share sheet, else copies the link, else shows it to copy.
+- CSP now allows `https://api.github.com` for connections (the update check only). New: `update.js`, `appVersion.js` (kept equal to `version.json` by the bump script and a test), `ui/about.js`, `strings07.js`.
+- Verified: unit tests (version comparison, hostile release JSON, check outcomes, share fallbacks), e2e (newer / latest / offline, APK link, browser share, Android share and APK offer), axe. Not verified: an APK install from the downloaded link on a real phone (Android asks to allow installs from the browser the first time), and sharing on a real phone.
+
 ## 0.9.1
 - **Two more Android widgets**: **Last workout** (distance; time, pace and date) and **Next session** (the next planned training session and its date); both open the matching screen. The widget snapshot grew (`lastTitle/Value/Sub`, `nextTitle/Value/Sub`; every text is cleaned and capped on both sides) and the bridge limit rose to 6000 characters.
 - **Designed widget background**: a soft gradient (light and dark) with the "Little Trail" hills in the corner, drawn as Android vector resources. It is my own vector motif in the brand style, not ChatGPT art; the final background art is still pending in `PENDING_CHATGPT_PROMPTS.md`.

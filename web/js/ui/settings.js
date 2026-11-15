@@ -1,6 +1,7 @@
 import { h, setChildren } from '../util.js';
 import { t, setLang } from '../i18n.js';
 import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
+import { aboutBlock } from './about.js';
 import { native } from '../native.js';
 import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js';
 import { notifyState, askNotify } from './notify.js';
@@ -88,7 +89,8 @@ export function renderSettings(focusId) {
     field(t('breath'), select('s-breath', getPref('breath', '3:2'), [['3:2', t('breath32')], ['2:2', t('breath22')], ['2:1', t('breath21')], ['off', t('breathOff')]], (v) => setPref('breath', v)), 's-breath'),
     field(t('volume'), h('input', { id: 's-vol', type: 'range', min: 0, max: 100, step: 5, value: getNum('volume', 60, 0, 100), oninput: (e) => setPref('volume', e.target.value) }), 's-vol'),
     field(t('defaultBpm'), num('s-bpm', 'bpm', 170, 100, 230), 's-bpm'),
-    h('p', { class: 'note' }, t('stepsNote')), h('p', { class: 'note', id: 'ver' }, t('version', { v: native.version() || '' })));
+    h('p', { class: 'note' }, t('stepsNote')),
+    h('h2', { id: 'f-s-about' }, t('aboutTitle')), aboutBlock());
   // group each heading with what follows it into a collapsible section (Look and Profile open, the rest closed; a search jump opens its own section)
   const secs = []; let cur = null;
   for (const n of [...el.children].slice(1)) { if (n.tagName === 'H2') { const i = secs.length; cur = h('details', { class: 'sec', open: openSecs.has(secs.length), ontoggle: (e) => { e.target.open ? openSecs.add(i) : openSecs.delete(i); } }, h('summary', null, n)); secs.push(cur); } if (cur) cur.append(n.tagName === 'H2' ? '' : n); }

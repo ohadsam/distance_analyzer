@@ -34,6 +34,13 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun trackStop() { if (!Tracking.requested) return; Tracking.requested = false; ContextCompat.startForegroundService(ctx, Intent(ctx, TrackingService::class.java).setAction(TrackingService.ACTION_STOP)) }
     @JavascriptInterface fun trackDrain(): String = Tracking.drain(ctx)
 
+    /** Android's share sheet with a short plain text (validated; nothing else can be shared from the page). */
+    @JavascriptInterface fun share(text: String): Boolean {
+        if (text.isBlank() || !BridgeLimits.within(text, 600)) return false
+        activity.runOnUiThread { runCatching { activity.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, text), null)) } }
+        return true
+    }
+
     // ---- all-day steps from the step counter ----
     @JavascriptInterface fun stepsAvailable(): Boolean = StepStore.available(ctx)
     @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.sample(ctx) } } }

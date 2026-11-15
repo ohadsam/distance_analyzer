@@ -9,5 +9,6 @@ else if (arg === 'major') { a++; b = 0; c = 0; } else if (arg === 'minor') { b++
 const next = `${a}.${b}.${c}`;
 writeFileSync('web/version.json', JSON.stringify({ version: next, versionCode: v.versionCode + 1 }) + '\n');
 writeFileSync('web/sw.js', readFileSync('web/sw.js', 'utf8').replace(/const VERSION = '[^']+'/, `const VERSION = '${next}'`));
+writeFileSync('web/js/appVersion.js', readFileSync('web/js/appVersion.js', 'utf8').replace(/APP_VERSION = '[^']+'/, `APP_VERSION = '${next}'`));
 const pkg = JSON.parse(readFileSync('package.json', 'utf8')); pkg.version = next; writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
 console.log(`version -> ${next} (code ${v.versionCode + 1}). Now add a CHANGELOG entry + What's New.`);

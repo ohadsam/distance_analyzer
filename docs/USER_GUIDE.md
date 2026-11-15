@@ -26,6 +26,9 @@ Settings → Reminders: add reminders for a walk or a movement break at set time
 ## Training plan
 Open **Training plan** from the dashboard widget (or search). Choose your goal, level, how many sessions a week, for how many weeks, and which kinds of workouts you want. The plan starts on Sunday and grows gently: about 10 % more a week at most, a lighter week every fourth week, and an easier last week. Each session shows its length and what to do (for example "10 × (1:00 run + 2:00 walk)"). Tap **Start** to measure it at once, **Mark done** for movement exercises, or **Skip**. A workout you do on the planned day completes the session by itself. If you miss a session, StepUp offers to move it to a free day soon or to skip it, and makes the next week a little lighter after a week with misses. You can get a reminder on the day of each session (Settings → Training plan). General guidance, not medical advice.
 
+## Updates and sharing
+In **Settings -> About and updates**: **Check for updates** tells you if a newer version exists (the web app can refresh itself, the Android app downloads the new APK). **Download the latest Android app** gives the newest APK. **Share StepUp** sends a link to the web app and the Android app.
+
 ## Android: home-screen widgets
 Long-press the home screen and add a StepUp widget: **Steps today** (your count and progress to the goal), **Weekly effort** (minutes done of this week's bar) **Measure now** (starts a measurement with your last activity), **Last workout** (distance, time, pace) or **Next session** (your next planned training). The widgets have a soft gradient background with a small hills motif, light and dark. Tapping a widget opens the matching screen. Open the app once so the widgets learn your goals.
 

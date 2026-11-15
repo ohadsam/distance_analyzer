@@ -26,6 +26,8 @@ export const native = {
   /** The "#/route" a tapped notification asked for (once), or ''. */
   takePendingHref: () => { const h = call('takePendingHref'); return typeof h === 'string' && /^#\/[\w/-]{0,60}$/.test(h) ? h : ''; },
   /** Keeps the screen on during a workout. */
+  /** Android's share sheet with a plain text (false when it cannot). */
+  share: (text) => (call('share', String(text).slice(0, 600)) === false ? false : true),
   keepAwake: (on) => call('keepAwake', !!on),
 };
 
