@@ -15,7 +15,7 @@ main:focus-visible { outline: none; } /* main is only focused programmatically a
 /* top bar */
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 8px 4px 16px; padding-inline: 16px 8px; padding-block-start: calc(4px + env(safe-area-inset-top)); background: var(--surface); border-block-end: 1px solid var(--outline); }
 body[data-view="workout"] .topbar { display: none; }
-.brand { display: inline-flex; align-items: center; gap: 8px; min-block-size: 48px; color: var(--text); text-decoration: none; } .brand-mark { color: var(--primary); } .brand-word { direction: ltr; }
+.brand { display: inline-flex; align-items: center; gap: 8px; min-block-size: 48px; color: var(--text); text-decoration: none; } .brand-mark .bm-a { fill: var(--primary); } .brand-mark .bm-b { fill: var(--success); } .brand-mark .bm-c { fill: var(--warning); } .brand-word { direction: ltr; }
 .tabs { display: flex; } .tab { display: grid; place-items: center; inline-size: 48px; block-size: 48px; color: var(--text); border-radius: 50%; }
 
 /* buttons: 48 px minimum touch target */

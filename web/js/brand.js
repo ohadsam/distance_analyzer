@@ -10,8 +10,8 @@ function svg(view, attrs, kids) {
   return el;
 }
 export function brandMark(size = 28) {
-  const el = svg('0 0 64 64', { width: size, height: size, class: 'brand-mark', fill: 'none', stroke: 'currentColor', 'stroke-width': 5.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, []);
-  for (const [tag, a] of MARK) { const c = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(a)) c.setAttribute(k, v); if (tag === 'circle') { c.setAttribute('fill', 'currentColor'); c.setAttribute('stroke', 'none'); } el.append(c); }
+  const el = svg('0 0 64 64', { width: size, height: size, class: 'brand-mark' }, []);
+  for (const [tag, a] of MARK) { const c = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(a)) c.setAttribute(k, v); el.append(c); } // classes bm-a/b/c are coloured by the pack in app.css
   return el;
 }
 export function brandWordmark(height = 22) {
