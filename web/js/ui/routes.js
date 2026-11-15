@@ -1,5 +1,6 @@
 // Routes: save a recorded path as a route, recognise it next time, show progress on it, suggest the best route for now, manage routes
 // (rename, one-time, delete), and the quick-action buttons. Geometry/statistics live in route.js and routeReco.js (pure).
+import { emptyState } from '../art.js';
 import { h, setChildren, median } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon, trackSvg } from '../icons.js';
@@ -94,7 +95,7 @@ export async function routesBody(box, filter = 'all', redraw) {
   const chip = (id, key) => h('button', { type: 'button', class: 'chip', 'data-filter': id, 'aria-pressed': String(filter === id), onclick: () => { box.dataset.filter = id; redraw?.(); } }, t(key));
   setChildren(box, h('div', { class: 'chips', role: 'group' }, chip('all', 'routeAll'), chip('regular', 'routeRegular'), chip('once', 'routeOneTime')),
     sug.length ? h('div', { class: 'rlist' }, h('h2', null, t('routeRecTitle')), sug.map(suggestionCard)) : (routes.length ? h('p', { class: 'note' }, t('routeRecNone')) : null),
-    shown.length ? h('div', { class: 'list' }, shown.map((r) => routeCard(r, rows))) : h('p', { class: 'note' }, t('routesNone')));
+    shown.length ? h('div', { class: 'list' }, shown.map((r) => routeCard(r, rows))) : emptyState('no-routes', t('routesNone')));
 }
 export function renderRoutes() {
   const box = h('div', { class: 'routesbox' }), el = h('section', { class: 'routes' }, h('h1', null, t('routesTitle')), quickActions(null), box);

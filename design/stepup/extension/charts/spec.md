@@ -1,0 +1,2 @@
+# Chart language
+Reference viewBox 320×160. Bars radius 6, line 3, dots radius 5, grid 1 at 22% outline opacity, target muted 2 with dash 6/5. Now uses warm plus a larger marker or distinct label in app. Bar/line primary; heat success at 25–85% opacity; background background; labels text; secondary labels muted. Same roles in light/dark. Render labels outside SVG, use accessible data table and non-colour cues. Heat intensity is illustrative, not a data scale. Target line only where meaningful; omit for categorical heat strip in production.

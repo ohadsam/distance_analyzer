@@ -1,5 +1,6 @@
 // Training plan screen: build a plan (goal, level, sessions per week, workout types), see the week, start or mark sessions, catch up on missed ones.
 // Plan logic is pure (plan.js); this file draws it and stores it (localStorage `da.plan`).
+import { art } from '../art.js';
 import { h, setChildren, clamp } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
@@ -38,7 +39,7 @@ async function builder(box, redraw, mine) {
   const rows = await listWorkouts({ points: false }), prof = profile(), now = Date.now(); if (box.alive === false || box.seq !== mine) return;
   const sel = (id, label, items, value) => h('div', { class: 'field' }, h('label', { for: id }, label), h('select', { id }, items.map(([v, l]) => h('option', { value: v, selected: String(v) === String(value) }, l))));
   const types = h('div', { class: 'checks', role: 'group', 'aria-label': t('planTypes') }, TYPES.map((x) => h('label', { class: 'check' }, h('input', { type: 'checkbox', value: x, checked: x !== 'tempo' }), h('span', null, `${t(TY_KEY(x))} - ${t(`${TY_KEY(x)}D`)}`))));
-  setChildren(box, h('h2', null, t('planBuild')),
+  setChildren(box, art('onboarding', 'no-plan'), h('h2', null, t('planBuild')),
     sel('p-goal', t('planGoal'), GOALS.map((g) => [g, t(GOAL_KEY[g])]), 'general'), sel('p-level', t('planLevel'), LEVELS.map((l) => [l, t(LV_KEY[l])]), levelFromHistory(rows, now)),
     sel('p-kind', t('planKind'), [['walk', t('walk')], ['run', t('run')]], getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk'),
     sel('p-sessions', t('planSessions'), [2, 3, 4, 5, 6].map((n) => [n, String(n)]), 3), sel('p-weeks', t('planWeeks'), [4, 6, 8, 10, 12].map((n) => [n, String(n)]), 8),

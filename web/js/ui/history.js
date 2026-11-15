@@ -1,4 +1,5 @@
 import { h, setChildren } from '../util.js';
+import { emptyState } from '../art.js';
 import { t, getLang } from '../i18n.js';
 import { icon, trackSvg } from '../icons.js';
 import { listWorkouts, deleteWorkout, updateWorkout } from '../store.js';
@@ -11,7 +12,7 @@ import { getNum } from '../store.js';
 
 export function renderHistory() {
   const list = h('div', { class: 'list' }), el = h('section', null, h('h1', null, t('history')), list);
-  listWorkouts().then((rows) => { if (el.alive !== false) setChildren(list, rows.length ? rows.map(workoutRow) : h('p', { class: 'note' }, t('noWorkouts'))); });
+  listWorkouts().then((rows) => { if (el.alive !== false) setChildren(list, rows.length ? rows.map(workoutRow) : emptyState('no-workouts', t('noWorkouts'))); });
   el.cleanup = () => { el.alive = false; };
   return el;
 }

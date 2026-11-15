@@ -48,6 +48,7 @@ object Widgets {
         v.setTextViewText(R.id.value, WidgetMath.grouped(today))
         v.setProgressBar(R.id.bar, 100, WidgetMath.percent(today, (s?.stepsGoal ?: 0).toLong()), false)
         v.setTextViewText(R.id.sub, if (s != null && s.stepsGoal > 0) WidgetMath.grouped(s.stepsGoal.toLong()) else "")
+        v.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_steps)
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 31, "#/d/steps"))
     }
 
@@ -57,6 +58,7 @@ object Widgets {
         v.setTextViewText(R.id.value, if (s != null) "${s.effortDone} / ${s.effortPlan}" else "–")
         v.setProgressBar(R.id.bar, 100, WidgetMath.percent((s?.effortDone ?: 0).toLong(), (s?.effortPlan ?: 0).toLong()), false)
         v.setTextViewText(R.id.sub, s?.effortSub ?: "")
+        v.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_effort)
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 32, "#/d/effort"))
     }
 
@@ -65,6 +67,7 @@ object Widgets {
         v.setTextViewText(R.id.title, s?.lastTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_last_label))
         v.setTextViewText(R.id.value, s?.lastValue?.ifEmpty { null } ?: "–")
         v.setTextViewText(R.id.sub, s?.lastSub ?: "")
+        v.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_last)
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 34, "#/history"))
     }
 
@@ -73,6 +76,7 @@ object Widgets {
         v.setTextViewText(R.id.title, s?.nextTitle?.ifEmpty { null } ?: ctx.getString(R.string.widget_next_label))
         v.setTextViewText(R.id.value, s?.nextValue?.ifEmpty { null } ?: "–")
         v.setTextViewText(R.id.sub, s?.nextSub ?: "")
+        v.setInt(R.id.widget_root, "setBackgroundResource", R.drawable.widget_bg_next)
         v.setOnClickPendingIntent(R.id.widget_root, open(ctx, 35, "#/plan"))
     }
 

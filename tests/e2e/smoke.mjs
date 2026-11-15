@@ -13,8 +13,8 @@ let failures = 0;
 const step = async (name, fn) => { if (process.env.ONLY && !name.includes(process.env.ONLY)) return; try { await fn(); console.log('✓', name); } catch (e) { failures++; console.error('✗', name, '\n  ', e.message.split('\n').slice(0, 14).join(' / ')); } };
 
 // Hebrew/RTL is the default; pass {lang:'en'} to start in English. Collects console/page errors.
-async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
+async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null, scheme = 'light' } = {}) {
+  const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
   if (lang !== 'he') await ctx.addInitScript((l) => { try { localStorage.setItem('da.lang', l); } catch { /* blocked */ } }, lang);
   const page = await ctx.newPage(); const errors = [];
   if (clock) await page.clock.install(clockAt ? { time: clockAt } : undefined);
@@ -117,6 +117,17 @@ await step('about: update check (newer / latest / offline), newest APK link, sha
   assert.deepEqual(errors.filter((e) => !/ERR_FAILED/.test(e)), []); // the aborted request is the offline case on purpose
   const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base + '#/settings/s-about'); await a.page.waitForSelector('#share-app'); await a.page.click('#share-app'); await a.page.waitForFunction(() => window.__n.shared); assert.match(await a.page.evaluate(() => window.__n.shared), /Android app:/);
   release = { name: 'v99.0.0 (build 1)' }; await a.page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(release) })); await a.page.click('#upd-check'); await a.page.waitForSelector('#upd-apk-new');
+});
+
+await step('illustrations: empty states and the welcome card load the kit art (light and dark); no 404s', async () => {
+  for (const scheme of ['light', 'dark']) {
+    const { page, errors } = await newPage({ lang: 'en', scheme }); const bad = []; page.on('response', (r) => { if (r.status() >= 400) bad.push(r.url()); });
+    for (const [route, sel] of [['#/alerts', '.empty img'], ['#/routes', '.empty img'], ['#/history', '.empty img'], ['#/', '#welcome img']]) {
+      await page.goto(base + route); await page.waitForSelector(sel); await page.waitForFunction((s) => document.querySelector(s).complete && document.querySelector(s).naturalWidth > 0, sel);
+      assert.match(await page.getAttribute(sel, 'src'), new RegExp(`-${scheme}\\.svg$`), `${route} ${scheme}`);
+    }
+    assert.deepEqual(bad, []); assert.deepEqual(errors, []);
+  }
 });
 
 await step('dashboard offers walk and run and the essential widgets', async () => {

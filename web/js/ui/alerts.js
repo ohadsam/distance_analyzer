@@ -1,4 +1,5 @@
 // The alerts inbox: effort alerts (what happened / why it matters / what to do / a gentle new bar) and reminders.
+import { emptyState } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
@@ -26,7 +27,7 @@ export function renderAlerts() {
     setChildren(el, h('h1', null, t('alertsTitle')),
       list.length ? h('div', { class: 'row-actions' }, h('button', { type: 'button', class: 'btn ghost', onclick: () => { alertStore.save(markAllRead(list)); dispatchEvent(new CustomEvent('stepup-alerts')); draw(); } }, t('markRead')),
         h('button', { type: 'button', class: 'btn danger', onclick: () => { alertStore.save([]); dispatchEvent(new CustomEvent('stepup-alerts')); draw(); } }, t('clearAll'))) : null,
-      list.length ? h('div', { class: 'list' }, list.map((a) => alertCard(a, { onChange: draw }))) : h('p', { class: 'note' }, t('alertsEmpty')));
+      list.length ? h('div', { class: 'list' }, list.map((a) => alertCard(a, { onChange: draw }))) : emptyState('caught-up', t('alertsEmpty')));
   }
   const onNew = () => { if (el.alive !== false) draw(); }; // an alert that arrives while the inbox is open appears at once
   addEventListener('stepup-alerts', onNew); draw();

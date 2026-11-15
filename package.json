@@ -1,6 +1,6 @@
 {
   "name": "stepup",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "description": "StepUp - PWA + Android shell",
@@ -11,7 +11,8 @@
     "serve": "node scripts/serve.mjs",
     "bump": "node scripts/bump-version.mjs",
     "icons": "node scripts/make-icons.mjs",
-    "design": "node scripts/build-design.mjs"
+    "design": "node scripts/build-design.mjs",
+    "android-art": "node scripts/make-android-art.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.10.2",

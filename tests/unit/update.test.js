@@ -28,3 +28,14 @@ test('sharing prefers Android, then the browser share sheet, then the clipboard,
   assert.equal(await shareApp('hi', { nav: {} }), 'manual');
   assert.match(APK_URL, /^https:\/\/github\.com\/ohadsam\/distance_analyzer\/releases\/latest\/download\/stepup\.apk$/);
 });
+
+import { bannerName, badgeFor } from '../../web/js/art.js';
+import { existsSync } from 'node:fs';
+test('weather banner picks a scene; every scene and badge file exists in light and dark', () => {
+  assert.equal(bannerName({ tempC: 5, cond: 'clear' }), 'cold'); assert.equal(bannerName({ tempC: 30, cond: 'clear' }), 'hot'); assert.equal(bannerName({ tempC: 20, cond: 'rain' }), 'rain');
+  assert.equal(bannerName({ tempC: 20, cond: 'windy' }), 'windy'); assert.equal(bannerName(null), null); assert.equal(bannerName({ tempC: NaN }), null);
+  for (const n of ['clear', 'cloudy', 'rain', 'cold', 'hot', 'windy']) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/weather/${n}-${m}.svg`), `${n}-${m}`);
+  for (const n of ['almost-distance', 'passed-distance', 'almost-record', 'new-record', 'faster-last', 'fastest-km']) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/badges/${n}-${m}.svg`), `${n}-${m}`);
+  for (const n of ['welcome', 'no-workouts', 'no-routes', 'no-plan', 'caught-up', 'offline']) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/onboarding/${n}-${m}.svg`), `${n}-${m}`);
+  assert.equal(typeof badgeFor, 'function');
+});

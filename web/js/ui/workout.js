@@ -1,4 +1,5 @@
 // Workout mode: one calm screen with big numbers and few buttons. Tracking (GPS) -> workout.js (pure); persistence -> store.js.
+import { badgeFor } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon, trackSvg } from '../icons.js';
@@ -66,13 +67,13 @@ export function renderWorkout(kind, go, routeId) {
   const cueQueue = [];
   function pumpCues() { // one calm message at a time (about 6 s each); the others wait their turn
     if (!cueQueue.length || !cueEl.hidden) return;
-    const text = cueQueue.shift(); cueEl.hidden = false; cueEl.textContent = text; sr.textContent = text;
+    const { text, key } = cueQueue.shift(); cueEl.hidden = false; setChildren(cueEl, badgeFor(key), h('span', null, text)); sr.textContent = text;
     if (getPref('cueVibrate', '1') !== '0') try { navigator.vibrate?.(60); } catch { /* not supported */ }
     clearTimeout(cueTimer); cueTimer = setTimeout(() => { cueEl.hidden = true; pumpCues(); }, 6000);
   }
   function checkIndicators() {
     if (!refs || !cuesOn() || !w) return;
-    for (const e of indicators({ distM: w.distanceM, splits: w.splits }, refs, fired)) cueQueue.push(t(e.key, e.params));
+    for (const e of indicators({ distM: w.distanceM, splits: w.splits }, refs, fired)) cueQueue.push({ text: t(e.key, e.params), key: e.key });
     if (cueQueue.length > 4) cueQueue.splice(0, cueQueue.length - 4); // never a backlog of stale news
     pumpCues();
   }

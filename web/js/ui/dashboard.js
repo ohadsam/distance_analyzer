@@ -1,5 +1,6 @@
 // The dashboard: customisable widgets (show/hide/reorder), filters (period, activity, weather, text) and drill-down (each widget opens a
 // detail view). Data logic lives in stats/steps/effort (pure); this file only arranges and draws.
+import { art } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
@@ -116,7 +117,7 @@ function welcome(c, redraw) {
   if (getPref('welcomed', '') || c.all.length) return null;
   const done = () => { setPref('welcomed', '1'); redraw(); };
   const age = h('input', { id: 'welcome-age', type: 'number', inputMode: 'numeric', min: 5, max: 100, value: getPref('age', '') || '', placeholder: '35' });
-  return h('div', { class: 'card welcome', id: 'welcome' }, h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')),
+  return h('div', { class: 'card welcome', id: 'welcome' }, art('onboarding', 'welcome'), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')),
     h('label', { for: 'welcome-age' }, t('age')), age,
     h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'welcome-ok', onclick: () => { const a = Number(age.value); if (a >= 5 && a <= 100) setPref('age', Math.round(a)); done(); } }, t('welcomeOk')), h('button', { type: 'button', class: 'btn ghost', onclick: done }, t('welcomeSkip'))));
 }

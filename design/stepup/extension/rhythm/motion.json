@@ -1,0 +1,53 @@
+{
+  "breathing": {
+    "durationMs": 8000,
+    "keyframes": [
+      {
+        "asset": "breath-rest",
+        "offset": 0,
+        "scale": 1
+      },
+      {
+        "asset": "breath-inhale",
+        "offset": 0.5,
+        "scale": 1.2857142857142858
+      },
+      {
+        "asset": "breath-exhale",
+        "offset": 0.95,
+        "scale": 0.8095238095238095
+      },
+      {
+        "asset": "breath-rest",
+        "offset": 1,
+        "scale": 1
+      }
+    ],
+    "easing": "ease-in-out",
+    "reducedMotion": "breath-rest"
+  },
+  "beat": {
+    "durationMs": 800,
+    "scaleRange": [
+      1,
+      1.7
+    ],
+    "easing": "ease-in-out",
+    "frames": [
+      "beat-rest",
+      "beat-pulse",
+      "beat-rest"
+    ],
+    "reducedMotion": "beat-rest",
+    "note": "Visual pulse capped at 75 cycles/min; do not flash or synchronize faster visual pulses to cadence. Audio cadence independent."
+  },
+  "learning": {
+    "durationMs": 0,
+    "reducedMotion": "learning"
+  },
+  "locked": {
+    "durationMs": 0,
+    "reducedMotion": "locked"
+  },
+  "implementation": "Interpolate scale of rest SVG, do not additionally scale alternate keyframe SVGs. No opacity flashing. Breathing optional, not a prescribed breathing rate."
+}

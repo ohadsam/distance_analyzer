@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0
+- **The ChatGPT round-5 kit is integrated** (`design/stepup/extension/`, CC0, README and validation inside): **empty-state illustrations** (no workouts, no routes, alerts all caught up, welcome card, plan builder), **weather banner** above the recommendations when a saved forecast exists (clear, cloudy, rain, cold, hot, windy), **live-indication badges** inside the workout banner (each indication has its own shape), light and dark pictures chosen by the current look (`art.js`, files in `web/art/`, precached for offline).
+- **Android**: the four widget backgrounds (Steps, Effort, Last workout, Next session) are now the kit's art in light and night (`scripts/make-android-art.mjs` renders them: `npm run android-art`); Measure now keeps the gradient/hills drawable. **Android 12+ splash screen** with the Little Trail mark (light and night).
+- Stored but not yet used by screens: the rhythm-coach keyframes + `motion.json` (the existing CSS ring/lung stays for now), the chart language spec (`charts/spec.md`), the portrait splash, the picker glyphs, the offline illustration.
+- Verified: unit tests (banner choice, every file exists), e2e (art loads and matches light/dark on four screens, no 404s), axe. Not verified: how the widgets and the splash look on a real phone.
+
 ## 0.10.0
 - **Updates and sharing** (Settings -> About and updates, also found by search): shows the running version; **Check for updates** (one request to GitHub's public release list, only when you press it; nothing about you is sent) says "latest", "new version X" with its notes or "could not check"; in the web app a new version offers **Update the app now** (refreshes the service worker and reloads), in the Android app it offers the new APK; **Download the latest Android app** (works in the web app and in the Android app: opens `releases/latest/download/stepup.apk`); **Share StepUp** opens Android's share sheet (bridge `share`, text only, max 600 characters), else the browser's share sheet, else copies the link, else shows it to copy.
 - CSP now allows `https://api.github.com` for connections (the update check only). New: `update.js`, `appVersion.js` (kept equal to `version.json` by the bump script and a test), `ui/about.js`, `strings07.js`.
