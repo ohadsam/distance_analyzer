@@ -1,6 +1,7 @@
 // "About and updates": the running version, a manual update check, the newest Android app and sharing the app.
 import { h, setChildren } from '../util.js';
 import { t } from '../i18n.js';
+import { art } from '../art.js';
 import { native } from '../native.js';
 import { APP_VERSION } from '../appVersion.js';
 import { APK_URL, SITE_URL, checkUpdate, shareApp } from '../update.js';
@@ -23,7 +24,7 @@ export function aboutBlock() {
     check.disabled = true; say(t('updChecking'));
     const current = native.version() || APP_VERSION, r = await checkUpdate(current);
     check.disabled = false;
-    if (r.state === 'error') return say(t('updError'));
+    if (r.state === 'error') return say(t('updError'), art('onboarding', 'offline'));
     if (r.state === 'latest') return say(t('updLatest', { v: current }));
     // a newer release: the installed web app refreshes itself; the Android app downloads the new APK
     say(t('updNewer', { v: r.version }), r.notes ? h('p', { class: 'note' }, r.notes) : null,

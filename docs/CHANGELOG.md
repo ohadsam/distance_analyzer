@@ -3,7 +3,7 @@
 ## 0.11.0
 - **The ChatGPT round-5 kit is integrated** (`design/stepup/extension/`, CC0, README and validation inside): **empty-state illustrations** (no workouts, no routes, alerts all caught up, welcome card, plan builder), **weather banner** above the recommendations when a saved forecast exists (clear, cloudy, rain, cold, hot, windy), **live-indication badges** inside the workout banner (each indication has its own shape), light and dark pictures chosen by the current look (`art.js`, files in `web/art/`, precached for offline).
 - **Android**: the four widget backgrounds (Steps, Effort, Last workout, Next session) are now the kit's art in light and night (`scripts/make-android-art.mjs` renders them: `npm run android-art`); Measure now keeps the gradient/hills drawable. **Android 12+ splash screen** with the Little Trail mark (light and night).
-- Stored but not yet used by screens: the rhythm-coach keyframes + `motion.json` (the existing CSS ring/lung stays for now), the chart language spec (`charts/spec.md`), the portrait splash, the picker glyphs, the offline illustration.
+- Stored but not yet used by screens: the rhythm-coach keyframes + `motion.json` (the existing CSS ring/lung stays for now), the chart language spec (`charts/spec.md`), the portrait splash, the picker glyphs.
 - Verified: unit tests (banner choice, every file exists), e2e (art loads and matches light/dark on four screens, no 404s), axe. Not verified: how the widgets and the splash look on a real phone.
 
 ## 0.10.0
