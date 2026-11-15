@@ -12,7 +12,8 @@ function open() {
     try {
       const rq = indexedDB.open(DB, 2);
       rq.onupgradeneeded = () => { const db = rq.result; if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'startedAt' }); if (!db.objectStoreNames.contains('routes')) db.createObjectStore('routes', { keyPath: 'id' }); };
-      rq.onsuccess = () => res(rq.result); rq.onerror = () => res(null); rq.onblocked = () => res(null);
+      rq.onsuccess = () => { const db = rq.result; db.onversionchange = () => { db.close(); dbp = null; }; res(db); }; // let a newer version upgrade; reopen on the next use
+      rq.onerror = () => { res(null); dbp = null; }; rq.onblocked = () => { res(null); dbp = null; }; // an old tab holds the old version: this call uses memory, the next one tries again
     } catch { res(null); }
   });
   return dbp;
@@ -35,9 +36,15 @@ export async function saveWorkout(w) {
   } catch { /* memory copy remains */ }
   return rec;
 }
-/** Adds the weather (or other safe fields) to a saved workout. */
+/** One workout by its key (with its points), or null. */
+export async function getWorkout(startedAt) {
+  const db = await open(); let r = mem.find((x) => x.startedAt === startedAt);
+  if (db) try { r = (await wrap(db.transaction(STORE).objectStore(STORE).get(startedAt))) ?? r; } catch { /* memory */ }
+  return r ? sanitizeWorkout(r) : null;
+}
+/** Adds the weather, route link or other safe fields to ONE saved workout (reads and writes only that record). */
 export async function updateWorkout(startedAt, patch) {
-  const rows = await listWorkouts(), r = rows.find((x) => x.startedAt === startedAt); if (!r) return null;
+  const r = await getWorkout(startedAt); if (!r) return null;
   const rec = sanitizeWorkout({ ...r, ...patch }); if (!rec) return null;
   mem = [rec, ...mem.filter((x) => x.startedAt !== startedAt)]; const db = await open();
   if (db) try { await wrap(db.transaction(STORE, 'readwrite').objectStore(STORE).put(rec)); } catch { /* memory copy remains */ }

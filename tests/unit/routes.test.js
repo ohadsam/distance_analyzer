@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { simplify, pathLength, sampleAlong, distToPath, makeRoute, matchRoute, distanceAtTime, sanitizeRoute } from '../../web/js/route.js';
-import { attemptsOf, speedIndexes, routeProgress, bestContext, recommendRoutes, hourBand } from '../../web/js/routeReco.js';
+import { attemptsOf, mainKind, speedIndexes, routeProgress, bestContext, recommendRoutes, hourBand } from '../../web/js/routeReco.js';
 import { weatherAt } from '../../web/js/forecast.js';
 import { sanitizeWorkout } from '../../web/js/workout.js';
 
@@ -34,6 +34,8 @@ test('matchRoute: the same route (noisy, other speed) matches; other street, rev
 });
 test('distanceAtTime follows a past attempt for the ghost; sanitizeRoute / sanitizeWorkout reject hostile data', () => {
   const t = walkPath(corners.out, { mps: 4 }); assert.ok(Math.abs(distanceAtTime(t, 100000) - 400) < 15); assert.ok(Math.abs(distanceAtTime(t, 1e9) - 1000) < 15); assert.equal(distanceAtTime([[1, 1, 0]], 5), 0);
+  const gap = t.map((p, i) => (i > t.length / 2 ? [p[0], p[1], p[2] + 300000] : p)); assert.ok(Math.abs(distanceAtTime(gap, 100000) - 400) < 15, 'a 5-minute pause in the best attempt does not distort the ghost'); assert.ok(Math.abs(distanceAtTime(gap, 1e9) - 1000) < 20);
+  assert.ok(Math.abs(distanceAtTime(t, 1e9, 900) - 900) < 1, 'scaled to the attempt\'s own filtered total');
   assert.equal(sanitizeRoute({ id: '__proto__', path: [[1, 1], [2, 2]] }), null); assert.equal(sanitizeRoute({ id: 'rabc1', path: [[1, 1]] }), null);
   const r = sanitizeRoute({ id: 'rabc1', name: '<b>x</b>\u0007', oneTime: 'yes', path: [[1, 1], [999, 2], [2, 2.123456789]], lengthM: -5 }); assert.deepEqual(r.path, [[1, 1], [2, 2.123457]]); assert.equal(r.oneTime, false); assert.equal(r.lengthM, 0);
   assert.equal(sanitizeWorkout({ startedAt: 5, routeId: '../x' }).routeId, undefined); assert.equal(sanitizeWorkout({ startedAt: 5, routeId: 'rabc1' }).routeId, 'rabc1');
@@ -72,4 +74,10 @@ test('recommendRoutes: prefers the route you do best on at this hour and in this
   const evening = recommendRoutes([a, b], rows, { now: NOW, hour: 18, weather: 'none', typicalM: 5000, kind: 'run' }); assert.equal(evening[0].route.id, 'rb', 'in the evening route B is the better choice');
   assert.equal(recommendRoutes([a], [], { now: NOW, hour: 7 }).length, 0);
   const rested = recommendRoutes([a, b], [...rows, att('ra', 0, 6, 320)], { now: NOW, hour: 7, weather: 'none', typicalM: 5000, kind: 'run' }); assert.ok(rested.find((x) => x.route.id === 'ra').score < morning[0].score, 'just done today: lower');
+});
+
+test('regression: walks and runs on one route are not mixed; the main activity is found', () => {
+  const r = route('rk', 5), rows = [...[300, 305, 310].map((p, i) => att('rk', 10 - i, 7, p)), ...[420, 430].map((p, i) => att('rk', 5 - i, 7, p, { kind: 'walk' }))];
+  assert.equal(attemptsOf(r, rows, 'run').length, 3); assert.equal(attemptsOf(r, rows, 'walk').length, 2); assert.equal(attemptsOf(r, rows).length, 5); assert.equal(mainKind(r, rows), 'run');
+  assert.ok(routeProgress(attemptsOf(r, rows, 'run')).avgPaceSec < 320);
 });

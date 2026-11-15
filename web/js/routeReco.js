@@ -1,13 +1,15 @@
 // Pure route statistics and recommendations: how the person's performance on each route developed, where they perform best (hour of day,
 // weather), and which route to suggest now. One-time routes (a trip, a holiday) never take part. Needs workouts with `routeId`.
 import { paceSec, DAY, weatherBucket } from './stats.js';
+import { median } from './util.js';
 
-const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 export const hourBand = (ts) => { const h = new Date(ts).getHours(); return h < 11 ? 'morning' : h < 16 ? 'midday' : h < 20 ? 'evening' : 'night'; };
 export const BANDS = ['morning', 'midday', 'evening', 'night'];
 
-/** The workouts that followed this route, oldest first (needs a measurable pace). */
-export const attemptsOf = (route, rows) => rows.filter((w) => w.routeId === route.id && paceSec(w) > 0).sort((a, b) => a.startedAt - b.startedAt);
+/** The workouts that followed this route, oldest first (needs a measurable pace). With `kind`, only walks or only runs: their paces are not comparable. */
+export const attemptsOf = (route, rows, kind = '') => rows.filter((w) => w.routeId === route.id && paceSec(w) > 0 && (!kind || w.kind === kind)).sort((a, b) => a.startedAt - b.startedAt);
+/** The activity done most often on a route (ties: the most recent). */
+export function mainKind(route, rows) { const at = rows.filter((w) => w.routeId === route.id); const n = { walk: 0, run: 0 }; at.forEach((w) => { n[w.kind]++; }); return n.run > n.walk ? 'run' : n.walk > n.run ? 'walk' : (at.sort((a, b) => b.startedAt - a.startedAt)[0]?.kind || 'walk'); }
 
 /** Speed index of each attempt = route median pace / attempt pace (1.00 = typical for this route, above 1 = faster than usual). */
 export function speedIndexes(attempts) {

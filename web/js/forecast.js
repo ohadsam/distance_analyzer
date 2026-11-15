@@ -38,6 +38,7 @@ export function sanitizeHours(list) {
 
 /** The weather during a workout from a forecast list: { tempC, cond } of the hour containing `ts`, or null when the list does not cover it. */
 export function weatherAt(list, ts) {
-  const h = list.find((x) => ts >= x.t && ts < x.t + 3600000); if (!h) return null;
-  return { tempC: Math.round(h.temp), cond: h.rain > 0.2 || h.rainP >= 60 ? 'rain' : h.wind >= 30 ? 'windy' : 'clear' };
+  const h = list.find((x) => ts >= x.t && ts < x.t + 3600000); return h ? weatherOfHour(h) : null;
 }
+/** One forecast hour as the weather record of a workout: { tempC, cond }. */
+export const weatherOfHour = (h) => ({ tempC: Math.round(h.temp), cond: h.rain > 0.2 || h.rainP >= 60 ? 'rain' : h.wind >= 30 ? 'windy' : 'clear' });

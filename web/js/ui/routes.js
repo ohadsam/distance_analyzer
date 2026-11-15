@@ -1,11 +1,12 @@
 // Routes: save a recorded path as a route, recognise it next time, show progress on it, suggest the best route for now, manage routes
 // (rename, one-time, delete), and the quick-action buttons. Geometry/statistics live in route.js and routeReco.js (pure).
-import { h, setChildren } from '../util.js';
+import { h, setChildren, median } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon, trackSvg } from '../icons.js';
 import { listRoutes, saveRoute, deleteRoute, listWorkouts, updateWorkout, getPref } from '../store.js';
 import { makeRoute, matchRoute, MIN_ROUTE_M, MAX_ROUTES } from '../route.js';
-import { attemptsOf, routeProgress, bestContext, recommendRoutes } from '../routeReco.js';
+import { attemptsOf, routeProgress, bestContext, recommendRoutes, mainKind } from '../routeReco.js';
+import { weatherOfHour } from '../forecast.js';
 import { projectTrack } from '../geo.js';
 import { paceSec, weatherBucket } from '../stats.js';
 import { fmtKm, fmtPaceUnit, fmtDate, bucketLabel } from '../format.js';
@@ -16,7 +17,6 @@ import { workoutRow } from './home.js';
 const BAND_KEY = { morning: 'bandMorning', midday: 'bandMidday', evening: 'bandEvening', night: 'bandNight' };
 const say = (msg) => { const sr = document.getElementById('sr'); if (sr) sr.textContent = msg; };
 const newId = () => `r${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
-const median = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : 0; };
 
 // ---------- data operations ----------
 export async function saveRouteFromWorkout(rec, name, oneTime) {
@@ -38,7 +38,7 @@ export const findRoute = (points, routes) => routes.map((r) => ({ r, m: matchRou
 function typicalDistance(rows, kind) { const d = rows.filter((w) => !kind || w.kind === kind).slice(0, 20).map((w) => w.distanceM); return d.length >= 3 ? median(d) : 0; }
 export function suggest(routes, rows, now = Date.now()) {
   const kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk', f = onlineOn() ? cachedForecast(now) : null, hr = f?.find((x) => now >= x.t && now < x.t + 3600000);
-  return recommendRoutes(routes, rows, { now, hour: new Date(now).getHours(), kind, typicalM: typicalDistance(rows, kind), weather: hr ? weatherBucket({ tempC: hr.temp, cond: hr.rain > 0.2 || hr.rainP >= 60 ? 'rain' : 'clear' }) : 'none' });
+  return recommendRoutes(routes, rows, { now, hour: new Date(now).getHours(), kind, typicalM: typicalDistance(rows, kind), weather: hr ? weatherBucket(weatherOfHour(hr)) : 'none' });
 }
 export const suggestionCard = (s) => h('a', { class: 'item routecard', href: `#/r/${s.route.id}`, 'data-route-suggestion': s.route.id }, h('span', { class: 'kind' }, icon('route', 24)),
   h('span', { class: 'grow' }, h('b', null, s.route.name), h('small', null, s.reasons.length ? s.reasons.map((k) => t(k, s.params)).join(' · ') : `${fmtKm(s.route.lengthM)} · ${t('routeTimes', { n: s.n })}`)), icon('forward', 20));
@@ -63,12 +63,14 @@ export function quickActions(suggested) {
 export function summaryBox(rec, followId = '') {
   const box = h('div', { class: 'routebox', 'aria-live': 'polite' });
   (async () => {
-    const routes = await listRoutes(), found = (followId && routes.find((r) => r.id === followId)) || findRoute(rec.points, routes);
+    const routes = await listRoutes(), stored = rec.routeId ? routes.find((r) => r.id === rec.routeId) : null;
+    // the stored link wins; a followed route counts only when the path really matched it; otherwise look for a matching saved route
+    const followed = followId && !stored ? routes.find((r) => r.id === followId && matchRoute(rec.points, r).ok) : null, found = stored || followed || findRoute(rec.points, routes);
     if (found) {
       if (rec.routeId !== found.id) await updateWorkout(rec.startedAt, { routeId: found.id });
-      const rows = await listWorkouts({ points: false }), at = attemptsOf(found, rows), before = at.filter((w) => w.startedAt !== rec.startedAt), me = at.find((w) => w.startedAt === rec.startedAt), lines = [h('p', null, h('b', null, t('routeRecognised', { name: found.name })))];
-      if (me) {
-        lines.push(h('p', null, t('routeNth', { n: at.length })));
+      const rows = await listWorkouts({ points: false }), at = attemptsOf(found, rows, rec.kind), upto = at.filter((w) => w.startedAt <= rec.startedAt), before = upto.filter((w) => w.startedAt !== rec.startedAt), me = upto.find((w) => w.startedAt === rec.startedAt), lines = [h('p', null, h('b', null, t('routeRecognised', { name: found.name })))];
+      if (me) { // compared with the attempts BEFORE this one, so an old workout viewed later reads the same as it did on the day
+        lines.push(h('p', null, t('routeNth', { n: upto.length })));
         if (before.length && paceSec(me) < Math.min(...before.map(paceSec))) lines.push(h('p', { class: 'good' }, t('routePB')));
         else if (before.length >= 2) { const pct = Math.round(((median(before.map(paceSec)) - paceSec(me)) / median(before.map(paceSec))) * 100); if (Math.abs(pct) >= 1) lines.push(h('p', null, t(pct > 0 ? 'routeFaster' : 'routeSlowerThis', { pct: Math.abs(pct) }))); }
       }
@@ -106,18 +108,18 @@ export function renderRoute(id) {
   async function draw() {
     const [routes, rows] = [await listRoutes(), await listWorkouts({ points: false })]; if (el.alive === false) return;
     const route = routes.find((r) => r.id === id); if (!route) { location.hash = '#/routes'; return; }
-    const at = attemptsOf(route, rows), pr = routeProgress(at), ctx = bestContext(at);
+    const mk = mainKind(route, rows), all = attemptsOf(route, rows), at = attemptsOf(route, rows, mk), pr = routeProgress(at), ctx = bestContext(at); // walks and runs are not compared with each other
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     const verdict = pr.trend === 'improving' ? t('routeImproving', { pct: Math.abs(pr.improvePct) }) : pr.trend === 'slower' ? t('routeSlower', { pct: Math.abs(pr.improvePct) }) : pr.trend === 'steady' ? t('routeSteady') : t('routeNew');
     const nameIn = h('input', { type: 'text', id: 'route-rename', maxLength: 40, value: route.name, 'aria-label': t('routeNameLabel') });
-    const kind = at.length ? at[at.length - 1].kind : (getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk');
+    const kind = mk;
     setChildren(el, h('a', { class: 'link back', href: '#/routes' }, icon('back', 20), t('routesTitle')), h('h1', null, route.name, route.oneTime ? h('span', { class: 'tag' }, ` · ${t('routeOneTimeBadge')}`) : null),
       trackSvg(projectTrack(route.path, 300, 180)),
-      h('div', { class: 'rows' }, row(t('distance'), fmtKm(route.lengthM)), row(t('routeAttempts'), String(at.length)), pr.best ? row(t('recFastest'), fmtPaceUnit(paceSec(pr.best))) : null, pr.n ? row(t('avgPace'), fmtPaceUnit(pr.avgPaceSec)) : null),
+      h('div', { class: 'rows' }, row(t('distance'), fmtKm(route.lengthM)), row(t('routeAttempts'), String(all.length)), pr.best ? row(t('recFastest'), fmtPaceUnit(paceSec(pr.best))) : null, pr.n ? row(t('avgPace'), fmtPaceUnit(pr.avgPaceSec)) : null),
       h('h2', null, t('routeProgressTitle')), at.length >= 2 ? lineChart(at.map(paceSec)) : null, h('p', null, verdict),
       ctx.band || ctx.weather ? h('p', { class: 'note' }, `${ctx.band ? t('routeBestAt', { band: t(BAND_KEY[ctx.band]) }) : ''} ${ctx.weather ? t('routeBestIn', { weather: bucketLabel(ctx.weather) }) : ''}`.trim()) : null,
       h('a', { class: 'btn', id: 'route-go', href: `#/workout/${kind}/go/r/${route.id}` }, icon('play', 20), t('routeStart')),
-      at.length ? h('div', { class: 'list' }, h('h2', null, t('routeAttempts')), [...at].reverse().map((w) => workoutRow(w))) : null,
+      all.length ? h('div', { class: 'list' }, h('h2', null, t('routeAttempts')), [...all].reverse().map((w) => workoutRow(w))) : null, h('p', { class: 'note' }, t('mapNote')),
       h('div', { class: 'field' }, h('label', { for: 'route-rename' }, t('routeRename')), nameIn, h('button', { type: 'button', class: 'btn ghost', id: 'route-rename-save', onclick: async () => { await saveRoute({ ...route, name: nameIn.value }); say(t('routeSaved')); draw(); } }, t('routeSave'))),
       h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'route-onetime', checked: route.oneTime, onchange: async (e) => { await saveRoute({ ...route, oneTime: e.target.checked }); draw(); } }), h('span', null, t('routeOneTimeLabel'))),
       h('div', { class: 'row-actions' }, h('button', { type: 'button', class: 'btn ghost', id: 'route-link', onclick: async () => { const n = await linkEarlier(route); say(t('routeLinked', { n })); draw(); } }, t('routeLinkOld')),

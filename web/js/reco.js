@@ -1,6 +1,6 @@
 // Pure recommendations: (1) the best times to walk or run from the weather forecast AND the person's own routine, (2) recommendations from the
 // effort bar, steps and streak. No DOM, no network, no clock: forecast, history and `now` are passed in. Text is produced by the UI from keys.
-import { clamp } from './util.js';
+import { clamp, median } from './util.js';
 import { dayStart, DAY } from './stats.js';
 
 // ---------- comfort of an hour for an activity ----------
@@ -22,7 +22,6 @@ export function comfort(h, kind = 'walk') {
 // ---------- the person's routine ----------
 const HALF_LIFE = 28 * DAY, SPAN = 56 * DAY, MIN_ROUTINE = 5;
 const startHour = (ts) => { const d = new Date(ts); return d.getHours(); };
-const median = (a) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 
 /**
  * Habits from the last 8 weeks (recent workouts count more). Returns { n, habit(weekday, hour) in 0..1, sessions(weekday) 1..3,

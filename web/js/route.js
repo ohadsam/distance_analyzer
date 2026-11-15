@@ -68,16 +68,21 @@ export function matchRoute(track, route) {
   return { ok: avg <= 35 && max <= 120, avg: Math.round(avg), max: Math.round(max) };
 }
 
-/** Distance (metres) covered by a recorded track after `ms` of moving time since its first point (for the "ghost" of a past attempt). */
-export function distanceAtTime(track, ms) {
-  if (track.length < 2) return 0; const t0 = track[0][2]; let d = 0;
+/**
+ * The "ghost" of a past attempt: a function (moving ms) -> distance in metres. Gaps longer than 30 s in the recorded times (a pause, lost GPS) count
+ * as no time and no distance, like the live clock, and the distance is scaled to the attempt's own (filtered) total so both sides measure alike.
+ */
+export function makeGhost(track, totalM = 0) {
+  const steps = []; let elapsed = 0, raw = 0;
   for (let i = 1; i < track.length; i++) {
-    const seg = haversine({ lat: track[i - 1][0], lon: track[i - 1][1] }, { lat: track[i][0], lon: track[i][1] }), dt = track[i][2] - track[i - 1][2];
-    if (track[i][2] - t0 >= ms) return d + (dt > 0 ? seg * clamp((ms - (track[i - 1][2] - t0)) / dt, 0, 1) : 0);
-    d += seg;
+    const dt = track[i][2] - track[i - 1][2]; if (!(dt > 0) || dt > 30000) continue;
+    const seg = haversine({ lat: track[i - 1][0], lon: track[i - 1][1] }, { lat: track[i][0], lon: track[i][1] }); steps.push([elapsed, raw, dt, seg]); elapsed += dt; raw += seg;
   }
-  return d;
+  const k = totalM > 0 && raw > 0 ? totalM / raw : 1;
+  return (ms) => { if (ms <= 0 || !steps.length) return 0; if (ms >= elapsed) return raw * k; let lo = 0, hi = steps.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (steps[m][0] <= ms) lo = m; else hi = m - 1; } const [e, d, dt, seg] = steps[lo]; return (d + seg * clamp((ms - e) / dt, 0, 1)) * k; };
 }
+/** Distance after `ms` of moving time along a recorded track (see makeGhost). */
+export const distanceAtTime = (track, ms, totalM = 0) => makeGhost(track, totalM)(ms);
 
 /** Untrusted route record -> a safe one, or null. */
 export function sanitizeRoute(r) {

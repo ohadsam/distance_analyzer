@@ -5,15 +5,14 @@ import { icon, trackSvg } from '../icons.js';
 import { newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { projectTrack } from '../geo.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
-import { active, saveWorkout, getNum, getPref, getJson, listWorkouts, profile } from '../store.js';
+import { active, saveWorkout, getNum, getPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
 import { checkWorkout } from '../effort.js';
 import { pushAlert } from './notify.js';
 import { alertCard } from './alerts.js';
 import { liveMap } from './livemap.js';
 import { summaryBox } from './routes.js';
-import { listRoutes, updateWorkout } from '../store.js';
 import { attemptsOf } from '../routeReco.js';
-import { distanceAtTime } from '../route.js';
+import { makeGhost } from '../route.js';
 import { onlineOn, cachedForecast } from '../weatherApi.js';
 import { weatherAt } from '../forecast.js';
 import { paceSec } from '../stats.js';
@@ -45,20 +44,22 @@ export function renderWorkout(kind, go, routeId) {
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
   const body = h('div', { class: 'wk' });
   // Live map (no tiles) and, when following a saved route, the route line, its name and a "ghost" of the best earlier attempt.
-  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', role: 'status', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), mapBox = h('div', { class: 'mapbox' }, lm.el, followEl, ghostEl);
-  let follow = null; // { route, best }
+  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), mapBox = h('div', { class: 'mapbox' }, lm.el, followEl, ghostEl);
+  let follow = null, ghost = null, ghostSide = ''; // follow = { route, best }; ghost = (moving ms) -> metres of the best attempt
   if (routeId) (async () => {
     const route = (await listRoutes()).find((r) => r.id === routeId); if (!route) return;
-    const best = attemptsOf(route, await listWorkouts()).sort((a, b) => paceSec(a) - paceSec(b))[0];
-    follow = { route, best: best && best.points.length > 5 ? best : null }; followEl.hidden = false; followEl.textContent = t('followingRoute', { name: route.name }); paintMap();
+    const bestLight = attemptsOf(route, await listWorkouts({ points: false }), kind).sort((a, b) => paceSec(a) - paceSec(b))[0], best = bestLight ? await getWorkout(bestLight.startedAt) : null; // only the best attempt's points are read
+    follow = { route, best: best && best.points.length > 5 ? best : null }; ghost = follow.best ? makeGhost(follow.best.points, follow.best.distanceM) : null; followEl.hidden = false; followEl.textContent = t('followingRoute', { name: route.name }); paintMap();
   })();
   let mapAt = 0;
   function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : []); mapAt = Date.now(); }
   function paintGhost() {
-    if (!follow?.best || !w || phase !== 'running') { ghostEl.hidden = true; return; }
-    const d = Math.round(w.distanceM - distanceAtTime(follow.best.points, elapsedMs(w, Date.now()))), m = Math.abs(d);
-    ghostEl.hidden = false; ghostEl.textContent = m < 10 ? t('ghostOn') : t(d > 0 ? 'ghostAhead' : 'ghostBehind', { m }); ghostEl.dataset.side = m < 10 ? 'on' : d > 0 ? 'ahead' : 'behind';
+    if (!ghost || !w || phase !== 'running') { ghostEl.hidden = true; return; }
+    const d = Math.round(w.distanceM - ghost(elapsedMs(w, Date.now()))), m = Math.abs(d), side = m < 10 ? 'on' : d > 0 ? 'ahead' : 'behind';
+    ghostEl.hidden = false; ghostEl.textContent = m < 10 ? t('ghostOn') : t(d > 0 ? 'ghostAhead' : 'ghostBehind', { m }); ghostEl.dataset.side = side;
+    if (side !== ghostSide) { ghostSide = side; sr.textContent = ghostEl.textContent; } // announced when the side changes, not every second
   }
+
   const el = h('section', { class: 'workout', 'data-phase': phase }, h('div', { class: 'wk-top' }, h('h1', { class: 'sr-only' }, t(kind)), gpsChip, h('span', { class: 'grow' }), lockBtn), body, lockLayer);
 
   // ---------- tracking ----------
@@ -98,7 +99,7 @@ export function renderWorkout(kind, go, routeId) {
   // After saving: the weather during the workout (from the saved forecast, when the person uses the online forecast) and the route box (recognise / save / follow).
   async function afterSave() {
     if (!saved) return;
-    try { const f = onlineOn() ? cachedForecast(saved.startedAt + 3600000, 12 * 3600000) : null, wx = f && weatherAt(f, saved.startedAt); if (wx && !saved.weather) saved = (await updateWorkout(saved.startedAt, { weather: wx })) || saved; } catch { /* the weather is a bonus */ }
+    try { const f = onlineOn() ? cachedForecast(Date.now(), 12 * 3600000) : null, wx = f && weatherAt(f, saved.startedAt); if (wx && !saved.weather) saved = (await updateWorkout(saved.startedAt, { weather: wx })) || saved; } catch { /* the weather is a bonus */ }
     routeEl = summaryBox(saved, routeId || '');
   }
 
@@ -156,7 +157,8 @@ export function renderWorkout(kind, go, routeId) {
   // ---------- lifecycle ----------
   startGps(); paintGps(); paint();
   let ticks = 0;
-  paintMap(); if (go && phase === 'ready') onMain(); // "measure now": start at once
+  paintMap();
+  if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
   tickId = setInterval(() => { paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
   const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') keepAwake(true); };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
