@@ -23,6 +23,7 @@ const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not wort
 
 export function renderWorkout(kind, go, routeId) {
   let w = active.load(), watch = 0, wake = null, tickId = 0, gps = 'searching', acc = 0, phase = 'ready'; // ready | running | paused | confirm | done
+  if (w && !isPaused(w) && native.trackAvailable()) for (const f of native.trackDrain()) addFix(w, { lat: f[0], lon: f[1], t: f[2], acc: f[3] }); // the background service kept recording while the app was closed
   if (w) { kind = w.kind; if (!isPaused(w)) pause(w, w.last?.t || Date.now()); phase = 'paused'; } // a reloaded workout waits, so the gap is not counted
   const sr = document.getElementById('sr');
 
@@ -63,14 +64,21 @@ export function renderWorkout(kind, go, routeId) {
   const el = h('section', { class: 'workout', 'data-phase': phase }, h('div', { class: 'wk-top' }, h('h1', { class: 'sr-only' }, t(kind)), gpsChip, h('span', { class: 'grow' }), lockBtn), body, lockLayer);
 
   // ---------- tracking ----------
+  // One door for GPS fixes, from the page's own watch AND from the Android background service (a duplicate fix is rejected by addFix: same or older time).
+  function feed(fix) {
+    if (!w || phase !== 'running') return;
+    const n = w.splits.length;
+    if (addFix(w, fix) && w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; }
+  }
+  let nativeOn = false;
+  const trackOn = () => { if (native.trackAvailable() && !nativeOn) nativeOn = native.trackStart(t('trackTitle'), t('trackText')); }; // false while the permission question is open: tried again on the next tick
+  const trackOff = () => { if (nativeOn || native.trackAvailable()) native.trackStop(); nativeOn = false; };
+  function drainNative() { if (phase !== 'running' || !native.trackAvailable()) return; trackOn(); for (const f of native.trackDrain()) feed({ lat: f[0], lon: f[1], t: f[2], acc: f[3] }); }
   function startGps() {
     if (!navigator.geolocation) { gps = 'missing'; return; }
     watch = navigator.geolocation.watchPosition((pos) => {
       acc = pos.coords.accuracy; gps = acc <= 35 ? 'good' : 'weak';
-      if (w && phase === 'running') {
-        const n = w.splits.length;
-        if (addFix(w, { lat: pos.coords.latitude, lon: pos.coords.longitude, t: pos.timestamp || Date.now(), acc }) && w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; }
-      }
+      feed({ lat: pos.coords.latitude, lon: pos.coords.longitude, t: pos.timestamp || Date.now(), acc });
       paintGps();
     }, (e) => { gps = e.code === 1 ? 'denied' : 'weak'; paintGps(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
   }
@@ -79,20 +87,20 @@ export function renderWorkout(kind, go, routeId) {
 
   function onMain() {
     const n = Date.now();
-    if (phase === 'ready') { w = newWorkout(kind, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); }
-    else if (phase === 'running') { pause(w, n); phase = 'paused'; rhythm.setRunning(false); persist(); }
-    else if (phase === 'paused') { resume(w, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); }
+    if (phase === 'ready') { w = newWorkout(kind, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
+    else if (phase === 'running') { drainNative(); pause(w, n); phase = 'paused'; rhythm.setRunning(false); trackOff(); persist(); }
+    else if (phase === 'paused') { native.trackDrain(); resume(w, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
     paint();
   }
   // Finish asks first. The workout pauses while the question is open (no time, distance or clicking is added meanwhile).
   let before = 'paused';
-  function askFinish() { before = phase; if (phase === 'running') { pause(w, Date.now()); rhythm.setRunning(false); } phase = 'confirm'; paint(); }
-  function keepGoing() { if (before === 'running') { resume(w, Date.now()); phase = 'running'; rhythm.setRunning(true); } else phase = 'paused'; paint(); }
+  function askFinish() { before = phase; if (phase === 'running') { drainNative(); pause(w, Date.now()); rhythm.setRunning(false); trackOff(); } phase = 'confirm'; paint(); }
+  function keepGoing() { if (before === 'running') { native.trackDrain(); resume(w, Date.now()); phase = 'running'; rhythm.setRunning(true); trackOn(); } else phase = 'paused'; paint(); }
   let saved = null, routeEl = null;
   async function end(save) {
     const keep = save && w && w.distanceM >= MIN_SAVE_M;
     if (w) { finish(w, Date.now()); if (keep) saved = await saveWorkout(w); }
-    active.clear(); rhythm.destroy(); keepAwake(false);
+    active.clear(); rhythm.destroy(); keepAwake(false); trackOff();
     if (keep) { await effortCheck(); await afterSave(); phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
   }
 
@@ -159,8 +167,8 @@ export function renderWorkout(kind, go, routeId) {
   let ticks = 0;
   paintMap();
   if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
-  tickId = setInterval(() => { paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
-  const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') keepAwake(true); };
+  tickId = setInterval(() => { drainNative(); paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
+  const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };
   return el;

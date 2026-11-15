@@ -34,6 +34,17 @@ class MainActivity : ComponentActivity() {
         val ok = res[Manifest.permission.ACCESS_FINE_LOCATION] == true || res[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         geoPending?.let { (origin, cb) -> cb.invoke(origin, ok, false) }; geoPending = null
     }
+    // One launcher for the other runtime permissions the page asks for (location for background tracking, notifications, step counter).
+    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
+    fun ask(vararg wanted: String) = runOnUiThread {
+        val need = wanted.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
+        if (need.isNotEmpty()) permissions.launch(need.toTypedArray())
+    }
+
+    // The in-app route a tapped notification asked for ("#/reco"); the page picks it up once.
+    @Volatile private var pendingHref = ""
+    fun takeHref(): String { val h = pendingHref; pendingHref = ""; return h }
+    private fun readHref(i: Intent?) { val h = i?.getStringExtra("href") ?: return; if (Regex("^#/[A-Za-z0-9/_-]{0,60}$").matches(h)) pendingHref = h }
     private fun hasLocation() = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
         checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
 
@@ -77,10 +88,12 @@ class MainActivity : ComponentActivity() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { if (web.canGoBack()) web.goBack() else { isEnabled = false; onBackPressedDispatcher.onBackPressed() } }
         })
+        readHref(intent)
         if (savedInstanceState == null) web.loadUrl("https://$HOST/index.html") else web.restoreState(savedInstanceState)
     }
 
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
+    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readHref(intent) }
     override fun onResume() { super.onResume(); web.onResume() }
     override fun onPause() { web.onPause(); super.onPause() }
     override fun onDestroy() { web.destroy(); super.onDestroy() }

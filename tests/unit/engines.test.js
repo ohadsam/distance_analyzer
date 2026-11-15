@@ -115,3 +115,22 @@ test('regression: a low-activity person gets a bar that follows them (not 4.5x),
   const s = sanitizeSmart({ on: true, fromHour: 22, toHour: 6 }); assert.ok(s.toHour > s.fromHour);
   assert.equal(weeklyTarget(history(4, 4, 30), 40, NOW, { week: weekStart(NOW), minutes: 200 }).minutes, 200, 'override honoured'); assert.equal(weeklyTarget(history(4, 4, 30), 40, NOW, { week: weekStart(NOW) - 7 * DAY, minutes: 200 }).overridden, false, 'an old override expires');
 });
+
+import { blendDay } from '../../web/js/steps.js';
+import { reminderEntries, recoEntries, buildSchedule, MAX_ITEMS } from '../../web/js/schedule.js';
+test('steps: the phone sensor gives the total; incidental steps count at 70 % on top of the workouts', () => {
+  const day = { t: 1, steps: 6000, quality: 7000, brisk: 6000, longestM: 5000, activeMin: 40 };
+  assert.deepEqual(blendDay(day, NaN), day, 'no sensor: unchanged'); assert.deepEqual(blendDay(day, 0), day);
+  const b = blendDay(day, 10000); assert.equal(b.steps, 10000); assert.equal(b.quality, 7000 + Math.round(4000 * 0.7)); assert.equal(b.sensor, true);
+  assert.equal(blendDay(day, 3000).steps, 6000, 'never below the tracked workouts');
+  const s = stepSeries([wk(0, 5, 40)], 3, NOW, 170, { '2026-11-12': 9000, '__proto__': 5 }); assert.equal(s[2].sensor, true); assert.ok(s[2].steps >= 9000); assert.equal(s[1].sensor, undefined);
+});
+test('schedule: fixed reminders expand over the next days, sorted and bounded; recommendations 30 minutes before the usual window', () => {
+  const txt = (kind) => ({ title: kind, body: 'b' }), rems = [{ id: 'a', kind: 'walk', time: '18:00', days: [4, 5], on: true }, { id: 'b', kind: 'move', time: '09:00', days: [0, 1, 2, 3, 4, 5, 6], on: false }];
+  const f = reminderEntries(rems, NOW, txt); // NOW = Thursday 12 Nov 2026 10:00
+  assert.deepEqual(f.map((e) => new Date(e.at).getDay()), [4, 5, 4].slice(0, f.length)); assert.equal(f.length, 3, 'Thu 18:00, Fri 18:00, next Thu 18:00 within 8 days'); assert.ok(f.every((e) => e.at > NOW && e.href === '#/workout/walk'));
+  assert.equal(new Set(f.map((e) => e.id)).size, 3);
+  const r = recoEntries([{ type: 'habit', day: 0, start: 17, end: 18, comfort: 80, params: { temp: 21 } }, { type: 'habit', day: 0, start: 7, end: 8, comfort: 80, params: {} }, { type: 'best', day: 0, start: 12, end: 13, comfort: 90, params: {} }, { type: 'habit', day: 1, start: 7, end: 8, comfort: 40, params: {} }], NOW, () => ({ title: 't', body: 'b' }));
+  assert.equal(r.length, 1, 'only habit windows still ahead with good weather'); assert.equal(new Date(r[0].at).getHours(), 16); assert.equal(new Date(r[0].at).getMinutes(), 30);
+  const many = buildSchedule(Array.from({ length: 200 }, (_, i) => ({ id: `x${i}`, at: 1e12 - i, title: 't', body: 'b', href: '' }))); assert.equal(many.length, MAX_ITEMS); assert.ok(many[0].at <= many[1].at);
+});

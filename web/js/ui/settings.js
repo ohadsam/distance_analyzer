@@ -6,6 +6,7 @@ import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js
 import { notifyState, askNotify } from './notify.js';
 import { checkReminders } from '../reminderLoop.js';
 import { onlineOn, getLoc, setLoc, locate, forgetWeather } from '../weatherApi.js';
+import { syncNative } from '../syncNative.js';
 
 const PACKS = [['momentum', 'packMomentum'], ['ocean', 'packOcean'], ['forest', 'packForest'], ['sunset', 'packSunset'], ['violet', 'packViolet'], ['slate', 'packSlate'], ['mono', 'packMono'], ['high-contrast', 'packHigh']];
 const opt = (value, label, cur) => h('option', { value, selected: value === cur }, label);
@@ -25,7 +26,7 @@ const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], DAYS_HE = ['�
 function remindersBlock() {
   const box = h('div', { class: 'rems' });
   const draw = () => {
-    const list = sanitizeReminders(getJson('rems', [])), save = (l) => { setJson('rems', l); draw(); };
+    const list = sanitizeReminders(getJson('rems', [])), save = (l) => { setJson('rems', l); syncNative(); draw(); };
     const lang = document.documentElement.lang, names = lang === 'he' ? DAYS_HE : DAYS_EN;
     setChildren(box, list.length ? list.map((r, i) => h('div', { class: 'rem', 'data-rem': r.id },
       h('div', { class: 'rem-top' }, select(`rk${i}`, r.kind, [['walk', t('remWalk')], ['move', t('remMove')]], (v) => { list[i].kind = v; save(list); }),
@@ -37,14 +38,22 @@ function remindersBlock() {
   draw(); return box;
 }
 
+/** Android only: permissions for the background features. */
+function backgroundBlock() {
+  const redraw = () => setTimeout(() => dispatchEvent(new HashChangeEvent('hashchange')), 1200); // the permission dialog is answered outside the page
+  const row = (on, onKey, askKey, ask, id) => on ? h('p', { class: 'note', id }, t(onKey)) : h('button', { type: 'button', class: 'btn ghost', id, onclick: () => { ask(); redraw(); } }, t(askKey));
+  return h('div', { class: 'bg', id: 'f-s-bg' }, h('h2', null, t('bgTitle')), h('p', { class: 'note' }, t('bgNote')),
+    row(native.notificationsAllowed(), 'bgNotifyOn', 'bgNotifyAsk', () => native.requestNotifications(), 'bg-notify'), row(native.stepsAvailable(), 'bgStepsOn', 'bgStepsAsk', () => native.requestActivity(), 'bg-steps'));
+}
+
 export function renderSettings(focusId) {
   const redraw = () => dispatchEvent(new HashChangeEvent('hashchange'));
   const num = (id, key, def, lo, hi, step = 1) => h('input', { id, type: 'number', inputMode: 'numeric', min: lo, max: hi, step, value: getNum(key, def, lo, hi), onchange: (e) => setPref(key, Math.min(hi, Math.max(lo, Number(e.target.value) || def))) });
-  const smart = sanitizeSmart(getJson('smart', {})), saveSmart = (patch) => { setJson('smart', sanitizeSmart({ ...sanitizeSmart(getJson('smart', {})), ...patch })); checkReminders().catch(() => {}); };
+  const smart = sanitizeSmart(getJson('smart', {})), saveSmart = (patch) => { setJson('smart', sanitizeSmart({ ...sanitizeSmart(getJson('smart', {})), ...patch })); checkReminders().catch(() => {}); syncNative(); };
   const ns = notifyState(), nbtn = h('button', { type: 'button', class: 'btn ghost', id: 'notify-btn', disabled: ns === 'granted' || ns === 'unsupported' || ns === 'denied', onclick: async (e) => { await askNotify(); redraw(); } }, ns === 'granted' ? t('remNotifyOn') : ns === 'denied' ? t('remNotifyOff') : t('remNotify'));
   const el = h('section', { class: 'settings' }, h('h1', null, t('settings')),
     h('h2', null, t('look')),
-    field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); redraw(); }), 's-lang'),
+    field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); syncNative(); redraw(); }), 's-lang'),
     field(t('theme'), select('s-theme', getPref('theme', 'auto'), [['auto', t('themeAuto')], ['light', t('themeLight')], ['dark', t('themeDark')]], (v) => { setPref('theme', v); applyLook(); }), 's-theme'),
     field(t('look'), select('s-pack', getPref('pack', 'momentum'), PACKS.map(([v, k]) => [v, t(k)]), (v) => { setPref('pack', v); applyLook(); }), 's-pack'),
     h('h2', null, t('profile')),
@@ -59,12 +68,13 @@ export function renderSettings(focusId) {
     }), h('p', { class: 'note' }, t('setOnlineHint')), h('p', { class: 'err', id: 'online-msg', role: 'status' }),
     getLoc() ? h('p', { class: 'note', id: 'loc-saved' }, t('setLocSaved', getLoc())) : null,
     getLoc() ? h('button', { type: 'button', class: 'btn ghost', id: 'loc-forget', onclick: () => { forgetWeather(); redraw(); } }, t('setLocClear')) : null,
-    check('s-reco-notify', t('setRecoNotify'), getPref('recoNotify', '0') === '1' && onlineOn(), (on) => { if (on && !onlineOn()) { document.getElementById('s-reco-notify').checked = false; const m = document.getElementById('online-msg'); if (m) m.textContent = t('setLocNeed'); return; } setPref('recoNotify', on ? '1' : '0'); }), h('p', { class: 'note' }, t('setRecoNotifyHint')),
+    check('s-reco-notify', t('setRecoNotify'), getPref('recoNotify', '0') === '1' && onlineOn(), (on) => { if (on && !onlineOn()) { document.getElementById('s-reco-notify').checked = false; const m = document.getElementById('online-msg'); if (m) m.textContent = t('setLocNeed'); return; } setPref('recoNotify', on ? '1' : '0'); syncNative(); }), h('p', { class: 'note' }, t('setRecoNotifyHint')),
     h('h2', { id: 'f-s-rem' }, t('remTitle')), remindersBlock(),
     check('s-smart', t('remSmart'), smart.on, (on) => saveSmart({ on })), h('p', { class: 'note' }, t('remSmartHint')),
     field(t('remFrom'), num('s-from', 'smartFrom', smart.fromHour, 0, 23), 's-from'), field(t('remTo'), num('s-to', 'smartTo', smart.toHour, 1, 24), 's-to'),
     field(t('remAfter'), num('s-after', 'smartAfter', smart.afterMin, 30, 480, 5), 's-after'), field(t('remMax'), num('s-max', 'smartMax', smart.maxPerDay, 1, 8), 's-max'),
     nbtn, h('p', { class: 'note' }, t('remNote')),
+    native.available ? backgroundBlock() : null,
     h('h2', null, t('metroSection')),
     field(t('breath'), select('s-breath', getPref('breath', '3:2'), [['3:2', t('breath32')], ['2:2', t('breath22')], ['2:1', t('breath21')], ['off', t('breathOff')]], (v) => setPref('breath', v)), 's-breath'),
     field(t('volume'), h('input', { id: 's-vol', type: 'range', min: 0, max: 100, step: 5, value: getNum('volume', 60, 0, 100), oninput: (e) => setPref('volume', e.target.value) }), 's-vol'),

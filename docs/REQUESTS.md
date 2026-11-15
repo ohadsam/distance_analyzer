@@ -49,5 +49,6 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 34 | Progress/improvement graphs per route | ✅ 0.5.0 |
 | 35 | Recommend routes by where performance was best relative to time, hour and weather | ✅ 0.5.0 (needs real-track validation) |
 | 36 | Mark a route one-time (trip/holiday) so recommendations ignore it | ✅ 0.5.0 |
+| 37 | Android background service: tracking with the screen off, all-day step sensor, notifications while the app is closed | 🟡 0.6.0 built and tested against a stand-in bridge; real-device and CI Kotlin verification pending |
 | 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |

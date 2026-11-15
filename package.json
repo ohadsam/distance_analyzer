@@ -1,6 +1,6 @@
 {
   "name": "stepup",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "description": "StepUp - PWA + Android shell",

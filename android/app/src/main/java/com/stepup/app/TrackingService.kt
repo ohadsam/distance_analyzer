@@ -1,0 +1,75 @@
+package com.stepup.app
+
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Build
+import android.os.Bundle
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
+import androidx.core.app.NotificationCompat
+
+/**
+ * Foreground service that keeps recording GPS fixes while a workout runs and the screen is off. The page starts and stops it (NativeBridge) and
+ * drains the fixes. It records nothing else, never uploads anything, and stops itself after 12 hours as a safety net.
+ */
+class TrackingService : Service() {
+    private var manager: LocationManager? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val listener = object : LocationListener {
+        override fun onLocationChanged(location: Location) { Tracking.append(applicationContext, location) }
+        @Deprecated("Deprecated in Java") override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+        override fun onProviderEnabled(provider: String) {}
+        override fun onProviderDisabled(provider: String) {}
+    }
+
+    override fun onBind(intent: Intent?): IBinder? = null
+
+    @SuppressLint("MissingPermission")
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val title = intent?.getStringExtra("title")?.take(60) ?: "StepUp"
+        val text = intent?.getStringExtra("text")?.take(120) ?: ""
+        val n = notification(title, text)
+        if (Build.VERSION.SDK_INT >= 29) startForeground(ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION) else startForeground(ID, n)
+        if (!Tracking.running) {
+            Tracking.running = true
+            try {
+                manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                manager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, listener, Looper.getMainLooper())
+            } catch (_: SecurityException) { stopSelf() } catch (_: RuntimeException) { stopSelf() }
+            handler.postDelayed({ stopSelf() }, MAX_MS)
+        }
+        return START_NOT_STICKY
+    }
+
+    override fun onDestroy() {
+        try { manager?.removeUpdates(listener) } catch (_: RuntimeException) { /* already gone */ }
+        handler.removeCallbacksAndMessages(null)
+        Tracking.running = false
+        super.onDestroy()
+    }
+
+    private fun notification(title: String, text: String): Notification {
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(NotificationChannel(CHANNEL, "StepUp", NotificationManager.IMPORTANCE_LOW))
+        val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_IMMUTABLE)
+        return NotificationCompat.Builder(this, CHANNEL).setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle(title).setContentText(text)
+            .setOngoing(true).setOnlyAlertOnce(true).setContentIntent(open).setCategory(NotificationCompat.CATEGORY_SERVICE).build()
+    }
+
+    companion object {
+        const val ID = 4101
+        const val CHANNEL = "tracking"
+        const val MAX_MS = 12L * 60 * 60 * 1000
+    }
+}

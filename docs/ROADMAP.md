@@ -3,6 +3,9 @@
 Ordered so that every phase ships something usable and the later phases build on the earlier ones. Status of each request lives in `REQUESTS.md`.
 Core idea: **clean, simple, self-explanatory**; a **Workout mode** that strips the screen to a few big buttons.
 
+## Status snapshot (0.6.0)
+Phases 1-2: background service built (screen-off tracking, step sensor); Phase 8: notifications when closed built. Still open: Android home-screen widgets (phase 9), training plans (phase 6), map tiles (D2).
+
 ## Status snapshot (0.5.0)
 Phase 7 (routes): saving, recognising, progress, suggestions, following with a ghost are done; the map BACKGROUND (tiles) and planning a route by tapping on a map need D2 (tile provider terms/keys, second network use).
 

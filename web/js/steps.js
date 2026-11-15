@@ -29,12 +29,23 @@ export function daySteps(workouts, heightCm = 170) {
   return { steps, quality, brisk, longestM, activeMin: Math.round(activeMs / 60000) };
 }
 
-/** Per-day series for the last `days` days (oldest first): [{ t, steps, quality, brisk, longestM, activeMin }]. */
-export function stepSeries(rows, days, now, heightCm) {
+/**
+ * Blends the phone's all-day step sensor with the tracked workouts of that day: the sensor gives the total; the quality counts workout steps in
+ * full (weighted) and the rest of the day (incidental walking) at 70 %. Without a sensor value the workout estimate stands alone.
+ */
+export function blendDay(day, sensor) {
+  if (!Number.isFinite(sensor) || sensor <= 0) return day;
+  const total = Math.max(sensor, day.steps), rest = Math.max(0, total - day.steps);
+  return { ...day, steps: total, quality: day.quality + Math.round(rest * 0.7), sensor: true };
+}
+
+/** Per-day series for the last `days` days (oldest first): [{ t, steps, quality, brisk, longestM, activeMin }]. `sensorByDay`: { 'YYYY-MM-DD': steps } from the phone. */
+export function stepSeries(rows, days, now, heightCm, sensorByDay = {}) {
   const out = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(dayStart(now)); d.setDate(d.getDate() - i); const t = d.getTime();
-    out.push({ t, ...daySteps(rows.filter((w) => dayStart(w.startedAt) === t), heightCm) });
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    out.push({ t, ...blendDay(daySteps(rows.filter((w) => dayStart(w.startedAt) === t), heightCm), Object.hasOwn(sensorByDay, key) ? Number(sensorByDay[key]) : NaN) });
   }
   return out;
 }

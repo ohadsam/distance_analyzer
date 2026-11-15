@@ -3,6 +3,7 @@
 import { getJson, setJson, listWorkouts, profile } from './store.js';
 import { sanitizeReminders, sanitizeSmart, dueReminders, smartNudge } from './reminders.js';
 import { pushAlert } from './ui/notify.js';
+import { native } from './native.js';
 import { dayStart } from './stats.js';
 import { stepSeries, recommendedSteps } from './steps.js';
 import { weekStatus } from './effort.js';
@@ -31,7 +32,7 @@ async function smartPart(smart, now) {
   if (!smartNudge(smart, cheap, now)) return; // the hour, the daily cap, the spacing and a running workout are decided before any data is loaded
   const rows = await listWorkouts({ points: false }), prof = profile(), today = rows.filter((w) => dayStart(w.startedAt) === dayStart(now)), n = getJson('nudge', {});
   const day = dayStart(now), state = n.day === day ? n : { day, n: 0, last: 0 };
-  const series = stepSeries(rows, 14, now, prof.heightCm), st = weekStatus(rows, prof.age, now, getJson('barOv', null));
+  const series = stepSeries(rows, 14, now, prof.heightCm, native.stepsDays()), st = weekStatus(rows, prof.age, now, getJson('barOv', null));
   const d = smartNudge(smart, { lastMoveAt: Math.max(0, ...today.map((w) => w.endedAt || w.startedAt)), nudgesToday: state.n, lastNudgeAt: state.last, stepsToday: series[series.length - 1].quality, goalSteps: recommendedSteps(series, prof.age), weekBehind: st.status === 'behind', activeNow: !!active.load() }, now);
   if (!d) return;
   setJson('nudge', { day, n: state.n + 1, last: now });

@@ -9,6 +9,16 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-feature android:name="android.hardware.location.gps" android:required="false"/>
+    <!-- Keep recording a workout with the screen off: a foreground service of type location, started only while the app is in front, with a visible notification. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <!-- Reminders / recommendations while the app is closed, and the tracking notification (Android 13+ asks at runtime). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- All-day steps from the step counter (asked at runtime, only when the person turns it on in Settings). -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
+    <!-- Arm the reminder and step alarms again after a reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false"/>
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
 
@@ -34,5 +44,15 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <service android:name=".TrackingService" android:exported="false" android:foregroundServiceType="location"/>
+        <receiver android:name=".NotifyReceiver" android:exported="false"/>
+        <receiver android:name=".StepReceiver" android:exported="false"/>
+        <receiver android:name=".BootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

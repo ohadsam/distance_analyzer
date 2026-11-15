@@ -13,12 +13,13 @@ let failures = 0;
 const step = async (name, fn) => { if (process.env.ONLY && !name.includes(process.env.ONLY)) return; try { await fn(); console.log('✓', name); } catch (e) { failures++; console.error('✗', name, '\n  ', e.message.split('\n').slice(0, 14).join(' / ')); } };
 
 // Hebrew/RTL is the default; pass {lang:'en'} to start in English. Collects console/page errors.
-async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0 } = {}) {
+async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
   if (lang !== 'he') await ctx.addInitScript((l) => { try { localStorage.setItem('da.lang', l); } catch { /* blocked */ } }, lang);
   const page = await ctx.newPage(); const errors = [];
   if (clock) await page.clock.install(clockAt ? { time: clockAt } : undefined);
-  if (signalGapMs) await page.addInitScript(fakeFootsteps, signalGapMs); // after the fake clock, so its timer is fake too
+  if (signalGapMs) await page.addInitScript(fakeFootsteps, signalGapMs);
+  if (native) await ctx.addInitScript(fakeAndroid, native); // after the fake clock, so its timer is fake too
   page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   return { page, errors, ctx };
 }
@@ -68,6 +69,13 @@ async function seedTracks(page, rows) {
       if (r.weather) await S.updateWorkout(start, { weather: r.weather });
     }
   }, { list: rows, paths: PATHS });
+}
+// Injected before the app loads: a stand-in for the Android bridge (window.StepUpNative) that records what the page asks and serves fixes/steps.
+function fakeAndroid(init) {
+  const n = window.__n = { started: 0, stopped: 0, fixes: JSON.parse(sessionStorage.getItem('__fixes') || '[]') /* the native buffer survives a page reload */, steps: {}, notes: null, href: '', sampled: 0, reqNotif: 0, reqActivity: 0, ...init };
+  window.StepUpNative = { appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
+    trackDrain() { const f = JSON.stringify(n.fixes); n.fixes = []; return f; }, stepsAvailable: () => true, stepsSample() { n.sampled++; }, stepsDays: () => JSON.stringify(n.steps), requestActivity() { n.reqActivity++; },
+    notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
 }
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
@@ -262,6 +270,33 @@ await step('quick action "Measure now" starts at once; live map; following a rou
   await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/route.js'), w = (await S.listWorkouts())[0]; const r = await S.saveRoute(R.makeRoute(w.points, { id: 'rghost', name: 'Ghost loop' })); for (const x of await S.listWorkouts()) await S.updateWorkout(x.startedAt, { routeId: r.id }); });
   await page.goto(base + '#/workout/run/go/r/rghost'); await page.waitForSelector('.workout[data-phase="running"]'); await page.waitForSelector('text=Following: Ghost loop');
   for (let i = 1; i <= 3; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } await page.waitForSelector('.ghost:not([hidden])'); assert.match(await page.textContent('.ghost'), /your best|best pace/); assert.ok(await page.locator('.livemap .route-line').count() >= 1); assert.deepEqual(errors, []);
+});
+
+await step('android background: the service records fixes (no page GPS), pause/finish stop it, a reload recovers what was recorded meanwhile', async () => {
+  const { page, errors } = await newPage({ lang: 'en', geo: false, native: {} }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
+  assert.equal(await page.evaluate(() => __n.started), 1); const t0 = Date.now();
+  const track = (from, count) => Array.from({ length: count }, (_, i) => [32 + (from + i) * 0.00007, 34.8, t0 + (from + i) * 1100, 5]);
+  await page.evaluate((f) => { __n.fixes.push(...f); }, track(0, 6)); await page.waitForFunction(() => Number(document.querySelector('.v-dist').textContent) >= 0.03, null, { timeout: 5000 });
+  await page.click('.big-btn'); assert.ok(await page.evaluate(() => __n.stopped) >= 1, 'pause stops the service'); await page.click('.big-btn'); assert.equal(await page.evaluate(() => __n.started), 2, 'resume starts it again');
+  await page.evaluate((f) => { __n.fixes.push(...f); }, track(6, 6)); await page.waitForTimeout(1300); await page.click('.controls .btn.ghost'); await page.click('.confirm .btn >> nth=0'); await page.waitForSelector('.summary');
+  assert.ok(await page.evaluate(() => __n.stopped) >= 2); assert.deepEqual(errors, []);
+  // killed while recording: fixes recorded by the service meanwhile are applied when the workout is reopened
+  const p2 = await newPage({ lang: 'en', geo: false, native: {} }); await p2.page.goto(base + '#/workout/walk'); await p2.page.waitForSelector('.big-btn'); await p2.page.click('.big-btn'); await p2.page.waitForTimeout(400);
+  const t1 = Date.now(); await p2.page.evaluate(({ f }) => { sessionStorage.setItem('__fixes', JSON.stringify(f)); __n.fixes = []; }, { f: Array.from({ length: 5 }, (_, i) => [32 + i * 0.00007, 34.8, t1 + i * 1100, 5]) });
+  await p2.page.evaluate(() => dispatchEvent(new Event('pagehide'))); /* what the app does when it is sent away: save the workout */ await p2.page.reload(); await p2.page.waitForSelector('.workout[data-phase="paused"]');
+  assert.ok(Number(await p2.page.textContent('.v-dist')) >= 0.02, 'the recorded fixes were applied');
+});
+await step('android: settings shows the background permissions only in the app; reminders are handed over for when the app is closed; a tapped notification opens its screen', async () => {
+  const plain = await newPage({ lang: 'en' }); await plain.page.goto(base + '#/settings'); await plain.page.waitForSelector('#s-lang'); assert.equal(await plain.page.locator('#f-s-bg').count(), 0, 'not in a browser');
+  const { page } = await newPage({ lang: 'en', native: { href: '#/reco' } }); await page.goto(base); await page.waitForFunction(() => location.hash === '#/reco'); assert.equal(await page.textContent('h1'), 'Recommendations');
+  await page.goto(base + '#/settings'); await page.waitForSelector('#f-s-bg'); await page.click('#bg-notify'); assert.equal(await page.evaluate(() => __n.reqNotif), 1);
+  await page.click('#rem-add'); await page.waitForTimeout(2200); const notes = await page.evaluate(() => __n.notes);
+  assert.ok(Array.isArray(notes) && notes.length >= 7, `reminders expanded over the week (${notes?.length})`); assert.equal(notes[0].title, 'Time for a walk'); assert.equal(notes[0].href, '#/workout/walk'); assert.ok(notes.every((x, i) => i === 0 || notes[i - 1].at <= x.at));
+});
+await step('android steps: the phone step counter feeds the dashboard and the recommendation', async () => {
+  const d = new Date(), key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const { page } = await newPage({ lang: 'en', native: { steps: { [key]: 9000 } } }); await page.goto(base); await page.waitForSelector('[data-widget=steps]'); assert.match(await page.textContent('[data-widget=steps]'), /6,?300/, 'quality steps: 9000 from the phone, counted at 70 % when not in a tracked workout');
+  assert.ok(await page.evaluate(() => __n.sampled) >= 1, 'the sensor is sampled when the app opens'); await page.goto(base + '#/d/steps'); await page.waitForSelector('text=Counted by your phone all day'); assert.match(await page.textContent('.detail'), /9,?000/);
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

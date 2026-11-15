@@ -10,6 +10,8 @@ import { renderReco } from './ui/reco.js';
 import { renderRoutes, renderRoute } from './ui/routes.js';
 import { alertStore, unreadCount } from './alerts.js';
 import { startReminderLoop } from './reminderLoop.js';
+import { native } from './native.js';
+import { syncNative } from './syncNative.js';
 import { renderSettings, applyLook } from './ui/settings.js';
 import { renderHistory, renderDetail } from './ui/history.js';
 import { renderWorkout } from './ui/workout.js';
@@ -39,5 +41,12 @@ applyLook();
 addEventListener('hashchange', route);
 addEventListener('stepup-alerts', () => { const d = document.querySelector('#tab-alerts .dot'); if (d) d.hidden = !unreadCount(alertStore.load()); });
 startReminderLoop();
+// Android: a tapped notification asks for a screen; the step sensor is sampled when the app is in front; the notification schedule is refreshed.
+function onFront() {
+  const href = native.takePendingHref(); if (href && location.hash !== href) location.hash = href;
+  if (native.stepsAvailable()) native.stepsSample();
+  syncNative();
+}
+if (native.available) { onFront(); document.addEventListener('visibilitychange', () => { if (document.hidden) syncNative(); else onFront(); }); setInterval(() => { if (!document.hidden && native.stepsAvailable()) native.stepsSample(); }, 60000); }
 route();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });

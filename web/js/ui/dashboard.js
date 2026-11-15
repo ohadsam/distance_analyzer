@@ -10,6 +10,7 @@ import { filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather
 import { stepSeries, recommendedSteps } from '../steps.js';
 import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
 import { barChart, lineChart } from '../charts.js';
+import { native } from '../native.js';
 import { workoutRow } from './home.js';
 import { recoSummary, mountReco } from './reco.js';
 import { quickActions, routesBody, suggest } from './routes.js';
@@ -34,7 +35,7 @@ const saveFilter = (f) => setJson('dashF', f);
 export async function loadContext(now = Date.now()) {
   const all = await listWorkouts({ points: false }), prof = profile(), f = loadFilter(), ov = getJson('barOv', null);
   const rows = filterWorkouts(all, { since: f.days ? now - f.days * DAY : 0, kind: f.kind, weather: f.weather, text: f.text }, workoutText);
-  return { all, rows, f, now, prof, ov, plan: weeklyTarget(all, prof.age, now, ov), status: weekStatus(all, prof.age, now, ov), steps: stepSeries(all, 14, now, prof.heightCm), alerts: alertStore.load(), routes: await listRoutes() };
+  return { all, rows, f, now, prof, ov, plan: weeklyTarget(all, prof.age, now, ov), status: weekStatus(all, prof.age, now, ov), steps: stepSeries(all, 14, now, prof.heightCm, native.stepsDays()), alerts: alertStore.load(), routes: await listRoutes() };
 }
 
 // ---------- widgets: summary (on the dashboard) and detail (drill-down) ----------
@@ -55,7 +56,7 @@ export const W = {
   steps: {
     summary: (c) => { const today = c.steps[c.steps.length - 1], rec = recommendedSteps(c.steps, c.prof.age); return h('div', null, stat(today.quality.toLocaleString(getLang() === 'he' ? 'he-IL' : 'en-GB'), t('stepsGoal', { n: rec.toLocaleString(getLang() === 'he' ? 'he-IL' : 'en-GB') })), meter(today.quality / rec, t('stepsQuality'))); },
     detail: (c) => { const today = c.steps[c.steps.length - 1], rec = recommendedSteps(c.steps, c.prof.age); return [barChart(c.steps.map((d, i) => ({ v: d.quality, label: dayLabel(d.t), cls: i === c.steps.length - 1 ? 'now' : '' })), { target: rec }),
-      h('div', { class: 'rows' }, row(t('stepsQuality'), String(today.quality)), row(t('stepsRaw'), String(today.steps)), row(t('stepsBrisk'), String(today.brisk)), row(t('stepsGoal', { n: rec }), ''), row(t('stepsLongest', { km: (today.longestM / 1000).toFixed(1) }), '')), h('p', { class: 'note' }, t('stepsHow'))]; },
+      h('div', { class: 'rows' }, row(t('stepsQuality'), String(today.quality)), row(t('stepsRaw'), String(today.steps)), today.sensor ? row(t('stepsPhone'), '') : null, row(t('stepsBrisk'), String(today.brisk)), row(t('stepsGoal', { n: rec }), ''), row(t('stepsLongest', { km: (today.longestM / 1000).toFixed(1) }), '')), h('p', { class: 'note' }, t('stepsHow'))]; },
   },
   distance: {
     summary: (c) => { const tt = totals(c.rows); return h('div', null, stat(fmtKm(tt.distanceM), t('count', { n: tt.n })), barChart(bucketize(c.rows, 'day', 7, c.now).map((b) => ({ v: b.distanceM / 1000 })), { h: 60 })); },

@@ -10,6 +10,7 @@ import { weekStatus } from '../effort.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
 import { streak, dayStart, DAY } from '../stats.js';
 import { barChart } from '../charts.js';
+import { native } from '../native.js';
 import { listRoutes } from '../store.js';
 import { suggest, suggestionCard } from './routes.js';
 
@@ -29,7 +30,7 @@ function build(rows, prof, now, series, status) {
 }
 async function context(now = Date.now()) {
   const rows = await listWorkouts({ points: false }), prof = profile();
-  return build(rows, prof, now, stepSeries(rows, 14, now, prof.heightCm), weekStatus(rows, prof.age, now, getJson('barOv', null)));
+  return build(rows, prof, now, stepSeries(rows, 14, now, prof.heightCm, native.stepsDays()), weekStatus(rows, prof.age, now, getJson('barOv', null)));
 }
 /** Sync summary for the dashboard widget: only the saved forecast, never the network. */
 export function recoSummary(dash) {
