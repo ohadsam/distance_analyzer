@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0
+- **Android home-screen widgets** (`Widgets.kt`, `WidgetMath.kt` pure + JVM-tested): **Steps today** (2x2: live count from the step sensor, progress to the recommended goal; refreshes with every new reading and every 30 minutes), **Weekly effort** (4x1: minutes done of the weekly bar, status), **Measure now** (2x1: one tap starts a measurement with your last activity). Taps open the right screen through the same route mechanism as notifications. The page hands over goals and already translated texts (`widgetData.js` -> `native.setWidgetData`, refreshed with the notification schedule and after every workout); the bridge validates and bounds everything. Light/dark colours; labels and descriptions in Hebrew and English.
+- **New UI icons and art** from the ChatGPT "premium" round: filled, weighted icons (nested whitelisted elements, each icon carries its own fills/strokes; the generator now parses `<g>` groups and rejects any element or attribute outside a whitelist), gradient artwork stored for later screens. The brand/logo of that round was rejected by the owner: the earlier mark stays until the round-4 logo arrives (`docs/prompts/ROUND4_LOGO_PROMPT.txt`).
+- CI note: 0.6.0's first Android build failed on a Kotlin syntax error (`val a = x, b = y`); fixed.
+- Verified: unit tests (widget snapshot), Kotlin JVM tests written (`WidgetMathTest`), e2e (snapshot handed to the bridge, icons render, axe at zero). **Not verified here:** widgets on a real launcher (RemoteViews layouts, sizes, update cadence, theming), Kotlin build in CI.
+
 ## 0.6.0
 - **Android background service** (the owner's "next step"): 
   - **Workouts keep recording with the screen off.** `TrackingService` (foreground service of type location, visible notification, started only while the app is in front, stops itself after 12 h) writes GPS fixes to a private file (`Tracking`/`FixBuffer`); the page drains them every second (`native.trackDrain`) and feeds them through the same `addFix` as its own GPS (duplicates are rejected by time). Pause and finish stop the service. If the app is killed mid-workout, the fixes recorded meanwhile are applied when the workout is reopened.

@@ -75,7 +75,7 @@ function fakeAndroid(init) {
   const n = window.__n = { started: 0, stopped: 0, fixes: JSON.parse(sessionStorage.getItem('__fixes') || '[]') /* the native buffer survives a page reload */, steps: {}, notes: null, href: '', sampled: 0, reqNotif: 0, reqActivity: 0, ...init };
   window.StepUpNative = { appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
     trackDrain() { const f = JSON.stringify(n.fixes); n.fixes = []; return f; }, stepsAvailable: () => true, stepsSample() { n.sampled++; }, stepsDays: () => JSON.stringify(n.steps), requestActivity() { n.reqActivity++; },
-    notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
+    setWidgetData(j) { n.widget = JSON.parse(j); }, notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
 }
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
 async function axeViolations(page) {
@@ -290,6 +290,7 @@ await step('android: settings shows the background permissions only in the app; 
   const plain = await newPage({ lang: 'en' }); await plain.page.goto(base + '#/settings'); await plain.page.waitForSelector('#s-lang'); assert.equal(await plain.page.locator('#f-s-bg').count(), 0, 'not in a browser');
   const { page } = await newPage({ lang: 'en', native: { href: '#/reco' } }); await page.goto(base); await page.waitForFunction(() => location.hash === '#/reco'); assert.equal(await page.textContent('h1'), 'Recommendations');
   await page.goto(base + '#/settings'); await page.waitForSelector('#f-s-bg'); await page.click('#bg-notify'); assert.equal(await page.evaluate(() => __n.reqNotif), 1);
+  await page.waitForTimeout(1800); const wd = await page.evaluate(() => __n.widget); assert.ok(wd && wd.stepsGoal > 0 && wd.effortPlan > 0 && wd.stepsTitle === 'Steps' && wd.quickTitle === 'Measure now' && ['walk', 'run'].includes(wd.kind), JSON.stringify(wd));
   await page.click('#rem-add'); await page.waitForTimeout(2200); const notes = await page.evaluate(() => __n.notes);
   assert.ok(Array.isArray(notes) && notes.length >= 7, `reminders expanded over the week (${notes?.length})`); assert.equal(notes[0].title, 'Time for a walk'); assert.equal(notes[0].href, '#/workout/walk'); assert.ok(notes.every((x, i) => i === 0 || notes[i - 1].at <= x.at));
 });

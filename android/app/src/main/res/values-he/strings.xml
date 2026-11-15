@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">StepUp</string>
+    <string name="widget_steps_label">צעדים היום</string>
+    <string name="widget_steps_desc">הצעדים שלך היום והיעד</string>
+    <string name="widget_effort_label">מאמץ שבועי</string>
+    <string name="widget_effort_desc">סרגל המאמצים השבועי שלך</string>
+    <string name="widget_quick_label">מדידה עכשיו</string>
+    <string name="widget_quick_desc">התחלת מדידת הליכה או ריצה בלחיצה אחת</string>
+    <string name="widget_open_app">פתיחת StepUp</string>
 </resources>

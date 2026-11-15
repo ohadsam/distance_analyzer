@@ -23,6 +23,9 @@ Steps are estimated from your tracked walks and runs. Brisk, unbroken stretches 
 ## Reminders
 Settings → Reminders: add reminders for a walk or a movement break at set times and days. Turn on **Smart nudges** to get a gentle prompt when there was no movement for a long time (only in your waking hours, a few times a day at most, never during a workout). Allow notifications to also see them outside the app. For now reminders arrive while StepUp is open.
 
+## Android: home-screen widgets
+Long-press the home screen and add a StepUp widget: **Steps today** (your count and progress to the goal), **Weekly effort** (minutes done of this week's bar) or **Measure now** (starts a measurement with your last activity). Tapping a widget opens the matching screen. Open the app once so the widgets learn your goals.
+
 ## Android: background features
 In the Android app (Settings → Android background): allow **notifications** so reminders and recommended times reach you when StepUp is closed, and allow the **step counter** to count your steps all day. During a workout StepUp shows a small notification and keeps measuring with the screen off; if the app is closed in the middle of a workout, reopening it adds what was measured meanwhile. Notifications may arrive a few minutes late when the phone is resting. The "no movement for a while" nudge works only while the app is open.
 

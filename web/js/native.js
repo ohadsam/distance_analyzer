@@ -20,6 +20,8 @@ export const native = {
   /** Notifications that fire while the app is closed: replaces the whole schedule [{id, at(ms), title, body, href}]. */
   notificationsAllowed: () => call('notificationsAllowed') === true,
   requestNotifications: () => call('requestNotifications'),
+  /** Goals and texts for the home-screen widgets (the steps themselves come from the phone's sensor). */
+  setWidgetData: (o) => call('setWidgetData', JSON.stringify(o)),
   setNotifications: (list) => call('setNotifications', JSON.stringify(list)),
   /** The "#/route" a tapped notification asked for (once), or ''. */
   takePendingHref: () => { const h = call('takePendingHref'); return typeof h === 'string' && /^#\/[\w/-]{0,60}$/.test(h) ? h : ''; },

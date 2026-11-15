@@ -46,6 +46,18 @@
         </activity>
 
         <service android:name=".TrackingService" android:exported="false" android:foregroundServiceType="location"/>
+        <receiver android:name=".StepsWidget" android:exported="false" android:label="@string/widget_steps_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_steps_info"/>
+        </receiver>
+        <receiver android:name=".EffortWidget" android:exported="false" android:label="@string/widget_effort_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_effort_info"/>
+        </receiver>
+        <receiver android:name=".QuickWidget" android:exported="false" android:label="@string/widget_quick_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quick_info"/>
+        </receiver>
         <receiver android:name=".NotifyReceiver" android:exported="false"/>
         <receiver android:name=".StepReceiver" android:exported="false"/>
         <receiver android:name=".BootReceiver" android:exported="false">

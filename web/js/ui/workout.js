@@ -18,6 +18,7 @@ import { weatherAt } from '../forecast.js';
 import { paceSec } from '../stats.js';
 import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
+import { syncNative } from '../syncNative.js';
 
 const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not worth a history entry
 
@@ -104,7 +105,7 @@ export function renderWorkout(kind, go, routeId) {
     const keep = save && w && w.distanceM >= MIN_SAVE_M;
     if (w) { finish(w, Date.now()); if (keep) saved = await saveWorkout(w); }
     active.clear(); rhythm.destroy(); keepAwake(false); trackOff();
-    if (keep) { await effortCheck(); await afterSave(); phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
+    if (keep) { await effortCheck(); await afterSave(); syncNative(); phase = 'done'; paint(); } else { if (save) sr.textContent = t('tooShort'); w = null; location.hash = '#/'; }
   }
 
   // After saving: the weather during the workout (from the saved forecast, when the person uses the online forecast) and the route box (recognise / save / follow).

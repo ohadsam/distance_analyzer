@@ -42,7 +42,11 @@ object StepStore {
         val keys = days.keys().asSequence().toList().sorted()
         for (k in keys.dropLast(KEEP_DAYS)) days.remove(k)
         p.edit().putLong("lastRaw", s.lastRaw).putString("day", s.day).putLong("steps", s.steps).putLong("boot", s.boot).putString("days", days.toString()).apply()
+        Widgets.updateAll(ctx) // the steps widget follows every new reading
     }
+
+    /** Steps counted today so far (0 when there is no reading yet). */
+    fun today(ctx: Context): Long { val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE); return if (p.getString("day", "") == today()) p.getLong("steps", 0) else 0 }
 
     fun days(ctx: Context): String = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("days", "{}") ?: "{}"
 

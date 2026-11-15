@@ -134,3 +134,10 @@ test('schedule: fixed reminders expand over the next days, sorted and bounded; r
   assert.equal(r.length, 1, 'only habit windows still ahead with good weather'); assert.equal(new Date(r[0].at).getHours(), 16); assert.equal(new Date(r[0].at).getMinutes(), 30);
   const many = buildSchedule(Array.from({ length: 200 }, (_, i) => ({ id: `x${i}`, at: 1e12 - i, title: 't', body: 'b', href: '' }))); assert.equal(many.length, MAX_ITEMS); assert.ok(many[0].at <= many[1].at);
 });
+
+import { widgetSnapshot } from '../../web/js/widgetData.js';
+test('widget snapshot: rounded goals, translated texts, kind limited to walk/run', () => {
+  const t = (k) => `T:${k}`, s = widgetSnapshot({ goalSteps: 7999.6, status: { done: 119.6, plan: { minutes: 180.2 }, status: 'on' }, kind: '../x' }, t);
+  assert.deepEqual(s, { stepsGoal: 8000, effortDone: 120, effortPlan: 180, kind: 'walk', stepsTitle: 'T:wSteps', effortTitle: 'T:wEffort', effortSub: 'T:effOn', quickTitle: 'T:qaMeasure', quickHint: 'T:walk' });
+  assert.equal(widgetSnapshot({ goalSteps: -5, status: { done: 0, plan: { minutes: 30 }, status: 'behind' }, kind: 'run' }, t).stepsGoal, 0);
+});
