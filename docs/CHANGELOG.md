@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1
+- **Live indications during a workout** (`indicators.js`, pure): a calm banner (also read aloud to screen readers, optional vibration) when you are about to pass your last distance or your distance record, when you pass them, when a kilometre is faster than the same kilometre last time (>= 3 s) or your fastest yet. Each cue fires once per workout, one at a time. Without a followed route, the ghost compares you with your **last workout of the same kind** ("ahead of last time by 12 m"). Settings: live indications on/off, vibrate on/off.
+- Verified: unit tests for the indication logic, e2e and axe still green. Not verified: how the cues feel on a real run.
+
 ## 0.8.0
 - **Training plans** (`#/plan`, dashboard widget with drill-down, search): build a plan from **goal** (stay healthy, 5 km, 10 km, gentle weight loss), **level** (suggested from your history), **main activity** (walk/run), **sessions per week** (2-6), **length** (4-12 weeks) and **types of workouts** (easy, long, intervals, tempo, movement exercises). `plan.js` (pure) builds it: the weekly effort starts from your own history (or a gentle start), grows by at most about 10 % a week (8 % for under 18, 6 % for 65+), has a lighter week every 4th and a taper before the end, never above the guideline ceiling; the long session ends the week and hard sessions are never on consecutive days; beginners get run/walk intervals that progress; 5 km / 10 km goals grow the long session toward 35 / 60 minutes; the days follow your own usual weekdays when there is enough history; seniors always get movement work (chair, heel raises, balance), others squats/lunges/bridge/plank/stretch.
 - **Week view**: previous/next week, progress, this week's effort, the next session, per-session **Start** (starts a measurement at once), **Mark done**, **Skip**; the plan starts on Sunday.

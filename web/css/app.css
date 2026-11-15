@@ -114,6 +114,7 @@ a.wcard:hover { border-color: var(--primary); } .wcard h2 { margin: 0; font-size
 .mapbox { display: grid; gap: 4px; } .livemap { inline-size: 100%; max-block-size: 150px; background: var(--surface); border: 1px solid var(--outline); border-radius: var(--radius); }
 .livemap .route-line { fill: none; stroke: var(--muted); stroke-width: 3; stroke-dasharray: 6 5; } .livemap .track-line { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
 .livemap .track-start { fill: var(--walk); } .livemap .me { fill: var(--run); stroke: var(--surface); stroke-width: 3; }
+.cue { margin: 0; padding: 10px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--primary) 14%, var(--surface)); border: 1px solid var(--primary); font-weight: 700; }
 .ghost { margin: 0; font-weight: 700; } .ghost[data-side="ahead"] { color: var(--success); } .ghost[data-side="behind"] { color: var(--warning); }
 body[data-view="workout"] .livemap { max-block-size: 110px; }
 

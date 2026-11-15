@@ -17,6 +17,7 @@ import { makeGhost } from '../route.js';
 import { onlineOn, cachedForecast } from '../weatherApi.js';
 import { weatherAt } from '../forecast.js';
 import { paceSec } from '../stats.js';
+import { references, indicators } from '../indicators.js';
 import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
 import { syncNative } from '../syncNative.js';
@@ -54,12 +55,27 @@ export function renderWorkout(kind, go, routeId) {
     const bestLight = attemptsOf(route, await listWorkouts({ points: false }), kind).sort((a, b) => paceSec(a) - paceSec(b))[0], best = bestLight ? await getWorkout(bestLight.startedAt) : null; // only the best attempt's points are read
     follow = { route, best: best && best.points.length > 5 ? best : null }; ghost = follow.best ? makeGhost(follow.best.points, follow.best.distanceM) : null; followEl.hidden = false; followEl.textContent = t('followingRoute', { name: route.name }); paintMap();
   })();
+  // Live indications and the "last time" ghost: compared with the person's own earlier workouts of this kind (cues can be switched off in Settings).
+  const cuesOn = () => getPref('cues', '1') !== '0', cueEl = h('p', { class: 'cue', role: 'status', hidden: true }); mapBox.prepend(cueEl);
+  let refs = null, fired = new Set(), ghostIsLast = false, cueTimer = 0;
+  (async () => {
+    refs = references(await listWorkouts({ points: false }), kind);
+    if (!routeId && refs.last && cuesOn()) { const full = await getWorkout(refs.last.startedAt); if (full && full.points.length > 5) { ghost = makeGhost(full.points, full.distanceM); ghostIsLast = true; } }
+  })();
+  function showCue(text) {
+    cueEl.hidden = false; cueEl.textContent = text; sr.textContent = text; clearTimeout(cueTimer); cueTimer = setTimeout(() => { cueEl.hidden = true; }, 9000);
+    if (getPref('cueVibrate', '1') !== '0') try { navigator.vibrate?.(60); } catch { /* not supported */ }
+  }
+  function checkIndicators() {
+    if (!refs || !cuesOn() || !w) return;
+    for (const e of indicators({ distM: w.distanceM, splits: w.splits }, refs, fired)) { showCue(t(e.key, e.params)); break; } // one message at a time; the rest stay queued as "not yet fired"... they fire on the next fix
+  }
   let mapAt = 0;
   function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : []); mapAt = Date.now(); }
   function paintGhost() {
-    if (!ghost || !w || phase !== 'running') { ghostEl.hidden = true; return; }
+    if (!ghost || !w || phase !== 'running' || (ghostIsLast && !cuesOn())) { ghostEl.hidden = true; return; }
     const d = Math.round(w.distanceM - ghost(elapsedMs(w, Date.now()))), m = Math.abs(d), side = m < 10 ? 'on' : d > 0 ? 'ahead' : 'behind';
-    ghostEl.hidden = false; ghostEl.textContent = m < 10 ? t('ghostOn') : t(d > 0 ? 'ghostAhead' : 'ghostBehind', { m }); ghostEl.dataset.side = side;
+    const sfx = ghostIsLast ? 'Last' : ''; ghostEl.hidden = false; ghostEl.textContent = m < 10 ? t(`ghostOn${sfx}`) : t(`${d > 0 ? 'ghostAhead' : 'ghostBehind'}${sfx}`, { m }); ghostEl.dataset.side = side;
     if (side !== ghostSide) { ghostSide = side; sr.textContent = ghostEl.textContent; } // announced when the side changes, not every second
   }
 
@@ -70,7 +86,7 @@ export function renderWorkout(kind, go, routeId) {
   function feed(fix, src = 'native') {
     if (!w || phase !== 'running' || (src === 'page' && nativeOn)) return; // one source at a time: while the background service is on, its fixes are the only ones
     const n = w.splits.length;
-    if (addFix(w, fix) && w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; }
+    if (addFix(w, fix)) { if (w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; } checkIndicators(); }
   }
   let nativeOn = false, trackTries = 0, trackNext = 0;
   const trackOn = () => { // false while the location permission is missing: asked again every 8 s, at most 5 times (the page's own GPS carries the workout meanwhile)

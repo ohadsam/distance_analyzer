@@ -55,3 +55,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 40 | Training plans by age, level, sessions per week and a mix of workout types, with completion of missed sessions | ✅ 0.8.0 (no coach review yet) |
 | 19 | Hebrew (RTL) is the default language; English selectable in Settings | ✅ already so (0.1.0), kept |
 | 18 | Phase 1 (core tracking) | 🟡 0.2.0: foreground only; foreground location service, auto-pause, voice/vibration cues and backup/restore still to do |
+| 41 | Live in-workout indications: about to pass last distance / record, faster than last time | ✅ 0.8.1 (feel on a real run unverified) |

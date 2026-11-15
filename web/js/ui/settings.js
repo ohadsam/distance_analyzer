@@ -81,6 +81,8 @@ export function renderSettings(focusId) {
     field(t('remAfter'), num('s-after', 'smartAfter', smart.afterMin, 30, 480, 5), 's-after'), field(t('remMax'), num('s-max', 'smartMax', smart.maxPerDay, 1, 8), 's-max'),
     nbtn, h('p', { class: 'note' }, t('remNote')),
     native.available ? backgroundBlock() : null,
+    h('h2', null, t('setCues')), check('s-cues', t('setCues'), getPref('cues', '1') !== '0', (on) => setPref('cues', on ? '1' : '0')), h('p', { class: 'note' }, t('setCuesHint')),
+    check('s-cue-vibrate', t('setCueVibrate'), getPref('cueVibrate', '1') !== '0', (on) => setPref('cueVibrate', on ? '1' : '0')),
     h('h2', null, t('metroSection')),
     field(t('breath'), select('s-breath', getPref('breath', '3:2'), [['3:2', t('breath32')], ['2:2', t('breath22')], ['2:1', t('breath21')], ['off', t('breathOff')]], (v) => setPref('breath', v)), 's-breath'),
     field(t('volume'), h('input', { id: 's-vol', type: 'range', min: 0, max: 100, step: 5, value: getNum('volume', 60, 0, 100), oninput: (e) => setPref('volume', e.target.value) }), 's-vol'),
