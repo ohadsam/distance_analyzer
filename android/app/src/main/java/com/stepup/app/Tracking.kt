@@ -7,6 +7,8 @@ import java.io.File
 /** Where the background service writes the GPS fixes and the page picks them up (drain = read everything and clear). */
 object Tracking {
     @Volatile var running = false
+    /** True from the moment the page asked for tracking until it asked to stop (the service may not be up yet). */
+    @Volatile var requested = false
     private const val FILE = "fixes.txt"
     private const val MAX_BYTES = 2_000_000L
     private fun file(ctx: Context) = File(ctx.filesDir, FILE)

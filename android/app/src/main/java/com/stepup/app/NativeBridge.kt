@@ -27,15 +27,16 @@ class NativeBridge(private val activity: MainActivity) {
         val granted = ctx.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == android.content.pm.PackageManager.PERMISSION_GRANTED
         if (!granted) { activity.ask(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION, *notificationPermission()); return false }
         if (!BridgeLimits.within(title, 60) || !BridgeLimits.within(text, 120)) return false
-        if (!Tracking.running) ContextCompat.startForegroundService(ctx, Intent(ctx, TrackingService::class.java).putExtra("title", title).putExtra("text", text))
+        if (!Tracking.running && !Tracking.requested) { Tracking.clear(ctx); Tracking.requested = true; ContextCompat.startForegroundService(ctx, Intent(ctx, TrackingService::class.java).putExtra("title", title).putExtra("text", text)) }
         return true
     }
-    @JavascriptInterface fun trackStop() { ctx.stopService(Intent(ctx, TrackingService::class.java)); Tracking.clear(ctx) }
+    /** Stops through the service itself (it answers its start request first), so a quick pause right after the start cannot crash it. The buffer is kept: the page drains it. */
+    @JavascriptInterface fun trackStop() { if (!Tracking.requested) return; Tracking.requested = false; ContextCompat.startForegroundService(ctx, Intent(ctx, TrackingService::class.java).setAction(TrackingService.ACTION_STOP)) }
     @JavascriptInterface fun trackDrain(): String = Tracking.drain(ctx)
 
     // ---- all-day steps from the step counter ----
     @JavascriptInterface fun stepsAvailable(): Boolean = StepStore.available(ctx)
-    @JavascriptInterface fun stepsSample() { activity.runOnUiThread { StepStore.sample(ctx) } }
+    @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.sample(ctx) } } }
     @JavascriptInterface fun stepsDays(): String = StepStore.days(ctx)
     @JavascriptInterface fun requestActivity() { if (Build.VERSION.SDK_INT >= 29) activity.ask(Manifest.permission.ACTIVITY_RECOGNITION); StepStore.arm(ctx) }
 

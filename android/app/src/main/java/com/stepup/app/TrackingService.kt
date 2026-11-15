@@ -15,6 +15,7 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
@@ -26,6 +27,7 @@ import androidx.core.app.NotificationCompat
 class TrackingService : Service() {
     private var manager: LocationManager? = null
     private val handler = Handler(Looper.getMainLooper())
+    private var thread: HandlerThread? = null // location callbacks and the file writes stay off the main thread
     private val listener = object : LocationListener {
         override fun onLocationChanged(location: Location) { Tracking.append(applicationContext, location) }
         @Deprecated("Deprecated in Java") override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
@@ -40,12 +42,16 @@ class TrackingService : Service() {
         val title = intent?.getStringExtra("title")?.take(60) ?: "StepUp"
         val text = intent?.getStringExtra("text")?.take(120) ?: ""
         val n = notification(title, text)
+        // always become a foreground service first (a start request must be answered), then act on it
         if (Build.VERSION.SDK_INT >= 29) startForeground(ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION) else startForeground(ID, n)
+        if (intent?.action == ACTION_STOP) { stopForeground(STOP_FOREGROUND_REMOVE); stopSelf(); return START_NOT_STICKY }
         if (!Tracking.running) {
             Tracking.running = true
             try {
                 manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                manager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, listener, Looper.getMainLooper())
+                val th = HandlerThread("stepup-track").also { it.start() }
+                thread = th
+                manager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, listener, th.looper)
             } catch (_: SecurityException) { stopSelf() } catch (_: RuntimeException) { stopSelf() }
             handler.postDelayed({ stopSelf() }, MAX_MS)
         }
@@ -55,6 +61,7 @@ class TrackingService : Service() {
     override fun onDestroy() {
         try { manager?.removeUpdates(listener) } catch (_: RuntimeException) { /* already gone */ }
         handler.removeCallbacksAndMessages(null)
+        thread?.quitSafely(); thread = null
         Tracking.running = false
         super.onDestroy()
     }
@@ -68,6 +75,7 @@ class TrackingService : Service() {
     }
 
     companion object {
+        const val ACTION_STOP = "com.stepup.app.TRACK_STOP"
         const val ID = 4101
         const val CHANNEL = "tracking"
         const val MAX_MS = 12L * 60 * 60 * 1000

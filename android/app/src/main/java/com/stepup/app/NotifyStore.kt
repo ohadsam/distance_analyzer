@@ -69,7 +69,7 @@ class NotifyReceiver : BroadcastReceiver() {
 /** Alarms do not survive a reboot or an app update: arm them again. */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        NotifyStore.arm(context)
+        NotifyStore.fireDue(context) // shows what came due while the phone was off, then arms the next one
         StepStore.arm(context)
     }
 }

@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
-    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readHref(intent) }
+    override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readHref(intent); if (pendingHref.isNotEmpty()) deliver(JSONObject().put("type", "href")) } // the app is already in front: tell the page now
     override fun onResume() { super.onResume(); web.onResume() }
     override fun onPause() { web.onPause(); super.onPause() }
     override fun onDestroy() { web.destroy(); super.onDestroy() }

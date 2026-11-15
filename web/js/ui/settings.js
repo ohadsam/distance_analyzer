@@ -40,7 +40,10 @@ function remindersBlock() {
 
 /** Android only: permissions for the background features. */
 function backgroundBlock() {
-  const redraw = () => setTimeout(() => dispatchEvent(new HashChangeEvent('hashchange')), 1200); // the permission dialog is answered outside the page
+  const redraw = () => { // the permission dialog is answered outside the page: redraw when the page is back in front
+    const back = () => { if (document.hidden) return; document.removeEventListener('visibilitychange', back); removeEventListener('focus', back); setTimeout(() => dispatchEvent(new HashChangeEvent('hashchange')), 300); };
+    document.addEventListener('visibilitychange', back); addEventListener('focus', back);
+  };
   const row = (on, onKey, askKey, ask, id) => on ? h('p', { class: 'note', id }, t(onKey)) : h('button', { type: 'button', class: 'btn ghost', id, onclick: () => { ask(); redraw(); } }, t(askKey));
   return h('div', { class: 'bg', id: 'f-s-bg' }, h('h2', null, t('bgTitle')), h('p', { class: 'note' }, t('bgNote')),
     row(native.notificationsAllowed(), 'bgNotifyOn', 'bgNotifyAsk', () => native.requestNotifications(), 'bg-notify'), row(native.stepsAvailable(), 'bgStepsOn', 'bgStepsAsk', () => native.requestActivity(), 'bg-steps'));

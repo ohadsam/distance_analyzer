@@ -24,7 +24,7 @@ const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not wort
 export function renderWorkout(kind, go, routeId) {
   let w = active.load(), watch = 0, wake = null, tickId = 0, gps = 'searching', acc = 0, phase = 'ready'; // ready | running | paused | confirm | done
   if (w && !isPaused(w) && native.trackAvailable()) for (const f of native.trackDrain()) addFix(w, { lat: f[0], lon: f[1], t: f[2], acc: f[3] }); // the background service kept recording while the app was closed
-  if (w) { kind = w.kind; if (!isPaused(w)) pause(w, w.last?.t || Date.now()); phase = 'paused'; } // a reloaded workout waits, so the gap is not counted
+  if (w) { kind = w.kind; if (!isPaused(w)) pause(w, w.last?.t || Date.now()); phase = 'paused'; if (native.trackAvailable()) native.trackStop(); } // a reopened workout waits paused: the background service must not keep running // a reloaded workout waits, so the gap is not counted
   const sr = document.getElementById('sr');
 
   const rhythm = createRhythm({ onChange: (on) => { metroBtn.setAttribute('aria-pressed', String(on)); metroBtn.classList.toggle('on', on); } });
@@ -65,20 +65,23 @@ export function renderWorkout(kind, go, routeId) {
 
   // ---------- tracking ----------
   // One door for GPS fixes, from the page's own watch AND from the Android background service (a duplicate fix is rejected by addFix: same or older time).
-  function feed(fix) {
-    if (!w || phase !== 'running') return;
+  function feed(fix, src = 'native') {
+    if (!w || phase !== 'running' || (src === 'page' && nativeOn)) return; // one source at a time: while the background service is on, its fixes are the only ones
     const n = w.splits.length;
     if (addFix(w, fix) && w.splits.length > n) { const s = w.splits[w.splits.length - 1]; sr.textContent = `${t('splitKm', { n: s.km })}: ${fmtClock(s.atMs)}`; }
   }
-  let nativeOn = false;
-  const trackOn = () => { if (native.trackAvailable() && !nativeOn) nativeOn = native.trackStart(t('trackTitle'), t('trackText')); }; // false while the permission question is open: tried again on the next tick
-  const trackOff = () => { if (nativeOn || native.trackAvailable()) native.trackStop(); nativeOn = false; };
+  let nativeOn = false, trackTries = 0, trackNext = 0;
+  const trackOn = () => { // false while the location permission is missing: asked again every 8 s, at most 5 times (the page's own GPS carries the workout meanwhile)
+    if (!native.trackAvailable() || nativeOn || trackTries >= 5 || Date.now() < trackNext) return;
+    trackTries++; trackNext = Date.now() + 8000; nativeOn = native.trackStart(t('trackTitle'), t('trackText'));
+  };
+  const trackOff = () => { if (native.trackAvailable()) native.trackStop(); nativeOn = false; trackTries = 0; trackNext = 0; };
   function drainNative() { if (phase !== 'running' || !native.trackAvailable()) return; trackOn(); for (const f of native.trackDrain()) feed({ lat: f[0], lon: f[1], t: f[2], acc: f[3] }); }
   function startGps() {
     if (!navigator.geolocation) { gps = 'missing'; return; }
     watch = navigator.geolocation.watchPosition((pos) => {
       acc = pos.coords.accuracy; gps = acc <= 35 ? 'good' : 'weak';
-      feed({ lat: pos.coords.latitude, lon: pos.coords.longitude, t: pos.timestamp || Date.now(), acc });
+      feed({ lat: pos.coords.latitude, lon: pos.coords.longitude, t: pos.timestamp || Date.now(), acc }, 'page');
       paintGps();
     }, (e) => { gps = e.code === 1 ? 'denied' : 'weak'; paintGps(); }, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
   }

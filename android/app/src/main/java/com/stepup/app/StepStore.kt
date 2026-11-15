@@ -14,6 +14,7 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,12 +35,13 @@ object StepStore {
 
     @Synchronized fun record(ctx: Context, raw: Long) {
         val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val s = StepMath.apply(StepMath.State(p.getLong("lastRaw", -1), p.getString("day", "") ?: "", p.getLong("steps", 0)), raw, today())
+        val boot = System.currentTimeMillis() - SystemClock.elapsedRealtime()
+        val s = StepMath.apply(StepMath.State(p.getLong("lastRaw", -1), p.getString("day", "") ?: "", p.getLong("steps", 0), p.getLong("boot", 0)), raw, today(), boot)
         val days = try { JSONObject(p.getString("days", "{}") ?: "{}") } catch (_: Exception) { JSONObject() }
         days.put(s.day, s.steps)
         val keys = days.keys().asSequence().toList().sorted()
         for (k in keys.dropLast(KEEP_DAYS)) days.remove(k)
-        p.edit().putLong("lastRaw", s.lastRaw).putString("day", s.day).putLong("steps", s.steps).putString("days", days.toString()).apply()
+        p.edit().putLong("lastRaw", s.lastRaw).putString("day", s.day).putLong("steps", s.steps).putLong("boot", s.boot).putString("days", days.toString()).apply()
     }
 
     fun days(ctx: Context): String = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("days", "{}") ?: "{}"
@@ -64,9 +66,15 @@ object StepStore {
 
     /** A sample every ~30 minutes while the phone is on (inexact alarm: no extra permission). Re-armed after a reboot by BootReceiver. */
     fun arm(ctx: Context) {
+        if (!available(ctx)) { disarm(ctx); return } // no sensor or no permission: no alarm
         val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = PendingIntent.getBroadcast(ctx, 11, Intent(ctx, StepReceiver::class.java).setAction(StepReceiver.ACTION), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + 60_000, AlarmManager.INTERVAL_HALF_HOUR, pi)
+    }
+
+    fun disarm(ctx: Context) {
+        val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        am.cancel(PendingIntent.getBroadcast(ctx, 11, Intent(ctx, StepReceiver::class.java).setAction(StepReceiver.ACTION), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
     }
 }
 
@@ -74,6 +82,7 @@ object StepStore {
 class StepReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION) return
+        if (!StepStore.available(context)) { StepStore.disarm(context); return } // the permission was revoked
         val pending = goAsync()
         StepStore.sample(context) { pending.finish() }
     }

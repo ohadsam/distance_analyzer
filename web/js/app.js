@@ -10,7 +10,7 @@ import { renderReco } from './ui/reco.js';
 import { renderRoutes, renderRoute } from './ui/routes.js';
 import { alertStore, unreadCount } from './alerts.js';
 import { startReminderLoop } from './reminderLoop.js';
-import { native } from './native.js';
+import { native, onNativeEvent } from './native.js';
 import { syncNative } from './syncNative.js';
 import { renderSettings, applyLook } from './ui/settings.js';
 import { renderHistory, renderDetail } from './ui/history.js';
@@ -47,6 +47,6 @@ function onFront() {
   if (native.stepsAvailable()) native.stepsSample();
   syncNative();
 }
-if (native.available) { onFront(); document.addEventListener('visibilitychange', () => { if (document.hidden) syncNative(); else onFront(); }); setInterval(() => { if (!document.hidden && native.stepsAvailable()) native.stepsSample(); }, 60000); }
+if (native.available) { onFront(); onNativeEvent((e) => { if (e?.type === 'href') onFront(); }); document.addEventListener('visibilitychange', () => { if (document.hidden) syncNative(); else onFront(); }); setInterval(() => { if (!document.hidden && native.stepsAvailable()) native.stepsSample(); }, 60000); }
 route();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });
