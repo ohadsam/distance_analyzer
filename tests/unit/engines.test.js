@@ -132,7 +132,8 @@ test('schedule: fixed reminders expand over the next days, sorted and bounded; r
   assert.equal(new Set(f.map((e) => e.id)).size, 3);
   const r = recoEntries([{ type: 'habit', day: 0, start: 17, end: 18, comfort: 80, params: { temp: 21 } }, { type: 'habit', day: 0, start: 7, end: 8, comfort: 80, params: {} }, { type: 'best', day: 0, start: 12, end: 13, comfort: 90, params: {} }, { type: 'habit', day: 1, start: 7, end: 8, comfort: 40, params: {} }], NOW, () => ({ title: 't', body: 'b' }));
   assert.equal(r.length, 1, 'only habit windows still ahead with good weather'); assert.equal(new Date(r[0].at).getHours(), 16); assert.equal(new Date(r[0].at).getMinutes(), 30);
-  const many = buildSchedule(Array.from({ length: 200 }, (_, i) => ({ id: `x${i}`, at: 1e12 - i, title: 't', body: 'b', href: '' }))); assert.equal(many.length, MAX_ITEMS); assert.ok(many[0].at <= many[1].at);
+  const mk = (n, base) => Array.from({ length: n }, (_, i) => ({ id: `${base}${i}`, at: 1e12 + i, title: 't', body: 'b', href: '' })), many = buildSchedule(mk(200, 'a'), mk(200, 'b'), mk(200, 'c')); assert.equal(many.length, MAX_ITEMS); assert.ok(many[0].at <= many[1].at);
+  assert.ok(['a', 'b', 'c'].every((k) => many.some((e) => e.id.startsWith(k))), 'each source keeps a share');
 });
 
 import { widgetSnapshot } from '../../web/js/widgetData.js';

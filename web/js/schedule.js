@@ -48,5 +48,5 @@ export function planEntries(plan, now, hour, text, dateOf) {
   return out;
 }
 
-/** Merges, sorts by time and bounds the list. */
-export const buildSchedule = (...lists) => lists.flat().sort((a, b) => a.at - b.at).slice(0, MAX_ITEMS);
+/** Merges, sorts by time and bounds the list; each source keeps at most its 25 soonest entries, so one kind cannot push the others out. */
+export const buildSchedule = (...lists) => lists.flatMap((l) => [...l].sort((a, b) => a.at - b.at).slice(0, 25)).sort((a, b) => a.at - b.at).slice(0, MAX_ITEMS);

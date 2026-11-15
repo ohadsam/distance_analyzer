@@ -6,8 +6,7 @@ import { icon } from '../icons.js';
 import { listWorkouts, profile, getJson, setJson, getPref } from '../store.js';
 import { weeklyTarget } from '../effort.js';
 import { dayStart } from '../stats.js';
-import { routineProfile } from '../reco.js';
-import { GOALS, TYPES, LEVELS, generatePlan, levelFromHistory, sanitizePlan, sessionDate, sessionsOfWeek, weekIndex, matchSessions, markDone, markSkipped, applyMove, catchUpOptions, adaptAfterMisses, planProgress, planEnded } from '../plan.js';
+import { GOALS, TYPES, LEVELS, generatePlan, habitWeekdays, expireOld, levelFromHistory, sanitizePlan, sessionDate, sessionsOfWeek, weekIndex, matchSessions, markDone, markSkipped, applyMove, catchUpOptions, adaptAfterMisses, planProgress, planEnded } from '../plan.js';
 import { syncNative } from '../syncNative.js';
 
 const GOAL_KEY = { general: 'goalGeneral', '5k': 'goal5k', '10k': 'goal10k', weight: 'goalWeight' }, LV_KEY = { beginner: 'lvBeginner', regular: 'lvRegular', advanced: 'lvAdvanced' };
@@ -46,19 +45,24 @@ async function builder(box, redraw, mine) {
     h('h3', null, t('planTypes')), types, h('p', { class: 'note' }, t('planDaysNote')), h('p', { class: 'note' }, t('planDisclaimer')),
     h('button', { type: 'button', class: 'btn', id: 'plan-create', onclick: () => {
       const v = (id) => box.querySelector(`#${id}`).value, S = Number(v('p-sessions')), tp = [...box.querySelectorAll('.checks input:checked')].map((i) => i.value);
-      const habit = routineProfile(rows, now, v('p-kind')); const days = [0, 1, 2, 3, 4, 5, 6].map((d) => [d, Math.max(...Array.from({ length: 24 }, (_, hr) => habit.habit(d, hr)))]).filter(([, x]) => habit.n >= 8 && x > 0.5).sort((a, b) => b[1] - a[1]).map(([d]) => d);
+      const days = habitWeekdays(rows, now, v('p-kind'), S);
       const d0 = new Date(dayStart(now)); if (d0.getDay() !== 0) d0.setDate(d0.getDate() + (7 - d0.getDay()));
       const plan = generatePlan({ age: prof.age, level: v('p-level'), goal: v('p-goal'), sessions: S, types: tp.length ? tp : ['easy'], weeks: Number(v('p-weeks')), startDay: d0.getTime(), baseEffort: weeklyTarget(rows, prof.age, now).minutes, kind: v('p-kind'), habitDays: days });
       savePlan(plan); redraw(); } }, t('planStart')));
 }
 
 // ---------- the plan ----------
-async function view(box, redraw, mine) {
-  const now = Date.now(), rows = await listWorkouts({ points: false });
-  if (box.alive === false || box.seq !== mine) return; // only the newest draw paints
+async function view(box, redraw, mine, first) {
+  const now = Date.now();
   let plan = loadPlan(); if (!plan) return builder(box, redraw, mine);
-  const m = matchSessions(plan, rows); if (m.matched.length) { plan = m.plan; savePlan(plan); say(t('planSessionDone')); }
-  const a = adaptAfterMisses(plan, now); if (a.changed) { plan = a.plan; savePlan(plan); }
+  if (first) { // matching, expiring and adapting happen when the screen opens, not on every tap
+    const rows = await listWorkouts({ points: false }); if (box.alive === false || box.seq !== mine) return;
+    const m = matchSessions(plan, rows); if (m.matched.length) { plan = m.plan; savePlan(plan); say(t('planSessionDone')); }
+    const e = expireOld(plan, now); if (e.changed) { plan = e.plan; savePlan(plan); }
+    const a = adaptAfterMisses(plan, now); if (a.changed) { plan = a.plan; savePlan(plan); }
+  }
+  if (box.alive === false || box.seq !== mine) return; // only the newest draw paints
+  if (box.dataset.planId !== plan.id) { delete box.dataset.week; box.dataset.planId = plan.id; } // a new plan opens on its own current week
   const prof = planProgress(plan, now), shown = clamp(Number(box.dataset.week ?? prof.week), 0, plan.weeks - 1), act = (fn) => () => { savePlan(fn(plan)); redraw(); };
   const missed = catchUpOptions(plan, now), byId = new Map(plan.list.map((s) => [s.id, s])), today = dayStart(now);
   const nav = (d, key) => h('button', { type: 'button', class: 'round', 'aria-label': t(key), disabled: shown + d < 0 || shown + d >= plan.weeks, onclick: () => { box.dataset.week = String(shown + d); redraw(); } }, icon(d < 0 ? 'back' : 'forward', 22));
@@ -80,7 +84,7 @@ async function view(box, redraw, mine) {
     up && shown === prof.week ? h('p', { class: 'note' }, t('planNextUp', { what: sessionTitle(up), when: dateLabel(sessionDate(plan, up)) })) : null,
     missed.length ? h('div', { class: 'card catch', role: 'group', 'aria-label': t('planCatchTitle', { n: missed.length }) }, h('h3', null, t('planCatchTitle', { n: missed.length })), h('p', { class: 'note' }, t('planCatchHint')),
       missed.map((o) => { const s = byId.get(o.id); return h('div', { class: 'catchrow', 'data-catch': o.id }, h('span', { class: 'grow' }, `${sessionTitle(s)} · ${dateLabel(sessionDate(plan, s))}`),
-        o.action === 'move' ? h('button', { type: 'button', class: 'btn', 'data-act': 'move', onclick: act((p) => applyMove(p, o.id, o.week, o.day)) }, t('planMoveTo', { when: t(o.why === 'today' ? 'whenToday' : 'whenSoon') })) : h('small', null, t('whySkipNospace')),
+        o.action === 'move' ? h('button', { type: 'button', class: 'btn', 'data-act': 'move', onclick: act((p) => applyMove(p, o.id, o.week, o.day)) }, t('planMoveTo', { when: o.why === 'today' ? t('whenToday') : dateLabel(sessionDate(plan, o)) })) : h('small', null, t('whySkipNospace')),
         h('button', { type: 'button', class: 'btn ghost', 'data-act': 'skip', onclick: act((p) => markSkipped(p, o.id)) }, t('planCatchSkip'))); })) : null,
     h('div', { class: 'list' }, sessionsOfWeek(plan, shown).map(card)),
     h('p', { class: 'note' }, t('planDisclaimer')),
@@ -90,7 +94,8 @@ async function view(box, redraw, mine) {
 
 /** Fills `box` (screen and dashboard drill-down). */
 export function mountPlan(box) {
-  const redraw = () => { box.alive = true; box.seq = (box.seq || 0) + 1; view(box, redraw, box.seq); };
+  let first = true;
+  const redraw = () => { box.alive = true; box.seq = (box.seq || 0) + 1; view(box, redraw, box.seq, first); first = false; };
   redraw();
 }
 export function renderPlan() {

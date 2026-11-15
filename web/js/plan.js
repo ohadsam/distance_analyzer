@@ -40,9 +40,20 @@ function weekTypes(S, types, level, week, age) {
   out.push(...withStrength.slice(0, S - (hard.includes('long') ? 1 : 0)));
   if (hard.includes('long')) out.push('long');
   while (out.length < S) out.splice(out.length - 1, 0, 'easy');
-  // never two hard sessions in a row
-  for (let i = 1; i < out.length; i++) if (HARD.has(out[i]) && HARD.has(out[i - 1]) && out[i] !== 'long') { out[i] = 'easy'; }
   return out.slice(0, S);
+}
+
+/** Two hard sessions are never on consecutive DAYS: when they would be, the earlier one becomes easy (the long one is kept). */
+function apart(types7, days) {
+  const out = [...types7];
+  for (let i = 1; i < out.length; i++) if (HARD.has(out[i]) && HARD.has(out[i - 1]) && days[i] - days[i - 1] === 1) { if (out[i] === 'long') out[i - 1] = 'easy'; else out[i] = 'easy'; }
+  return out;
+}
+
+/** The weekdays the person trains on most (last 8 weeks, at least 2 workouts each), most used first, at most `max`. */
+export function habitWeekdays(rows, now, kind, max) {
+  const c = new Array(7).fill(0); for (const w of rows) if (w.startedAt >= now - 56 * DAY && w.startedAt <= now && (!kind || w.kind === kind)) c[new Date(w.startedAt).getDay()]++;
+  return c.map((n, d) => [d, n]).filter(([, n]) => n >= 2).sort((a, b) => b[1] - a[1] || a[0] - b[0]).slice(0, max).map(([d]) => d);
 }
 
 /**
@@ -58,11 +69,12 @@ export function generatePlan(opts) {
   // the days of the week: the person's own habit days when there are enough, else a sensible default spread
   const habit = [...new Set((opts.habitDays || []).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))].slice(0, S);
   const days = (habit.length >= S ? habit : DEFAULT_DAYS[S]).slice().sort((a, b) => a - b);
-  const list = []; let effort = start;
+  const list = []; let base = start, effort = start; // base keeps growing; a recovery week is 75 % of the current base and does not change it
   for (let w = 0; w < weeks; w++) {
     const recovery = w > 0 && w % 4 === 3, taper = w === weeks - 1 && weeks >= 6;
-    if (w > 0) effort = recovery ? effort * 0.75 : (w % 4 === 0 && w > 4 ? effort / 0.75 : effort * (1 + rate(age)));
-    const target = Math.min(ceiling, effort) * (taper ? 0.8 : 1), types7 = weekTypes(S, types, level, w, age), sum = types7.reduce((s, t) => s + (WEIGHT[t] || 0), 0) || 1;
+    if (w > 0 && !recovery) base *= 1 + rate(age);
+    effort = recovery ? base * 0.75 : base;
+    const target = Math.min(ceiling, effort) * (taper ? 0.8 : 1), types7 = apart(weekTypes(S, types, level, w, age), days), sum = types7.reduce((s, t) => s + (WEIGHT[t] || 0), 0) || 1;
     types7.forEach((type, i) => {
       const isStrength = type === 'strength', share = isStrength ? 0 : ((WEIGHT[type] || 0) / sum) * target;
       let minutes = isStrength ? (age >= 65 ? 15 : 20) : clamp(Math.round(share / factor / 5) * 5, 15, goal === '10k' ? 90 : 75);
@@ -101,6 +113,13 @@ export const markDone = (plan, id, now) => ({ ...plan, list: plan.list.map((s) =
 export const markSkipped = (plan, id) => ({ ...plan, list: plan.list.map((s) => (s.id === id && s.status === 'planned' ? { ...s, status: 'skipped' } : s)) });
 
 // ---------- missed sessions ----------
+/** Sessions missed more than 7 days ago are closed as skipped (the catch-up offer covers the last week only). Returns { plan, changed }. */
+export function expireOld(plan, now) {
+  const limit = dayStart(now) - 7 * DAY; let changed = false;
+  const list = plan.list.map((s) => { if (s.status === 'planned' && sessionDate(plan, s) < limit) { changed = true; return { ...s, status: 'skipped' }; } return s; });
+  return changed ? { plan: { ...plan, list }, changed } : { plan, changed };
+}
+
 /** Planned sessions whose day has passed. */
 export const missedSessions = (plan, now) => plan.list.filter((s) => s.status === 'planned' && sessionDate(plan, s) < dayStart(now));
 
@@ -116,7 +135,7 @@ export function catchUpOptions(plan, now) {
   const out = []; let moves = 0;
   for (const s of missed) {
     let placed = null;
-    if (moves < 2) for (let d = today; d <= today + 3 && !placed; d++) {
+    if (moves < 2) for (let d = today; d <= Math.min(today + 3, plan.weeks * 7 - 1) && !placed; d++) { // never past the last day of the plan
       if (taken.has(d)) continue;
       const near = [taken.get(d - 1), taken.get(d + 1)].filter(Boolean);
       if (HARD.has(s.type) && near.some((n) => HARD.has(n.type))) continue;
