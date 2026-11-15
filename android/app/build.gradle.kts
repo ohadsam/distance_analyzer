@@ -67,4 +67,5 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.webkit)
     testImplementation(libs.junit)
+    testImplementation("org.json:json:20240303") // the Android stub of org.json throws in JVM unit tests: NotifyMath and WidgetMath parse JSON
 }
