@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self' https://api.open-meteo.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<meta name="referrer" content="no-referrer">
+<meta name="referrer" content="strict-origin-when-cross-origin"><!-- map tiles need an origin-only Referer (OpenStreetMap policy); every fetch() sets no-referrer itself -->
 <meta name="theme-color" content="#F5F8FA">
 <meta name="color-scheme" content="light dark">
 <title>StepUp</title>

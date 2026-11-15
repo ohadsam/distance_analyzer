@@ -41,7 +41,7 @@ export function tilesOf(view) {
     const out = [];
     for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
       const wrapX = ((x % n) + n) % n;
-      out.push({ key: `${z}/${wrapX}/${y}`, url: TILE_URL(z, wrapX, y), x: view.w / 2 + (x / n - view.cx) * view.scale, y: view.h / 2 + (y / n - view.cy) * view.scale, w: size, h: size });
+      out.push({ key: `${z}/${x}/${y}`, url: TILE_URL(z, wrapX, y), x: view.w / 2 + (x / n - view.cx) * view.scale, y: view.h / 2 + (y / n - view.cy) * view.scale, w: size, h: size });
     }
     return out;
   }

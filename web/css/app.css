@@ -146,7 +146,7 @@ body[data-view="workout"] .livemap { max-block-size: 110px; }
 /* folded blocks (filters) */
 .fold { margin-block: 8px; } .fold > summary { min-block-size: 44px; display: flex; align-items: center; cursor: pointer; color: var(--primary); font-weight: 600; }
 /* optional street-map background */
-.on-map { background: #e8eef0; } .attrib { font-size: 9px; fill: #17232d; paint-order: stroke; stroke: #ffffffcc; stroke-width: 3px; }
+.on-map { background: #e8eef0; }
 /* record celebration: the podium scene (transform and opacity only; still when motion is reduced) */
 .celebrate { display: grid; gap: 8px; } .celebrate h2, .celebrate .big { margin: 0; } .celebrate .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .podium { position: relative; inline-size: min(100%, 360px); aspect-ratio: 4 / 5; margin-inline: auto; overflow: hidden; border-radius: var(--radius); background: linear-gradient(var(--background), color-mix(in srgb, var(--primary) 14%, var(--background))); border: 1px solid var(--outline); }
@@ -160,3 +160,4 @@ body[data-view="workout"] .livemap { max-block-size: 110px; }
 @keyframes pd-rise { from { transform: scaleY(0); } } @keyframes pd-pop { from { transform: scale(0); opacity: 0; } } @keyframes pd-up { from { transform: translateY(14px); opacity: 0; } } @keyframes pd-drop { from { transform: translateY(-80px); opacity: 0; } }
 @keyframes pd-fall { 0% { opacity: 1; transform: translateY(0) rotate(var(--r)); } 100% { opacity: 0; transform: translateY(520px) rotate(calc(var(--r) + 360deg)); } }
 @media (prefers-reduced-motion: reduce) { .pd-title, .pd-step, .pd-photo, .pd-ribbon, .pd-medal { animation: none !important; } .pd-c { display: none; } }
+.mapwrap { position: relative; } .mapwrap .credit { position: absolute; inset-block-end: 2px; inset-inline-end: 2px; padding: 1px 6px; font-size: .72rem; line-height: 1.3; color: #17232d; background: #ffffffd9; border-radius: 6px; text-decoration: none; } .mapwrap .credit[hidden] { display: none; }

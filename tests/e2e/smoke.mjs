@@ -326,7 +326,7 @@ await step('street map (opt-in): no request while off; on -> the live map and a 
   assert.equal(asked.length, 0, 'tiles are off by default'); assert.equal(await page.locator('.livemap image').count(), 0);
   await page.evaluate(() => localStorage.setItem('da.mapTiles', '1')); await page.reload(); await page.waitForSelector('.workout');
   for (let i = 3; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
-  await page.waitForSelector('.livemap image'); assert.ok(asked.length >= 1 && asked.every((u) => /^https:\/\/tile\.openstreetmap\.org\/16\/\d+\/\d+\.png$/.test(u)), asked.join(' ')); assert.match(await page.textContent('.livemap .attrib'), /OpenStreetMap/);
+  await page.waitForSelector('.livemap image'); assert.ok(asked.length >= 1 && asked.every((u) => /^https:\/\/tile\.openstreetmap\.org\/16\/\d+\/\d+\.png$/.test(u)), asked.join(' ')); assert.match(await page.textContent('.mapwrap .credit'), /OpenStreetMap contributors/); assert.equal(await page.getAttribute('.mapwrap .credit', 'href'), 'https://www.openstreetmap.org/copyright');
   await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); assert.equal(await page.isChecked('#s-tiles'), true);
   await seedTracks(page, [{ daysAgo: 2, hour: 7, pace: 330 }]); await page.goto(base + '#/history'); await page.click('a[href^="#/w/"]'); await page.waitForSelector('svg.track.on-map image'); assert.ok(await page.locator('svg.track .track-line').count() >= 1);
   assert.deepEqual(errors, []);

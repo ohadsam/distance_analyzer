@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
     }
     private val takePictureFile = registerForActivityResult(FrontCamera()) { ok ->
         val f = photoFile; photoFile = null
-        if (!ok || f == null) deliver(JSONObject().put("type", "photo-taken").put("ok", false))
+        if (!ok || f == null) { f?.delete(); deliver(JSONObject().put("type", "photo-taken").put("ok", false)) }
         else Thread {
             takenPhoto = runCatching { shrinkPhoto(f) }.getOrDefault(""); f.delete()
             deliver(JSONObject().put("type", "photo-taken").put("ok", takenPhoto.isNotEmpty()))
@@ -83,6 +83,8 @@ class MainActivity : ComponentActivity() {
         val out = java.io.ByteArrayOutputStream(); bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, out)
         return "data:image/jpeg;base64," + android.util.Base64.encodeToString(out.toByteArray(), android.util.Base64.NO_WRAP)
     }
+    /** The selfie and the record card exist on disk only briefly: whatever an earlier run left in these two cache folders is removed at every start. */
+    private fun clearSharedFiles() { for (d in listOf("photos", "share")) java.io.File(cacheDir, d).listFiles()?.forEach { it.delete() } }
     fun startPhoto() = runOnUiThread {
         val ok = runCatching {
             val dir = java.io.File(cacheDir, "photos").apply { mkdirs() }; val f = java.io.File(dir, "selfie.jpg"); photoFile = f
@@ -95,7 +97,7 @@ class MainActivity : ComponentActivity() {
     fun shareImage(b64: String) = Thread {
         runCatching {
             val bytes = android.util.Base64.decode(b64, android.util.Base64.DEFAULT); if (bytes.size > 6_000_000) return@runCatching
-            val dir = java.io.File(cacheDir, "share").apply { mkdirs() }; val f = java.io.File(dir, "stepup-record.png"); f.writeBytes(bytes)
+            val dir = java.io.File(cacheDir, "share").apply { mkdirs(); listFiles()?.forEach { it.delete() } }; val f = java.io.File(dir, "stepup-record.png"); f.writeBytes(bytes)
             val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.files", f)
             val send = Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             send.clipData = android.content.ClipData.newRawUri("", uri)
@@ -158,6 +160,7 @@ class MainActivity : ComponentActivity() {
             override fun handleOnBackPressed() { if (web.canGoBack()) web.goBack() else { isEnabled = false; onBackPressedDispatcher.onBackPressed() } }
         })
         readHref(intent)
+        Thread { clearSharedFiles() }.start()
         if (savedInstanceState == null) web.loadUrl("https://$HOST/index.html") else web.restoreState(savedInstanceState)
     }
 

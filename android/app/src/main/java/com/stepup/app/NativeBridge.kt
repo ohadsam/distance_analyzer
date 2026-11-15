@@ -53,7 +53,7 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun takePhoto(): Boolean { activity.startPhoto(); return true }
     @JavascriptInterface fun takenPhoto(): String = activity.takenPhoto()
     @JavascriptInterface fun shareImage(b64: String): Boolean {
-        if (b64.isBlank() || !BridgeLimits.within(b64, 8_000_000)) return false
+        if (b64.isBlank() || !BridgeLimits.within(b64, 8_000_000) || b64.length / 4 * 3 > 6_000_000) return false
         activity.shareImage(b64); return true
     }
 

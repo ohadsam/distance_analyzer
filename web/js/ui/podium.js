@@ -33,11 +33,14 @@ export function celebrationCard(records, w) {
   }
   function card() { return renderCard({ photo: photoCv, title: t(TITLE[rec.id]), value: valueText(rec), sub: `${fmtDate(w.startedAt, getLang())} · ${prevText(rec)}`, dark: isDark(), rtl: getLang() === 'he' }); }
   async function share() {
-    const cv = card(), blob = await new Promise((res) => cv.toBlob(res, 'image/png')); if (!blob) return setChildren(msg, t('rcdShareError'));
-    if (native.available) { const b64 = cv.toDataURL('image/png').split(',')[1]; return setChildren(msg, native.shareImage(b64) ? '' : t('rcdShareError')); }
-    const f = new File([blob], 'stepup-record.png', { type: 'image/png' });
-    try { if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: 'StepUp' }); return; } } catch (e) { if (e?.name === 'AbortError') return; }
-    const a = h('a', { href: URL.createObjectURL(blob), download: 'stepup-record.png' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    try {
+      const cv = card(); // encoded once: base64 for Android's share sheet, a blob for the browser
+      if (native.available) { const b64 = cv.toDataURL('image/png').split(',')[1]; return setChildren(msg, b64 && native.shareImage(b64) ? '' : t('rcdShareError')); }
+      const blob = await new Promise((res) => cv.toBlob(res, 'image/png')); if (!blob) return setChildren(msg, t('rcdShareError'));
+      const f = new File([blob], 'stepup-record.png', { type: 'image/png' });
+      try { if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: 'StepUp' }); return; } } catch (e) { if (e?.name === 'AbortError') return; }
+      const a = h('a', { href: URL.createObjectURL(blob), download: 'stepup-record.png' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    } catch { setChildren(msg, t('rcdShareError')); }
   }
   function ask() {
     setChildren(box, h('h2', null, t(TITLE[rec.id])), h('p', { class: 'big' }, valueText(rec)), h('p', { class: 'note' }, prevText(rec)), records.length > 1 ? h('p', { class: 'note' }, records.slice(1).map((r) => `${t(TITLE[r.id])}: ${valueText(r)}`).join(' · ')) : null,

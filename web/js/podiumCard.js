@@ -1,5 +1,5 @@
 // The shareable record card as a PNG (canvas, 1080 x 1350): the person's photo on the top step of a podium with a gold medal, the result and the app name.
-// The photo and the card are never stored or uploaded by the app; they exist in memory until the person shares or saves them.
+// The photo and the card are never uploaded by the app. They live in memory; on Android the card is written to the app's cache only while the share sheet needs it and removed at the next start.
 const W = 1080, H = 1350;
 const PALETTE = { light: { bg1: '#F5F8FA', bg2: '#DDEFEA', text: '#17232D', muted: '#526474', primary: '#006B60', gold: '#E0A800', silver: '#B8C2CC', bronze: '#C07A4A', confetti: ['#006B60', '#216B39', '#A13F20', '#145AA0', '#E0A800'] },
   dark: { bg1: '#111820', bg2: '#16363D', text: '#F5F8FA', muted: '#B8C6D2', primary: '#9CE5D6', gold: '#F2C230', silver: '#8FA0B0', bronze: '#D49B73', confetti: ['#9CE5D6', '#9BE3B1', '#FFC4A6', '#A9D4FF', '#F2C230'] } };

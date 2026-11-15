@@ -22,7 +22,7 @@ import androidx.core.app.NotificationCompat
 
 /**
  * Foreground service that keeps recording GPS fixes while a workout runs and the screen is off. The page starts and stops it (NativeBridge) and
- * drains the fixes. It records nothing else, never uploads anything, and stops itself after 6 hours as a safety net and slows the GPS while the person stands still.
+ * drains the fixes. It records nothing else, never uploads anything, and stops itself after 12 hours as a safety net and slows the GPS while the person stands still.
  */
 class TrackingService : Service() {
     private var manager: LocationManager? = null
@@ -97,6 +97,6 @@ class TrackingService : Service() {
         const val ACTION_STOP = "com.stepup.app.TRACK_STOP"
         const val ID = 4101
         const val CHANNEL = "tracking"
-        const val MAX_MS = 6L * 60 * 60 * 1000
+        const val MAX_MS = 12L * 60 * 60 * 1000
     }
 }

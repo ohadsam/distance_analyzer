@@ -30,13 +30,13 @@ Open **Training plan** from the dashboard widget (or search). Choose your goal, 
 Settings -> Show a street map: a real map under your routes and the live map (off by default; it asks OpenStreetMap for the map squares of the area, so that service learns roughly where you are). Needs internet.
 
 ## Record celebration
-When a workout breaks a record (longest distance, best pace, fastest kilometre) the summary offers a **victory photo**: your picture on a podium with a gold medal, animated; **Share the card** sends it as a picture. The photo is not stored.
+When a workout breaks a record (longest distance, best pace, fastest kilometre) the summary offers a **victory photo**: your picture on a podium with a gold medal, animated; **Share the card** sends it as a picture. The photo is not stored or uploaded.
 
 ## Backup
 Settings -> Your data: **Save a backup file** keeps your workouts, routes and settings in one file; **Restore from a backup file** adds what is missing and brings the settings back (useful after changing phone or clearing data).
 
 ## Spoken cues
-Settings -> Speak kilometre times and indications turns on the phone voice during workouts (off by default).
+Settings -> Speak kilometre times and indications turns on the phone voice during workouts (off by default). It speaks while the screen is on (when the screen is off Android pauses the app's page).
 
 ## Updates and sharing
 In **Settings -> About and updates**: **Check for updates** tells you if a newer version exists (the web app can refresh itself, the Android app downloads the new APK). **Download the latest Android app** gives the newest APK. **Share StepUp** sends a link to the web app and the Android app.

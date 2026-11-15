@@ -201,7 +201,7 @@ export function renderWorkout(kind, go, routeId) {
   let ticks = 0;
   paintMap();
   if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
-  tickId = setInterval(() => { if (document.hidden) return; /* screen off: the native service keeps recording; no painting for nobody */ drainNative(); paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
+  tickId = setInterval(() => { drainNative(); ++ticks; if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
   const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };
