@@ -5,19 +5,30 @@ import { native } from '../native.js';
 import { APP_VERSION } from '../appVersion.js';
 import { APK_URL, SITE_URL, checkUpdate, shareApp } from '../update.js';
 
+/** Fetch the new service worker and reload once it has taken over (or at once when there is nothing new to wait for). */
+async function refreshApp() {
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration(); if (!reg) return location.reload();
+    const taken = new Promise((res) => { navigator.serviceWorker.addEventListener('controllerchange', res, { once: true }); setTimeout(res, 10000); });
+    await reg.update();
+    if (reg.installing || reg.waiting) await taken;
+  } catch { /* offline: reload with what we have */ }
+  location.reload();
+}
+
 export function aboutBlock() {
   const out = h('p', { class: 'note', id: 'upd-msg', role: 'status' }), extra = h('div', { class: 'upd-extra' });
   const say = (text, ...more) => { out.textContent = text; setChildren(extra, ...more); };
   const check = h('button', { type: 'button', class: 'btn ghost', id: 'upd-check', onclick: async () => {
     check.disabled = true; say(t('updChecking'));
-    const r = await checkUpdate(native.version() || APP_VERSION);
+    const current = native.version() || APP_VERSION, r = await checkUpdate(current);
     check.disabled = false;
     if (r.state === 'error') return say(t('updError'));
-    if (r.state === 'latest') return say(t('updLatest', { v: APP_VERSION }));
+    if (r.state === 'latest') return say(t('updLatest', { v: current }));
     // a newer release: the installed web app refreshes itself; the Android app downloads the new APK
     say(t('updNewer', { v: r.version }), r.notes ? h('p', { class: 'note' }, r.notes) : null,
       native.available ? h('a', { class: 'btn', id: 'upd-apk-new', href: APK_URL, rel: 'noopener noreferrer' }, t('updApk'))
-        : h('button', { type: 'button', class: 'btn', id: 'upd-refresh', onclick: async () => { try { (await navigator.serviceWorker?.getRegistration())?.update(); } catch { /* offline */ } setTimeout(() => location.reload(), 600); } }, t('updRefresh')));
+        : h('button', { type: 'button', class: 'btn', id: 'upd-refresh', onclick: refreshApp }, t('updRefresh')));
   } }, t('updCheck'));
   const shareOut = h('p', { class: 'note', id: 'share-msg', role: 'status' }), shareText = () => t('shareText', { site: SITE_URL, apk: APK_URL });
   const share = h('button', { type: 'button', class: 'btn ghost', id: 'share-app', onclick: async () => {

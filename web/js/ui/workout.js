@@ -60,15 +60,21 @@ export function renderWorkout(kind, go, routeId) {
   let refs = null, fired = new Set(), ghostIsLast = false, cueTimer = 0;
   (async () => {
     refs = references(await listWorkouts({ points: false }), kind);
+    if (w) indicators({ distM: w.distanceM, splits: w.splits }, refs, fired); // a resumed workout: what is already behind us is not news
     if (!routeId && refs.last && cuesOn()) { const full = await getWorkout(refs.last.startedAt); if (full && full.points.length > 5) { ghost = makeGhost(full.points, full.distanceM); ghostIsLast = true; } }
   })();
-  function showCue(text) {
-    cueEl.hidden = false; cueEl.textContent = text; sr.textContent = text; clearTimeout(cueTimer); cueTimer = setTimeout(() => { cueEl.hidden = true; }, 9000);
+  const cueQueue = [];
+  function pumpCues() { // one calm message at a time (about 6 s each); the others wait their turn
+    if (!cueQueue.length || !cueEl.hidden) return;
+    const text = cueQueue.shift(); cueEl.hidden = false; cueEl.textContent = text; sr.textContent = text;
     if (getPref('cueVibrate', '1') !== '0') try { navigator.vibrate?.(60); } catch { /* not supported */ }
+    clearTimeout(cueTimer); cueTimer = setTimeout(() => { cueEl.hidden = true; pumpCues(); }, 6000);
   }
   function checkIndicators() {
     if (!refs || !cuesOn() || !w) return;
-    for (const e of indicators({ distM: w.distanceM, splits: w.splits }, refs, fired)) { showCue(t(e.key, e.params)); break; } // one message at a time; the rest stay queued as "not yet fired"... they fire on the next fix
+    for (const e of indicators({ distM: w.distanceM, splits: w.splits }, refs, fired)) cueQueue.push(t(e.key, e.params));
+    if (cueQueue.length > 4) cueQueue.splice(0, cueQueue.length - 4); // never a backlog of stale news
+    pumpCues();
   }
   let mapAt = 0;
   function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : []); mapAt = Date.now(); }
@@ -108,7 +114,7 @@ export function renderWorkout(kind, go, routeId) {
 
   function onMain() {
     const n = Date.now();
-    if (phase === 'ready') { w = newWorkout(kind, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
+    if (phase === 'ready') { w = newWorkout(kind, n); fired = new Set(); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
     else if (phase === 'running') { drainNative(); pause(w, n); phase = 'paused'; rhythm.setRunning(false); trackOff(); persist(); }
     else if (phase === 'paused') { native.trackDrain(); resume(w, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
     paint();

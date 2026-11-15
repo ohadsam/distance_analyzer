@@ -50,7 +50,7 @@ function backgroundBlock() {
     row(native.notificationsAllowed(), 'bgNotifyOn', 'bgNotifyAsk', () => native.requestNotifications(), 'bg-notify'), row(native.stepsAvailable(), 'bgStepsOn', 'bgStepsAsk', () => native.requestActivity(), 'bg-steps'));
 }
 
-const openSecs = new Set([0, 1]); // which sections are open survives a redraw (language change, toggles)
+const openSecs = new Map(); // which sections the person opened or closed survives a redraw (toggles)
 export function renderSettings(focusId) {
   const redraw = () => dispatchEvent(new HashChangeEvent('hashchange'));
   const num = (id, key, def, lo, hi, step = 1) => h('input', { id, type: 'number', inputMode: 'numeric', min: lo, max: hi, step, value: getNum(key, def, lo, hi), onchange: (e) => setPref(key, Math.min(hi, Math.max(lo, Number(e.target.value) || def))) });
@@ -91,9 +91,12 @@ export function renderSettings(focusId) {
     field(t('defaultBpm'), num('s-bpm', 'bpm', 170, 100, 230), 's-bpm'),
     h('p', { class: 'note' }, t('stepsNote')),
     h('h2', { id: 'f-s-about' }, t('aboutTitle')), aboutBlock());
-  // group each heading with what follows it into a collapsible section (Look and Profile open, the rest closed; a search jump opens its own section)
+  // group each heading with what follows it into a collapsible section (Look and Profile start open); open/closed is remembered by the heading's text
   const secs = []; let cur = null;
-  for (const n of [...el.children].slice(1)) { if (n.tagName === 'H2') { const i = secs.length; cur = h('details', { class: 'sec', open: openSecs.has(secs.length), ontoggle: (e) => { e.target.open ? openSecs.add(i) : openSecs.delete(i); } }, h('summary', null, n)); secs.push(cur); } if (cur) cur.append(n.tagName === 'H2' ? '' : n); }
+  for (const n of [...el.children].slice(1)) {
+    if (n.tagName !== 'H2') { if (cur) cur.append(n); continue; } // anything before the first heading stays where it is
+    const key = n.textContent, first = secs.length < 2; cur = h('details', { class: 'sec', open: openSecs.has(key) ? openSecs.get(key) : first, ontoggle: (e) => { openSecs.set(key, e.target.open); } }, h('summary', null, n)); secs.push(cur);
+  }
   el.append(...secs);
   // the smart-nudge numbers are stored together in one JSON object (validated on every read)
   for (const [id, key] of [['s-from', 'fromHour'], ['s-to', 'toHour'], ['s-after', 'afterMin'], ['s-max', 'maxPerDay']]) el.querySelector(`#${id}`).onchange = (e) => saveSmart({ [key]: Number(e.target.value) });

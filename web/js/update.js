@@ -29,7 +29,7 @@ export async function checkUpdate(current, doFetch = globalThis.fetch) {
 
 /** Shares the app link: Android's own share sheet, the browser's share sheet, else copies it. Returns 'shared' | 'copied' | 'manual'. */
 export async function shareApp(text, { native, nav = globalThis.navigator } = {}) {
-  if (native?.available && native.share(text) !== false) return 'shared';
-  try { if (nav?.share) { await nav.share({ title: 'StepUp', text, url: SITE_URL }); return 'shared'; } } catch (e) { if (e?.name === 'AbortError') return 'shared'; }
+  if (native?.available && native.share(text)) return 'shared';
+  try { if (nav?.share) { await nav.share({ title: 'StepUp', text }); return 'shared'; } } catch (e) { if (e?.name === 'AbortError') return 'shared'; }
   try { await nav.clipboard.writeText(`${text}`); return 'copied'; } catch { return 'manual'; }
 }

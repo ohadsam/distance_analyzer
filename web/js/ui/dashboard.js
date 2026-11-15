@@ -23,10 +23,11 @@ export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 // a new person sees the essentials; everything else is one tap away in Customise
 const DEFAULT_HIDDEN = ['pace', 'consistency', 'records', 'alerts'];
+// only for a brand-new install (nothing saved, no workouts, welcome not yet answered): existing people keep every widget
 export function loadLayout() {
   const raw = getJson('dash', {}), order = Array.isArray(raw.order) ? raw.order.filter((x, i, a) => WIDGETS.includes(x) && a.indexOf(x) === i) : [];
   for (const id of WIDGETS) if (!order.includes(id)) order.push(id);
-  return { order, hidden: Array.isArray(raw.hidden) ? raw.hidden.filter((x) => WIDGETS.includes(x)) : DEFAULT_HIDDEN };
+  return { order, hidden: Array.isArray(raw.hidden) ? raw.hidden.filter((x) => WIDGETS.includes(x)) : [] };
 }
 export function loadFilter() {
   const f = getJson('dashF', {});
@@ -127,6 +128,7 @@ export function renderDashboard() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return; // only the newest draw may paint (fast taps start several)
     const resume = active.load(); // read on every draw: a discard must show at once
     const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!active.load()) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, icon(kind, 36), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
+    if (!getPref('dash', '') && !getPref('welcomed', '') && !c.all.length) setJson('dash', { order: [...WIDGETS], hidden: [...DEFAULT_HIDDEN] });
     const layout = loadLayout();
     const change = (fn) => { const L = loadLayout(); fn(L); setJson('dash', L); draw(); }; // always from the saved layout, so a fast second tap never works on a stale copy
     const move = (id, d) => change((L) => { const i = L.order.indexOf(id), j = i + d; if (j >= 0 && j < L.order.length) [L.order[i], L.order[j]] = [L.order[j], L.order[i]]; });

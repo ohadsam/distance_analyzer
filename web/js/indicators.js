@@ -24,10 +24,10 @@ export function indicators(state, refs, fired = new Set()) {
   const out = [], add = (id, key, params) => { if (!fired.has(id)) { fired.add(id); out.push({ id, key, params }); } };
   const { last, longest } = refs, d = state.distM;
   if (longest && d > longest.distanceM + 20) add('recPassed', 'indRecPassed', {});
-  else if (longest && longest.distanceM - d <= near(longest.distanceM) && longest.distanceM - d > 0 && (!last || Math.abs(longest.distanceM - last.distanceM) > 300)) add('recNear', 'indRecNear', { m: Math.round((longest.distanceM - d) / 10) * 10 });
+  else if (longest && longest.distanceM - d <= near(longest.distanceM) && longest.distanceM - d > 0 && (!last || Math.abs(longest.distanceM - last.distanceM) > 300)) add('recNear', 'indRecNear', { m: Math.max(10, Math.round((longest.distanceM - d) / 10) * 10) });
   const same = last && longest && Math.abs(longest.distanceM - last.distanceM) <= 300; // the last workout IS the record: one message is enough
   if (last && !same && d > last.distanceM + 20) add('lastPassed', 'indLastPassed', {});
-  else if (last && last.distanceM - d <= near(last.distanceM) && last.distanceM - d > 0) add('lastNear', 'indLastNear', { m: Math.round((last.distanceM - d) / 10) * 10 });
+  else if (last && last.distanceM - d <= near(last.distanceM) && last.distanceM - d > 0) add('lastNear', 'indLastNear', { m: Math.max(10, Math.round((last.distanceM - d) / 10) * 10) });
   const n = state.splits.length;
   if (n) { // the newest kilometre
     const ms = splitMs(state.splits, n - 1), k = state.splits[n - 1].km;

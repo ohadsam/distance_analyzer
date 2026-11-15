@@ -30,3 +30,10 @@ test('kilometres: faster than last time by >= 3 s, your fastest ever, nothing wh
   const best = indicators({ distM: 3000, splits: [{ km: 1, atMs: 330000 }, { km: 2, atMs: 700000 }, { km: 3, atMs: 990000 }] }, refs, fired); assert.equal(best[0].key, 'indKmBest', '290 s < the best km (330 s)');
   assert.deepEqual(indicators({ distM: 1000, splits: [{ km: 1, atMs: 500000 }] }, references([], 'run'), new Set()), [], 'no history: no indications');
 });
+
+test('the remaining distance never reads "0 m"; a second call after the first reports nothing new', () => {
+  const refs = { last: { distanceM: 5000, splits: [] }, longest: { distanceM: 9000 }, bestKmMs: 0 }, fired = new Set();
+  const first = indicators({ distM: 4997, splits: [] }, refs, fired);
+  assert.equal(first.find((e) => e.id === 'lastNear').params.m, 10);
+  assert.deepEqual(indicators({ distM: 4997, splits: [] }, refs, fired), []);
+});

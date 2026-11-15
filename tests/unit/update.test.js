@@ -22,7 +22,7 @@ test('the update check says latest / newer / error and never throws', async () =
 test('sharing prefers Android, then the browser share sheet, then the clipboard, then manual copy', async () => {
   const sent = []; const native = { available: true, share: (x) => { sent.push(x); return true; } };
   assert.equal(await shareApp('hi', { native }), 'shared'); assert.deepEqual(sent, ['hi']);
-  assert.equal(await shareApp('hi', { native: { available: false }, nav: { share: async (o) => { sent.push(o.url); } } }), 'shared'); assert.equal(sent[1], SITE_URL);
+  assert.equal(await shareApp('hi', { native: { available: false }, nav: { share: async (o) => { sent.push(o.text); } } }), 'shared'); assert.equal(sent[1], 'hi'); assert.ok(SITE_URL.startsWith('https://'));
   assert.equal(await shareApp('hi', { nav: { share: async () => { throw Object.assign(new Error(), { name: 'AbortError' }); } } }), 'shared', 'cancelling is not a failure');
   let copied = ''; assert.equal(await shareApp('hi', { nav: { clipboard: { writeText: async (x) => { copied = x; } } } }), 'copied'); assert.equal(copied, 'hi');
   assert.equal(await shareApp('hi', { nav: {} }), 'manual');
