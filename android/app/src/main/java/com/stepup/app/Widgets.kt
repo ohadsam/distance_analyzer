@@ -24,14 +24,16 @@ object Widgets {
     private fun open(ctx: Context, code: Int, href: String): PendingIntent =
         PendingIntent.getActivity(ctx, code, Intent(ctx, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NEW_TASK).putExtra("href", href), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
-    fun updateAll(ctx: Context) {
+    /** Redraws every StepUp widget, or only the one kind that asked (a periodic update of one widget must not redraw the other five). */
+    fun updateAll(ctx: Context, only: Class<*>? = null) {
         val am = AppWidgetManager.getInstance(ctx)
-        push(ctx, am, StepsWidget::class.java, R.layout.widget_steps) { fillSteps(ctx, it) }
-        push(ctx, am, EffortWidget::class.java, R.layout.widget_effort) { fillEffort(ctx, it) }
-        push(ctx, am, QuickWidget::class.java, R.layout.widget_quick) { fillQuick(ctx, it) }
-        push(ctx, am, LastWidget::class.java, R.layout.widget_text) { fillLast(ctx, it) }
-        push(ctx, am, NextWidget::class.java, R.layout.widget_text) { fillNext(ctx, it) }
-        push(ctx, am, WeekWidget::class.java, R.layout.widget_week) { fillWeek(ctx, it) }
+        fun go(cls: Class<*>, layout: Int, fill: (RemoteViews) -> Unit) { if (only == null || only == cls) push(ctx, am, cls, layout, fill) }
+        go(StepsWidget::class.java, R.layout.widget_steps) { fillSteps(ctx, it) }
+        go(EffortWidget::class.java, R.layout.widget_effort) { fillEffort(ctx, it) }
+        go(QuickWidget::class.java, R.layout.widget_quick) { fillQuick(ctx, it) }
+        go(LastWidget::class.java, R.layout.widget_text) { fillLast(ctx, it) }
+        go(NextWidget::class.java, R.layout.widget_text) { fillNext(ctx, it) }
+        go(WeekWidget::class.java, R.layout.widget_week) { fillWeek(ctx, it) }
     }
 
     private fun push(ctx: Context, am: AppWidgetManager, cls: Class<*>, layout: Int, fill: (RemoteViews) -> Unit) {
@@ -103,9 +105,9 @@ object Widgets {
     }
 }
 
-class StepsWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { StepStore.sample(context) { Widgets.updateAll(context) } } }
-class EffortWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
-class QuickWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
-class LastWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
-class NextWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
-class WeekWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context) } }
+class StepsWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { StepStore.sample(context) { Widgets.updateAll(context, StepsWidget::class.java) } } }
+class EffortWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, EffortWidget::class.java) } }
+class QuickWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, QuickWidget::class.java) } }
+class LastWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, LastWidget::class.java) } }
+class NextWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, NextWidget::class.java) } }
+class WeekWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, WeekWidget::class.java) } }

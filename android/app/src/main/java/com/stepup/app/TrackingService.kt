@@ -22,17 +22,35 @@ import androidx.core.app.NotificationCompat
 
 /**
  * Foreground service that keeps recording GPS fixes while a workout runs and the screen is off. The page starts and stops it (NativeBridge) and
- * drains the fixes. It records nothing else, never uploads anything, and stops itself after 12 hours as a safety net.
+ * drains the fixes. It records nothing else, never uploads anything, and stops itself after 6 hours as a safety net and slows the GPS while the person stands still.
  */
 class TrackingService : Service() {
     private var manager: LocationManager? = null
     private val handler = Handler(Looper.getMainLooper())
     private var thread: HandlerThread? = null // location callbacks and the file writes stay off the main thread
     private val listener = object : LocationListener {
-        override fun onLocationChanged(location: Location) { Tracking.append(applicationContext, location) }
+        override fun onLocationChanged(location: Location) {
+            Tracking.append(applicationContext, location)
+            adapt(location)
+        }
         @Deprecated("Deprecated in Java") override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
         override fun onProviderEnabled(provider: String) {}
         override fun onProviderDisabled(provider: String) {}
+    }
+
+    private var interval = TrackingMath.FAST_MS
+    private var still = 0
+    private var previous: Location? = null
+
+    /** Slows the GPS while the person stands still and speeds it up again as soon as they move (saves battery; the page copes with any gap between fixes). */
+    @SuppressLint("MissingPermission")
+    private fun adapt(location: Location) {
+        val p = previous; previous = location
+        val speed = if (location.hasSpeed()) location.speed else if (p != null && location.time > p.time) p.distanceTo(location) / ((location.time - p.time) / 1000f) else 0f
+        val (next, count) = TrackingMath.next(interval, still, speed); still = count
+        if (next == interval) return
+        interval = next
+        try { manager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, 0f, this.listener, thread?.looper) } catch (_: RuntimeException) { /* the service is stopping */ }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -51,7 +69,8 @@ class TrackingService : Service() {
                 manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
                 val th = HandlerThread("stepup-track").also { it.start() }
                 thread = th
-                manager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 0f, listener, th.looper)
+                interval = TrackingMath.FAST_MS; still = 0; previous = null
+                manager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, interval, 0f, listener, th.looper)
             } catch (_: SecurityException) { stopSelf() } catch (_: RuntimeException) { stopSelf() }
             handler.postDelayed({ stopSelf() }, MAX_MS)
         }
@@ -78,6 +97,6 @@ class TrackingService : Service() {
         const val ACTION_STOP = "com.stepup.app.TRACK_STOP"
         const val ID = 4101
         const val CHANNEL = "tracking"
-        const val MAX_MS = 12L * 60 * 60 * 1000
+        const val MAX_MS = 6L * 60 * 60 * 1000
     }
 }

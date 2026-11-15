@@ -87,6 +87,7 @@ export function renderSettings(focusId) {
     nbtn, h('p', { class: 'note' }, t('remNote')),
     native.available ? backgroundBlock() : null,
     h('h2', null, t('setCues')), check('s-cues', t('setCues'), getPref('cues', '1') !== '0', (on) => setPref('cues', on ? '1' : '0')), h('p', { class: 'note' }, t('setCuesHint')),
+    check('s-tiles', t('setTiles'), getPref('mapTiles', '0') === '1', (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
     check('s-voice', t('setVoice'), getPref('voice', '0') === '1', (on) => setPref('voice', on ? '1' : '0')), h('p', { class: 'note' }, t('setVoiceHint')),
     check('s-cue-vibrate', t('setCueVibrate'), getPref('cueVibrate', '1') !== '0', (on) => setPref('cueVibrate', on ? '1' : '0')),
     h('h2', null, t('metroSection')),

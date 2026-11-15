@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only two cache folders are ever shared with other apps: the camera's output for the victory photo and the record card picture. -->
+<paths>
+    <cache-path name="photos" path="photos/"/>
+    <cache-path name="share" path="share/"/>
+</paths>

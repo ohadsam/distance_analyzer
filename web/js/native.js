@@ -32,6 +32,11 @@ export const native = {
   saveBackup: (json, name) => (call('saveBackup', json, name) === true ? nativeOnce('backup-saved') : Promise.resolve({ ok: false, refused: true })),
   pickBackup: () => (call('pickBackup') === true ? nativeOnce('backup-picked') : Promise.resolve({ ok: false, reason: 'error' })),
   takeBackup: () => { const s = call('takeBackup'); return typeof s === 'string' ? s : ''; },
+  /** The camera (Android: the camera app through a system dialog; the page shows no photo of its own). takePhoto resolves { ok } when it closes, then takenPhoto() returns a data URL once. */
+  takePhoto: () => (call('takePhoto') === true ? nativeOnce('photo-taken') : Promise.resolve({ ok: false })),
+  takenPhoto: () => { const s = call('takenPhoto'); return typeof s === 'string' && s.startsWith('data:image/jpeg;base64,') ? s : ''; },
+  /** Shares a PNG (base64, no prefix) with Android's share sheet; true when handed over. */
+  shareImage: (b64) => call('shareImage', String(b64)) === true,
   /** Keeps the screen on during a workout. */
   keepAwake: (on) => call('keepAwake', !!on),
   /** Android's share sheet with a plain text; true only when the bridge accepted it. */

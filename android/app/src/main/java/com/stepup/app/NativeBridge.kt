@@ -49,6 +49,14 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun pickBackup(): Boolean { activity.startBackupPick(); return true }
     @JavascriptInterface fun takeBackup(): String = activity.takeBackup()
 
+    // ---- victory photo and record card ----
+    @JavascriptInterface fun takePhoto(): Boolean { activity.startPhoto(); return true }
+    @JavascriptInterface fun takenPhoto(): String = activity.takenPhoto()
+    @JavascriptInterface fun shareImage(b64: String): Boolean {
+        if (b64.isBlank() || !BridgeLimits.within(b64, 8_000_000)) return false
+        activity.shareImage(b64); return true
+    }
+
     // ---- all-day steps from the step counter ----
     @JavascriptInterface fun stepsAvailable(): Boolean = StepStore.available(ctx)
     @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.sample(ctx) } } }

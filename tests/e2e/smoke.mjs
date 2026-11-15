@@ -75,7 +75,8 @@ function fakeAndroid(init) {
   const n = window.__n = { started: 0, stopped: 0, fixes: JSON.parse(sessionStorage.getItem('__fixes') || '[]') /* the native buffer survives a page reload */, steps: {}, notes: null, href: '', sampled: 0, reqNotif: 0, reqActivity: 0, ...init };
   window.StepUpNative = { appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
     trackDrain() { const f = JSON.stringify(n.fixes); n.fixes = []; return f; }, stepsAvailable: () => true, stepsSample() { n.sampled++; }, stepsDays: () => JSON.stringify(n.steps), requestActivity() { n.reqActivity++; },
-    setWidgetData(j) { n.widget = JSON.parse(j); }, share(x) { n.shared = x; return true; }, saveBackup(j, name) { n.backup = j; n.backupName = name; queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'backup-saved', ok: true } }))); return true; },
+    setWidgetData(j) { n.widget = JSON.parse(j); }, share(x) { n.shared = x; return true; }, takePhoto() { queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'photo-taken', ok: true } }))); return true; },
+    takenPhoto() { const c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').fillRect(0, 0, 64, 64); return c.toDataURL('image/jpeg'); }, shareImage(b) { n.sharedImage = b; return true; }, saveBackup(j, name) { n.backup = j; n.backupName = name; queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'backup-saved', ok: true } }))); return true; },
     pickBackup() { queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'backup-picked', ok: !!n.picked } }))); return true; }, takeBackup() { const p = n.picked || ''; n.picked = ''; return p; }, notificationsAllowed: () => false, requestNotifications() { n.reqNotif++; }, setNotifications(j) { n.notes = JSON.parse(j); }, takePendingHref() { const h = n.href; n.href = ''; return h; } };
 }
 const shot = async (page, name) => { if (shots) await page.screenshot({ path: `${shots}/${name}.png` }); };
@@ -317,6 +318,35 @@ await step('route suggestions follow the time of day and the weather performance
   await page.goto(base + '#/'); await page.waitForSelector('[data-widget=routes]'); assert.match(await page.textContent('[data-widget=routes]'), /2/); await page.click('[data-widget=routes]'); await page.waitForSelector('.routesbox [data-route]'); await shot(page, 'routes');
   await page.goto(base + '#/reco'); await page.click('.chip[data-area=routes]'); await page.waitForSelector('[data-route-suggestion]');
 });
+await step('street map (opt-in): no request while off; on -> the live map and a workout picture show tiles, credit shown, failed tiles hidden', async () => {
+  const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+  const { page, ctx, errors } = await newPage({ lang: 'en' }); const asked = []; await page.route('https://tile.openstreetmap.org/**', (route) => { asked.push(route.request().url()); return route.fulfill({ status: 200, contentType: 'image/png', body: PNG }); });
+  await page.goto(base); await page.waitForSelector('#qa-measure'); await page.click('#qa-measure'); await page.waitForSelector('.workout[data-phase="running"]');
+  for (let i = 1; i <= 2; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  assert.equal(asked.length, 0, 'tiles are off by default'); assert.equal(await page.locator('.livemap image').count(), 0);
+  await page.evaluate(() => localStorage.setItem('da.mapTiles', '1')); await page.reload(); await page.waitForSelector('.workout');
+  for (let i = 3; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  await page.waitForSelector('.livemap image'); assert.ok(asked.length >= 1 && asked.every((u) => /^https:\/\/tile\.openstreetmap\.org\/16\/\d+\/\d+\.png$/.test(u)), asked.join(' ')); assert.match(await page.textContent('.livemap .attrib'), /OpenStreetMap/);
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); assert.equal(await page.isChecked('#s-tiles'), true);
+  await seedTracks(page, [{ daysAgo: 2, hour: 7, pace: 330 }]); await page.goto(base + '#/history'); await page.click('a[href^="#/w/"]'); await page.waitForSelector('svg.track.on-map image'); assert.ok(await page.locator('svg.track .track-line').count() >= 1);
+  assert.deepEqual(errors, []);
+});
+
+await step('record celebration: ask, victory photo (web file and Android camera), animated podium, share as PNG, axe clean', async () => {
+  const open = async (page) => page.evaluate(async () => { const { celebrationCard } = await import('./js/ui/podium.js'); document.getElementById('app').replaceChildren(Object.assign(document.createElement('h1'), { textContent: 'Summary' }), celebrationCard([{ id: 'distance', value: 12340, prev: 10000 }, { id: 'pace', value: 300, prev: 320 }], { startedAt: Date.now(), kind: 'run' })); });
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card'); await open(page);
+  assert.match(await page.textContent('#celebrate'), /New distance record!/); assert.match(await page.textContent('#celebrate'), /12\.34\s*km/); assert.match(await page.textContent('#celebrate'), /New pace record!/);
+  const png = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 300; c.height = 200; const x = c.getContext('2d'); x.fillStyle = '#c33'; x.fillRect(0, 0, 300, 200); return c.toDataURL('image/png').split(',')[1]; });
+  await page.setInputFiles('#rec-file', { name: 'me.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') }); await page.waitForSelector('.podium .pd-photo img'); assert.match(await page.getAttribute('.pd-photo img', 'src'), /^data:image\/jpeg;base64,/);
+  assert.equal(await page.locator('.podium .pd-c').count(), 24); assert.equal(await page.locator('.podium .pd-step').count(), 3); assert.match(await page.getAttribute('.podium', 'aria-label'), /New distance record!/);
+  await page.waitForTimeout(3000); await shot(page, 'podium'); assert.deepEqual(await axeViolations(page), []);
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rec-share')]); assert.equal(dl.suggestedFilename(), 'stepup-record.png');
+  const fs = await import('node:fs'); const buf = fs.readFileSync(await dl.path()); if (shots) fs.writeFileSync(`${shots}/record-card.png`, buf); assert.equal(buf.subarray(1, 4).toString(), 'PNG'); assert.ok(buf.length > 20000, 'a real picture');
+  await page.click('#rec-retake'); await page.waitForSelector('#rec-nophoto'); await page.click('#rec-nophoto'); await page.waitForSelector('.podium'); assert.equal(await page.locator('.pd-photo img').count(), 0, 'no photo, no image'); assert.deepEqual(errors, []);
+  const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base); await a.page.waitForSelector('.start-card'); await open(a.page); await a.page.click('#rec-photo'); await a.page.waitForSelector('.pd-photo img');
+  await a.page.click('#rec-share'); await a.page.waitForFunction(() => window.__n.sharedImage); assert.ok((await a.page.evaluate(() => window.__n.sharedImage)).length > 1000);
+});
+
 await step('quick action "Measure now" starts at once; live map; following a route shows the route and a ghost of the best attempt', async () => {
   const { page, ctx, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('#qa-measure'); await page.click('#qa-measure'); await page.waitForSelector('.workout[data-phase="running"]');
   assert.ok(await page.locator('.livemap').count()); for (let i = 1; i <= 3; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } assert.ok(await page.locator('.livemap .track-line').count() >= 1 || await page.locator('.livemap .me').count() >= 1);

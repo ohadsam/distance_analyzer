@@ -26,6 +26,12 @@ Settings → Reminders: add reminders for a walk or a movement break at set time
 ## Training plan
 Open **Training plan** from the dashboard widget (or search). Choose your goal, level, how many sessions a week, for how many weeks, and which kinds of workouts you want. The plan starts on Sunday and grows gently: about 10 % more a week at most, a lighter week every fourth week, and an easier last week. Each session shows its length and what to do (for example "10 × (1:00 run + 2:00 walk)"). Tap **Start** to measure it at once, **Mark done** for movement exercises, or **Skip**. A workout you do on the planned day completes the session by itself. If you miss a session, StepUp offers to move it to a free day soon or to skip it, and makes the next week a little lighter after a week with misses. You can get a reminder on the day of each session (Settings → Training plan). General guidance, not medical advice.
 
+## Street map
+Settings -> Show a street map: a real map under your routes and the live map (off by default; it asks OpenStreetMap for the map squares of the area, so that service learns roughly where you are). Needs internet.
+
+## Record celebration
+When a workout breaks a record (longest distance, best pace, fastest kilometre) the summary offers a **victory photo**: your picture on a podium with a gold medal, animated; **Share the card** sends it as a picture. The photo is not stored.
+
 ## Backup
 Settings -> Your data: **Save a backup file** keeps your workouts, routes and settings in one file; **Restore from a backup file** adds what is missing and brings the settings back (useful after changing phone or clearing data).
 

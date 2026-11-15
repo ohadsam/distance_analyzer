@@ -1,11 +1,13 @@
 // Workout mode: one calm screen with big numbers and few buttons. Tracking (GPS) -> workout.js (pure); persistence -> store.js.
+import { brokenRecords } from '../records.js';
+import { celebrationCard } from './podium.js';
+import { trackPicture } from './maptiles.js';
 import { speak } from '../voice.js';
 import { badgeFor } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
-import { icon, trackSvg } from '../icons.js';
+import { icon } from '../icons.js';
 import { newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
-import { projectTrack } from '../geo.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
 import { active, saveWorkout, getNum, getPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
 import { checkWorkout } from '../effort.js';
@@ -126,7 +128,7 @@ export function renderWorkout(kind, go, routeId) {
   let before = 'paused';
   function askFinish() { before = phase; if (phase === 'running') { drainNative(); pause(w, Date.now()); rhythm.setRunning(false); trackOff(); } phase = 'confirm'; paint(); }
   function keepGoing() { if (before === 'running') { native.trackDrain(); resume(w, Date.now()); phase = 'running'; rhythm.setRunning(true); trackOn(); } else phase = 'paused'; paint(); }
-  let saved = null, routeEl = null, planEl = null;
+  let saved = null, routeEl = null, planEl = null, recordEl = null;
   async function end(save) {
     const keep = save && w && w.distanceM >= MIN_SAVE_M;
     if (w) { finish(w, Date.now()); if (keep) saved = await saveWorkout(w); }
@@ -139,6 +141,7 @@ export function renderWorkout(kind, go, routeId) {
     if (!saved) return;
     try { const f = onlineOn() ? cachedForecast(Date.now(), 12 * 3600000) : null, wx = f && weatherAt(f, saved.startedAt); if (wx && !saved.weather) saved = (await updateWorkout(saved.startedAt, { weather: wx })) || saved; } catch { /* the weather is a bonus */ }
     routeEl = summaryBox(saved, routeId || '');
+    try { const rs = brokenRecords(await listWorkouts({ points: false }), saved); if (rs.length) recordEl = celebrationCard(rs, saved); } catch { /* a celebration is a bonus, never a blocker */ }
     const ps = matchAfterWorkout(saved); if (ps) planEl = h('p', { class: 'good', 'data-plan-done': ps.id }, `${t('planSessionDone')}: ${sessionTitle(ps)}`);
   }
 
@@ -185,11 +188,11 @@ export function renderWorkout(kind, go, routeId) {
       phase === 'confirm' ? confirmBar : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, metroBtn));
   }
   function summary() {
-    const n = w.endedAt, mins = elapsedMs(w, n), xy = projectTrack(w.points, 300, 180);
+    const n = w.endedAt, mins = elapsedMs(w, n);
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
-    return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackSvg(xy),
+    return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackPicture(w.points),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
-      planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
+      recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 
@@ -198,7 +201,7 @@ export function renderWorkout(kind, go, routeId) {
   let ticks = 0;
   paintMap();
   if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
-  tickId = setInterval(() => { drainNative(); paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
+  tickId = setInterval(() => { if (document.hidden) return; /* screen off: the native service keeps recording; no painting for nobody */ drainNative(); paint(); paintGhost(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); if (phase === 'running' && ++ticks % 30 === 0) persist(); }, 1000);
   const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };

@@ -59,4 +59,9 @@ async function recoPart(now) {
   }
 }
 
-export function startReminderLoop() { if (!timer) timer = setInterval(() => { checkReminders().catch(() => { /* a failed check must never break the app */ }); }, TICK); }
+/** Checks every 30 s while the app is in front. Hidden: no work at all (Android delivers notifications itself while the app is closed); on return one check catches up on what was missed. */
+export function startReminderLoop() {
+  if (timer) return;
+  const run = () => { if (!document.hidden) checkReminders().catch(() => { /* a failed check must never break the app */ }); };
+  timer = setInterval(run, TICK); document.addEventListener('visibilitychange', run);
+}

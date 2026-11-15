@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. Network: only the opt-in forecast request (see below). -->
+    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. Network: only the opt-in forecast request, the opt-in street-map tiles and the update check (see below). -->
     <!-- Recommendations by weather (opt-in, off by default): one request to the weather service (api.open-meteo.com) with the approximate location, only while the person uses recommendations. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Workout tracking: the GPS position, read only while a workout is on screen (the page asks; MainActivity answers for our own origin only). -->
@@ -21,6 +21,9 @@
     <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false"/>
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <!-- The victory photo opens the phone's own camera app (no CAMERA permission: the camera app takes the picture); this lets us find it on Android 11+. -->
+    <queries><intent><action android:name="android.media.action.IMAGE_CAPTURE"/></intent></queries>
 
     <application
         android:label="@string/app_name"
@@ -58,6 +61,10 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quick_info"/>
         </receiver>
+        <!-- Hands the camera app a place to write the victory photo, and other apps the record card picture to share. Nothing else is exposed (res/xml/file_paths.xml). -->
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths"/>
+        </provider>
         <receiver android:name=".WeekWidget" android:exported="false" android:label="@string/widget_week_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_week_info"/>

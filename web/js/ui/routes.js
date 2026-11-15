@@ -1,14 +1,15 @@
 // Routes: save a recorded path as a route, recognise it next time, show progress on it, suggest the best route for now, manage routes
 // (rename, one-time, delete), and the quick-action buttons. Geometry/statistics live in route.js and routeReco.js (pure).
+import { trackPicture } from './maptiles.js';
 import { emptyState } from '../art.js';
 import { h, setChildren, median } from '../util.js';
 import { t, getLang } from '../i18n.js';
-import { icon, trackSvg } from '../icons.js';
+import { icon } from '../icons.js';
 import { listRoutes, saveRoute, deleteRoute, listWorkouts, updateWorkout, getPref } from '../store.js';
 import { makeRoute, matchRoute, MIN_ROUTE_M, MAX_ROUTES } from '../route.js';
 import { attemptsOf, routeProgress, bestContext, recommendRoutes, mainKind } from '../routeReco.js';
 import { weatherOfHour } from '../forecast.js';
-import { projectTrack } from '../geo.js';
+
 import { paceSec, weatherBucket } from '../stats.js';
 import { fmtKm, fmtPaceUnit, fmtDate, bucketLabel } from '../format.js';
 import { lineChart } from '../charts.js';
@@ -115,7 +116,7 @@ export function renderRoute(id) {
     const nameIn = h('input', { type: 'text', id: 'route-rename', maxLength: 40, value: route.name, 'aria-label': t('routeNameLabel') });
     const kind = mk;
     setChildren(el, h('a', { class: 'link back', href: '#/routes' }, icon('back', 20), t('routesTitle')), h('h1', null, route.name, route.oneTime ? h('span', { class: 'tag' }, ` · ${t('routeOneTimeBadge')}`) : null),
-      trackSvg(projectTrack(route.path, 300, 180)),
+      trackPicture(route.path),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(route.lengthM)), row(t('routeAttempts'), String(all.length)), pr.best ? row(t('recFastest'), fmtPaceUnit(paceSec(pr.best))) : null, pr.n ? row(t('avgPace'), fmtPaceUnit(pr.avgPaceSec)) : null),
       h('h2', null, t('routeProgressTitle')), at.length >= 2 ? lineChart(at.map(paceSec)) : null, h('p', null, verdict),
       ctx.band || ctx.weather ? h('p', { class: 'note' }, `${ctx.band ? t('routeBestAt', { band: t(BAND_KEY[ctx.band]) }) : ''} ${ctx.weather ? t('routeBestIn', { weather: bucketLabel(ctx.weather) }) : ''}`.trim()) : null,

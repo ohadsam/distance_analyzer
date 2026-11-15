@@ -62,3 +62,6 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 45 | Use the round-5 ChatGPT kit (widget backgrounds, empty states, weather, badges, splash) | ✅ 0.11.0 (rhythm keyframes, chart spec, portrait splash not yet used; device look unverified) |
 | 46 | Better look and flow: kit rhythm visuals (flash-safe), chart language, folded filters, spoken cues | ✅ 0.12.0 (voice and device look unverified) |
 | 47 | Backup and restore of data; weekly bars widget; monthly summary | ✅ 0.13.0 (Android dialogs and widget unverified on a device) |
+| 48 | Map tiles (decision D2) | ✅ 0.14.0 opt-in OpenStreetMap, privacy explained (provider response on real devices unverified) |
+| 49 | Battery and resource optimisation of the background processes | ✅ 0.14.0 adaptive GPS, per-widget redraw, hourly sensor alarm, no work while hidden (no battery measurement on a device) |
+| 50 | Record celebration: selfie on a podium with medal/trophy, animated, shareable | ✅ 0.14.0 simple art in code; polished art requested (ROUND6 prompt) |

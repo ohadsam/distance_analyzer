@@ -1,12 +1,13 @@
 import { h, setChildren } from '../util.js';
+import { trackPicture } from './maptiles.js';
 import { emptyState } from '../art.js';
 import { t, getLang } from '../i18n.js';
-import { icon, trackSvg } from '../icons.js';
+import { icon } from '../icons.js';
 import { listWorkouts, deleteWorkout, updateWorkout } from '../store.js';
 import { workoutRow } from './home.js';
 import { fmtKm, fmtClock, fmtPaceUnit, fmtDate } from '../format.js';
 import { avgPaceSec, kcal } from '../workout.js';
-import { projectTrack } from '../geo.js';
+
 import { summaryBox } from './routes.js';
 import { getNum } from '../store.js';
 
@@ -25,7 +26,7 @@ export function renderDetail(id) {
     const r = rows.find((x) => x.startedAt === Number(id));
     if (!r) { location.hash = '#/history'; return; }
     const w = { ...r, kind: r.kind }, row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
-    setChildren(box, h('h1', null, `${t(r.kind)} · ${fmtDate(r.startedAt, getLang())}`), trackSvg(projectTrack(r.points, 300, 180)),
+    setChildren(box, h('h1', null, `${t(r.kind)} · ${fmtDate(r.startedAt, getLang())}`), trackPicture(r.points),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(r.distanceM)), row(t('time'), fmtClock(r.elapsedMs || r.movingMs)), row(t('movingTime'), fmtClock(r.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
       r.points.length >= 5 ? summaryBox(r) : null,
       weatherForm(r),

@@ -56,6 +56,53 @@ class MainActivity : ComponentActivity() {
     fun startBackupPick() = runOnUiThread { pickBackupFile.launch(arrayOf("application/json", "text/plain")) }
     fun takeBackup(): String { val s = pickedBackup; pickedBackup = ""; return s }
 
+    // The victory photo: the camera app writes to our cache through a FileProvider; we shrink it (rotation fixed) and hand the page a small JPEG.
+    private var photoFile: java.io.File? = null
+    @Volatile private var takenPhoto = ""
+    private class FrontCamera : ActivityResultContracts.TakePicture() {
+        override fun createIntent(context: android.content.Context, input: Uri): Intent =
+            super.createIntent(context, input).putExtra("android.intent.extras.CAMERA_FACING", 1).putExtra("android.intent.extra.USE_FRONT_CAMERA", true)
+    }
+    private val takePictureFile = registerForActivityResult(FrontCamera()) { ok ->
+        val f = photoFile; photoFile = null
+        if (!ok || f == null) deliver(JSONObject().put("type", "photo-taken").put("ok", false))
+        else Thread {
+            takenPhoto = runCatching { shrinkPhoto(f) }.getOrDefault(""); f.delete()
+            deliver(JSONObject().put("type", "photo-taken").put("ok", takenPhoto.isNotEmpty()))
+        }.start()
+    }
+    private fun shrinkPhoto(f: java.io.File): String {
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeFile(f.absolutePath, bounds)
+        val opts = android.graphics.BitmapFactory.Options().apply { inSampleSize = PhotoMath.sampleSize(bounds.outWidth, bounds.outHeight) }
+        var bmp = android.graphics.BitmapFactory.decodeFile(f.absolutePath, opts) ?: return ""
+        val (w, h) = PhotoMath.fitted(bmp.width, bmp.height)
+        if (w != bmp.width) bmp = android.graphics.Bitmap.createScaledBitmap(bmp, w, h, true)
+        val turn = when (android.media.ExifInterface(f.absolutePath).getAttributeInt(android.media.ExifInterface.TAG_ORIENTATION, 1)) { 6 -> 90f; 3 -> 180f; 8 -> 270f; else -> 0f }
+        if (turn != 0f) bmp = android.graphics.Bitmap.createBitmap(bmp, 0, 0, bmp.width, bmp.height, android.graphics.Matrix().apply { postRotate(turn) }, true)
+        val out = java.io.ByteArrayOutputStream(); bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, out)
+        return "data:image/jpeg;base64," + android.util.Base64.encodeToString(out.toByteArray(), android.util.Base64.NO_WRAP)
+    }
+    fun startPhoto() = runOnUiThread {
+        val ok = runCatching {
+            val dir = java.io.File(cacheDir, "photos").apply { mkdirs() }; val f = java.io.File(dir, "selfie.jpg"); photoFile = f
+            takePictureFile.launch(androidx.core.content.FileProvider.getUriForFile(this, "$packageName.files", f))
+        }.isSuccess
+        if (!ok) deliver(JSONObject().put("type", "photo-taken").put("ok", false))
+    }
+    fun takenPhoto(): String { val s = takenPhoto; takenPhoto = ""; return s }
+    /** Shares the record card picture (PNG, base64 from the page) with the system share sheet. */
+    fun shareImage(b64: String) = Thread {
+        runCatching {
+            val bytes = android.util.Base64.decode(b64, android.util.Base64.DEFAULT); if (bytes.size > 6_000_000) return@runCatching
+            val dir = java.io.File(cacheDir, "share").apply { mkdirs() }; val f = java.io.File(dir, "stepup-record.png"); f.writeBytes(bytes)
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.files", f)
+            val send = Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM, uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            send.clipData = android.content.ClipData.newRawUri("", uri)
+            runOnUiThread { runCatching { startActivity(Intent.createChooser(send, null)) } }
+        }
+    }.start()
+
     // One launcher for the other runtime permissions the page asks for (location for background tracking, notifications, step counter).
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
     fun ask(vararg wanted: String) = runOnUiThread {

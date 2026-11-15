@@ -37,3 +37,15 @@ test('the remaining distance never reads "0 m"; a second call after the first re
   assert.equal(first.find((e) => e.id === 'lastNear').params.m, 10);
   assert.deepEqual(indicators({ distM: 4997, splits: [] }, refs, fired), []);
 });
+
+import { brokenRecords } from '../../web/js/records.js';
+test('records: distance, average pace and fastest kilometre; nothing to beat on the first workout; other kinds ignored', () => {
+  const sp = (n, ms) => Array.from({ length: n }, (_, i) => ({ km: i + 1, atMs: (i + 1) * ms }));
+  const old = { kind: 'run', startedAt: 1, distanceM: 5000, movingMs: 5 * 330000, splits: sp(5, 330000) };
+  assert.deepEqual(brokenRecords([], { kind: 'run', startedAt: 9, distanceM: 9000, movingMs: 9 * 300000, splits: sp(9, 300000) }), []);
+  const r = brokenRecords([old], { kind: 'run', startedAt: 9, distanceM: 6000, movingMs: 6 * 300000, splits: sp(6, 300000) });
+  assert.deepEqual(r.map((x) => x.id), ['distance', 'pace', 'km']); assert.equal(r[0].prev, 5000);
+  assert.deepEqual(brokenRecords([old], { kind: 'run', startedAt: 9, distanceM: 5000, movingMs: 5 * 335000, splits: sp(5, 335000) }), [], 'slower and not longer: no record');
+  assert.deepEqual(brokenRecords([old], { kind: 'walk', startedAt: 9, distanceM: 9000, movingMs: 9 * 600000, splits: sp(9, 600000) }), [], 'a walk has no earlier walks');
+  assert.deepEqual(brokenRecords([old], { kind: 'run', startedAt: 9, distanceM: 800, movingMs: 200000, splits: [] }), [], 'under 1 km is never a record');
+});

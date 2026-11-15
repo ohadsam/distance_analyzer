@@ -81,3 +81,17 @@ test('regression: walks and runs on one route are not mixed; the main activity i
   assert.equal(attemptsOf(r, rows, 'run').length, 3); assert.equal(attemptsOf(r, rows, 'walk').length, 2); assert.equal(attemptsOf(r, rows).length, 5); assert.equal(mainKind(r, rows), 'run');
   assert.ok(routeProgress(attemptsOf(r, rows, 'run')).avgPaceSec < 320);
 });
+
+import { world, fitView, followView, tilesOf, TILE_URL } from '../../web/js/mapView.js';
+test('map view: Mercator world coordinates, fit keeps every point inside, tiles are contiguous squares that cover the box', () => {
+  assert.deepEqual(world(0, 0).map((v) => Math.round(v * 1e6) / 1e6), [0.5, 0.5]); assert.ok(world(32, 34.8)[0] > 0.5 && world(32, 34.8)[1] < 0.5);
+  const pts = [[32.08, 34.78], [32.09, 34.80], [32.085, 34.79]], v = fitView(pts, 300, 180, 12);
+  for (const p of pts) { const [x, y] = v.toXY(p[0], p[1]); assert.ok(x >= 11 && x <= 289 && y >= 11 && y <= 169, `${x},${y}`); }
+  const ts = tilesOf(v); assert.ok(ts.length >= 1 && ts.length <= 16); const t0 = ts[0];
+  assert.ok(ts.every((t) => Math.abs(t.w - t0.w) < 1e-6 && t.w === t.h)); assert.match(t0.url, /^https:\/\/tile\.openstreetmap\.org\/\d{1,2}\/\d+\/\d+\.png$/);
+  const minX = Math.min(...ts.map((t) => t.x)), maxX = Math.max(...ts.map((t) => t.x + t.w)), minY = Math.min(...ts.map((t) => t.y)), maxY = Math.max(...ts.map((t) => t.y + t.h));
+  assert.ok(minX <= 0.001 && maxX >= 299.99 && minY <= 0.001 && maxY >= 179.99, 'covers the whole box');
+  const f = followView(32.08, 34.78, 16, 300, 150); assert.deepEqual(f.toXY(32.08, 34.78), [150, 75]); const ft = tilesOf(f); assert.ok(ft.length <= 9 && ft.every((t) => /\/16\//.test(t.url)));
+  assert.equal(TILE_URL(3, 4, 5), 'https://tile.openstreetmap.org/3/4/5.png');
+  const one = fitView([[32, 34.8]], 300, 180), tiny = tilesOf(one); assert.ok(tiny.length >= 1, 'a single point still gets a map'); // no division by zero
+});

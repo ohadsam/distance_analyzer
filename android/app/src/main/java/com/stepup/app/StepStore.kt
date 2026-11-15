@@ -42,7 +42,7 @@ object StepStore {
         val keys = days.keys().asSequence().toList().sorted()
         for (k in keys.dropLast(KEEP_DAYS)) days.remove(k)
         p.edit().putLong("lastRaw", s.lastRaw).putString("day", s.day).putLong("steps", s.steps).putLong("boot", s.boot).putString("days", days.toString()).apply()
-        Widgets.updateAll(ctx) // the steps widget follows every new reading
+        Widgets.updateAll(ctx, StepsWidget::class.java) // only the steps widget follows a new reading
     }
 
     /** Steps counted today so far (0 when there is no reading yet). */
@@ -68,12 +68,12 @@ object StepStore {
         handler.postDelayed({ finish() }, 2500)
     }
 
-    /** A sample every ~30 minutes while the phone is on (inexact alarm: no extra permission). Re-armed after a reboot by BootReceiver. */
+    /** A sample about every hour while the phone is on (inexact alarm: no extra permission). Re-armed after a reboot by BootReceiver. */
     fun arm(ctx: Context) {
         if (!available(ctx)) { disarm(ctx); return } // no sensor or no permission: no alarm
         val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = PendingIntent.getBroadcast(ctx, 11, Intent(ctx, StepReceiver::class.java).setAction(StepReceiver.ACTION), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + 60_000, AlarmManager.INTERVAL_HALF_HOUR, pi)
+        am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + 60_000, AlarmManager.INTERVAL_HOUR, pi)
     }
 
     fun disarm(ctx: Context) {
@@ -82,7 +82,7 @@ object StepStore {
     }
 }
 
-/** Fires every ~30 minutes: takes one step reading, then lets the system go back to sleep. */
+/** Fires about every hour: takes one step reading, then lets the system go back to sleep. */
 class StepReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION) return
