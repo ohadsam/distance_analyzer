@@ -1,0 +1,31 @@
+// Strings of the training plan (merged into STR by i18n.js). Hebrew + English, same keys, same {placeholders}.
+export const EN = {
+  planTitle: 'Training plan', wPlan: 'Training plan', planNone: 'No plan yet. Build one in a minute.', planBuild: 'Build a plan', planGoal: 'Goal', goalGeneral: 'Stay active and healthy', goal5k: 'Run 5 km', goal10k: 'Run 10 km', goalWeight: 'Lose weight gently',
+  planLevel: 'Level', lvBeginner: 'Beginner', lvRegular: 'Regular', lvAdvanced: 'Advanced', planKind: 'Main activity', planSessions: 'Sessions per week', planWeeks: 'Length (weeks)', planTypes: 'Types of workouts',
+  tyEasy: 'Easy', tyLong: 'Long', tyIntervals: 'Intervals', tyTempo: 'Tempo', tyStrength: 'Movement exercises', planStart: 'Start the plan', planDaysNote: 'Days follow your usual routine when possible. The plan starts on Sunday.',
+  tyEasyD: 'An easy pace you can talk at.', tyLongD: 'Longer and slower. Take walking breaks if you need.', tyTempoD: 'Comfortably hard, steady effort.', tyIntervalsD: 'Alternate effort and recovery.', tyStrengthD: 'A short session of movement exercises (below).',
+  ivRun: '{reps} × ({work} run + {rest} walk)', ivWalk: '{reps} × ({work} brisk + {rest} easy)', secMin: '{m}:{s}',
+  planWeek: 'Week {n} of {total}', planPrev: 'Previous week', planNext: 'Next week', planMin: '{n} min', planEffortMin: '{n} effort min',
+  planDone: 'Done', planSkipped: 'Skipped', planMissed: 'Missed', planToday: 'Today', planMarkDone: 'Mark done', planSkip: 'Skip', planGo: 'Start',
+  planCatchTitle: 'You missed {n} sessions', planCatchHint: 'No problem. Here is a gentle way to catch up.', planMoveTo: 'Move to {when}', whenToday: 'today', whenSoon: 'a free day this week', whySkipNospace: 'No room in the next days: better to skip it.', planCatchSkip: 'Skip it',
+  planProgressText: '{done} of {total} sessions done', planWeekEffort: 'This week: {done} of {planned} effort minutes', planEnded: 'The plan is finished. Well done!', planNew: 'New plan', planDelete: 'Delete plan', planDeleteAsk: 'Delete the plan? Your workouts stay.',
+  planAdapted: 'Last week had misses, so this week is 15 % lighter.', planDisclaimer: 'General guidance, not medical advice. With a health condition, check with a doctor before you start.', planSessionDone: 'Plan session completed', planNextUp: 'Next: {what} on {when}',
+  planRemind: 'Remind me of planned workouts', planRemindHour: 'Reminder hour', planRemindTitle: 'Planned workout today', planRemindBody: '{what}: {min} min',
+  exTitle: 'Movement exercises', exSquat: 'Squats: 2 × 10', exLunge: 'Lunges: 2 × 8 on each leg', exCalf: 'Calf raises: 2 × 15', exBridge: 'Hip bridge: 2 × 10', exPlank: 'Plank: 2 × 20 seconds', exStretch: 'Stretch calves and hips: 1 minute each',
+  exChair: 'Sit-to-stand from a chair: 2 × 8', exHeel: 'Heel raises holding a wall: 2 × 12', exBalance: 'Stand on one leg near a wall: 2 × 20 seconds', exMarch: 'March in place: 2 minutes', exReach: 'Gentle arm reaches: 2 × 10',
+};
+export const HE = {
+  planTitle: 'תוכנית אימון', wPlan: 'תוכנית אימון', planNone: 'אין עדיין תוכנית. אפשר לבנות אחת בדקה.', planBuild: 'בניית תוכנית', planGoal: 'מטרה', goalGeneral: 'להישאר פעילים ובריאים', goal5k: 'לרוץ 5 ק״מ', goal10k: 'לרוץ 10 ק״מ', goalWeight: 'ירידה עדינה במשקל',
+  planLevel: 'רמה', lvBeginner: 'מתחיל', lvRegular: 'רגיל', lvAdvanced: 'מתקדם', planKind: 'פעילות עיקרית', planSessions: 'אימונים בשבוע', planWeeks: 'אורך (שבועות)', planTypes: 'סוגי אימונים',
+  tyEasy: 'קל', tyLong: 'ארוך', tyIntervals: 'אינטרוולים', tyTempo: 'טמפו', tyStrength: 'תרגילי תנועה', planStart: 'התחלת התוכנית', planDaysNote: 'הימים מתאימים לשגרה הרגילה שלך ככל האפשר. התוכנית מתחילה ביום ראשון.',
+  tyEasyD: 'קצב קל שאפשר לדבר בו.', tyLongD: 'ארוך ואיטי יותר. אפשר להפסיק להליכה אם צריך.', tyTempoD: 'מאמץ יציב, קשה בנוחות.', tyIntervalsD: 'מתחלפים מאמץ והתאוששות.', tyStrengthD: 'אימון קצר של תרגילי תנועה (למטה).',
+  ivRun: '{reps} × ({work} ריצה + {rest} הליכה)', ivWalk: '{reps} × ({work} מהיר + {rest} קל)', secMin: '{m}:{s}',
+  planWeek: 'שבוע {n} מתוך {total}', planPrev: 'השבוע הקודם', planNext: 'השבוע הבא', planMin: '{n} דק׳', planEffortMin: '{n} דק׳ מאמץ',
+  planDone: 'בוצע', planSkipped: 'דולג', planMissed: 'הוחמץ', planToday: 'היום', planMarkDone: 'סימון כבוצע', planSkip: 'דילוג', planGo: 'התחלה',
+  planCatchTitle: 'הוחמצו {n} אימונים', planCatchHint: 'אין בעיה. הנה דרך עדינה להשלים.', planMoveTo: 'העברה ל{when}', whenToday: 'היום', whenSoon: 'יום פנוי השבוע', whySkipNospace: 'אין מקום בימים הקרובים: עדיף לדלג.', planCatchSkip: 'לדלג',
+  planProgressText: '{done} מתוך {total} אימונים בוצעו', planWeekEffort: 'השבוע: {done} מתוך {planned} דקות מאמץ', planEnded: 'התוכנית הסתיימה. כל הכבוד!', planNew: 'תוכנית חדשה', planDelete: 'מחיקת התוכנית', planDeleteAsk: 'למחוק את התוכנית? האימונים שלך נשארים.',
+  planAdapted: 'בשבוע שעבר היו החמצות, ולכן השבוע קל ב-15%.', planDisclaimer: 'הכוונה כללית, לא ייעוץ רפואי. עם מצב בריאותי מיוחד, התייעצו עם רופא לפני שמתחילים.', planSessionDone: 'אימון מהתוכנית הושלם', planNextUp: 'הבא: {what} ב{when}',
+  planRemind: 'תזכורת לאימונים מהתוכנית', planRemindHour: 'שעת התזכורת', planRemindTitle: 'אימון מתוכנן להיום', planRemindBody: '{what}: {min} דק׳',
+  exTitle: 'תרגילי תנועה', exSquat: 'סקוואטים: 2 × 10', exLunge: 'מכרעים: 2 × 8 לכל רגל', exCalf: 'עמידה על קצות האצבעות: 2 × 15', exBridge: 'גשר אגן: 2 × 10', exPlank: 'פלאנק: 2 × 20 שניות', exStretch: 'מתיחת שוקיים ואגן: דקה לכל אחד',
+  exChair: 'קימה וישיבה מכיסא: 2 × 8', exHeel: 'עמידה על העקבים בהיאחזות בקיר: 2 × 12', exBalance: 'עמידה על רגל אחת ליד קיר: 2 × 20 שניות', exMarch: 'צעידה במקום: 2 דקות', exReach: 'מתיחות זרועות עדינות: 2 × 10',
+};

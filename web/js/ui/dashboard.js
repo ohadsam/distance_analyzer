@@ -14,10 +14,11 @@ import { native } from '../native.js';
 import { workoutRow } from './home.js';
 import { recoSummary, mountReco } from './reco.js';
 import { quickActions, routesBody, suggest } from './routes.js';
+import { planSummary, mountPlan } from './plan.js';
 
-export const WIDGETS = ['effort', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
+export const WIDGETS = ['effort', 'plan', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts'];
 const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
-export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
+export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan: 'wPlan', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 export function loadLayout() {
@@ -78,6 +79,10 @@ export const W = {
   records: {
     summary: (c) => { const pb = personalBests(c.rows); return pb.longest ? h('div', { class: 'rows flat' }, row(t('recLongest'), fmtKm(pb.longest.distanceM)), pb.fastest ? row(t('recFastest'), fmtPaceUnit(paceSec(pb.fastest))) : null, pb.bestKm ? row(t('recBestKm'), fmtClock(pb.bestKm.ms)) : null) : h('p', { class: 'note' }, t('recNone')); },
     detail: (c) => [W.records.summary(c)],
+  },
+  plan: {
+    summary: (c) => planSummary(c.now),
+    detail: () => { const box = h('div', { class: 'planbox' }); mountPlan(box); return [box]; },
   },
   routes: {
     summary: (c) => { const top = suggest(c.routes, c.all)[0]; return c.routes.length ? h('div', null, stat(String(c.routes.length), top ? `${t('qaSuggested')}: ${top.route.name}` : t('routeRecNone'))) : h('p', { class: 'note' }, t('routesNone')); },
@@ -141,10 +146,10 @@ export function renderDrill(id) {
   async function draw() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return;
     setChildren(el, h('a', { class: 'link back', href: '#/' }, icon('back', 20), t('dashboard')), h('h1', null, t(W_KEY[id])),
-      ['effort', 'steps', 'alerts', 'reco', 'routes'].includes(id) ? null : filterBar(c, draw), h('div', { class: 'detail' }, W[id].detail(c)),
-      ['alerts', 'reco', 'routes'].includes(id) ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
-      ['alerts', 'reco', 'routes'].includes(id) ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
+      ['effort', 'steps', 'alerts', 'reco', 'routes', 'plan'].includes(id) ? null : filterBar(c, draw), h('div', { class: 'detail' }, W[id].detail(c)),
+      ['alerts', 'reco', 'routes', 'plan'].includes(id) ? null : h('h2', null, `${t('workouts')} · ${t('count', { n: c.rows.length })}`),
+      ['alerts', 'reco', 'routes', 'plan'].includes(id) ? null : h('div', { class: 'list' }, c.rows.length ? c.rows.slice(0, 60).map(workoutRow) : none()));
   }
-  draw(); el.cleanup = () => { el.alive = false; for (const b of el.querySelectorAll('.recobox')) b.alive = false; }; // also stops a recommendation load that is still running
+  draw(); el.cleanup = () => { el.alive = false; for (const b of el.querySelectorAll('.recobox')) b.alive = false; for (const b of el.querySelectorAll('.planbox')) b.alive = false; }; // also stops loads that are still running
   return el;
 }

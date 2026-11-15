@@ -2,6 +2,7 @@
 // days, the recommended walk times from the saved forecast) into a flat list and hands it over; Android only stores it and wakes at the right time.
 // Texts are resolved here (in the language in use now), so Android needs no translations. Smart "no movement" nudges need live data and stay in-app.
 import { sanitizeReminders } from './reminders.js';
+import { clamp } from './util.js';
 
 export const MAX_ITEMS = 60, HORIZON_DAYS = 7;
 const pad = (n) => String(n).padStart(2, '0');
@@ -31,6 +32,18 @@ export function recoEntries(items, now, text) {
     const d = new Date(base); d.setDate(d.getDate() + i.day); d.setHours(i.start, 0, 0, 0);
     const at = d.getTime() - 30 * 60000; if (at <= now) continue;
     const x = text(i); out.push({ id: `reco-${ymd(d)}-${i.start}`, at, title: x.title, body: x.body, href: '#/reco' });
+  }
+  return out;
+}
+
+/** One notification at `hour` o'clock on the day of each planned session still ahead (next HORIZON_DAYS days). text(session) -> { title, body }. */
+export function planEntries(plan, now, hour, text, dateOf) {
+  const out = [];
+  for (const s of plan?.list || []) {
+    if (s.status !== 'planned') continue;
+    const d = new Date(dateOf(s)); d.setHours(clamp(hour, 5, 22), 0, 0, 0);
+    if (d.getTime() <= now || d.getTime() > now + HORIZON_DAYS * 86400000) continue;
+    const x = text(s); out.push({ id: `plan-${s.id}-${ymd(d)}`, at: d.getTime(), title: x.title, body: x.body, href: '#/plan', meta: { type: s.type, min: s.minutes } });
   }
   return out;
 }

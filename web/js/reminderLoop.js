@@ -3,7 +3,9 @@
 import { getJson, setJson, listWorkouts, profile } from './store.js';
 import { sanitizeReminders, sanitizeSmart, dueReminders, smartNudge } from './reminders.js';
 import { pushAlert } from './ui/notify.js';
+import { t } from './i18n.js';
 import { native } from './native.js';
+import { planReminders } from './syncNative.js';
 import { dayStart } from './stats.js';
 import { stepSeries, recommendedSteps } from './steps.js';
 import { weekStatus } from './effort.js';
@@ -23,6 +25,7 @@ async function runChecks(now, prevCheck) {
   last = now;
   const list = sanitizeReminders(getJson('rems', [])), smart = sanitizeSmart(getJson('smart', {}));
   for (const r of dueReminders(list, prevCheck, now)) pushAlert({ id: `rem-${r.id}-${dayStart(now)}-${r.time}`, kind: 'reminder', title: r.kind === 'walk' ? 'rem_walk' : 'rem_move', lines: [r.kind === 'walk' ? 'rem_walk_body' : 'rem_move_body'], href: '#/workout/walk' });
+  if (!native.available) for (const e of planReminders(prevCheck)) if (e.at <= now) pushAlert({ id: e.id, kind: 'reminder', title: 'planRemindTitle', lines: ['planRemindBody'], params: { what: t(`ty${e.meta.type[0].toUpperCase()}${e.meta.type.slice(1)}`), min: e.meta.min }, href: '#/plan' }); // in the browser: while the page is open (Android has the notification already)
   await smartPart(smart, now);
   await recoPart(now);
 }

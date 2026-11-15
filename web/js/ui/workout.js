@@ -11,6 +11,7 @@ import { pushAlert } from './notify.js';
 import { alertCard } from './alerts.js';
 import { liveMap } from './livemap.js';
 import { summaryBox } from './routes.js';
+import { matchAfterWorkout, sessionTitle } from './plan.js';
 import { attemptsOf } from '../routeReco.js';
 import { makeGhost } from '../route.js';
 import { onlineOn, cachedForecast } from '../weatherApi.js';
@@ -100,7 +101,7 @@ export function renderWorkout(kind, go, routeId) {
   let before = 'paused';
   function askFinish() { before = phase; if (phase === 'running') { drainNative(); pause(w, Date.now()); rhythm.setRunning(false); trackOff(); } phase = 'confirm'; paint(); }
   function keepGoing() { if (before === 'running') { native.trackDrain(); resume(w, Date.now()); phase = 'running'; rhythm.setRunning(true); trackOn(); } else phase = 'paused'; paint(); }
-  let saved = null, routeEl = null;
+  let saved = null, routeEl = null, planEl = null;
   async function end(save) {
     const keep = save && w && w.distanceM >= MIN_SAVE_M;
     if (w) { finish(w, Date.now()); if (keep) saved = await saveWorkout(w); }
@@ -113,6 +114,7 @@ export function renderWorkout(kind, go, routeId) {
     if (!saved) return;
     try { const f = onlineOn() ? cachedForecast(Date.now(), 12 * 3600000) : null, wx = f && weatherAt(f, saved.startedAt); if (wx && !saved.weather) saved = (await updateWorkout(saved.startedAt, { weather: wx })) || saved; } catch { /* the weather is a bonus */ }
     routeEl = summaryBox(saved, routeId || '');
+    const ps = matchAfterWorkout(saved); if (ps) planEl = h('p', { class: 'good', 'data-plan-done': ps.id }, `${t('planSessionDone')}: ${sessionTitle(ps)}`);
   }
 
   // After saving: is this workout far beyond the plan? Then explain what happened, why it matters and how to raise the bar gently.
@@ -162,7 +164,7 @@ export function renderWorkout(kind, go, routeId) {
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackSvg(xy),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
-      routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
+      planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 

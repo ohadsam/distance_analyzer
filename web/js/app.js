@@ -8,6 +8,7 @@ import { renderAlerts } from './ui/alerts.js';
 import { renderSearch } from './ui/search.js';
 import { renderReco } from './ui/reco.js';
 import { renderRoutes, renderRoute } from './ui/routes.js';
+import { renderPlan } from './ui/plan.js';
 import { alertStore, unreadCount } from './alerts.js';
 import { startReminderLoop } from './reminderLoop.js';
 import { native, onNativeEvent } from './native.js';
@@ -18,7 +19,7 @@ import { renderWorkout } from './ui/workout.js';
 import { setChildren, h } from './util.js';
 
 // route table: pattern -> view(param). Anything unknown falls back to Home.
-const ROUTES = [[/^settings(?:\/([\w-]{1,30}))?$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)(?:\/(go))?(?:\/r\/(r[a-z0-9]{3,24}))?$/, renderWorkout], [/^routes$/, renderRoutes], [/^r\/(r[a-z0-9]{3,24})$/, renderRoute], [/^d\/([a-z]{3,20})$/, renderDrill], [/^alerts$/, renderAlerts], [/^search$/, renderSearch], [/^reco$/, renderReco], [/^$/, renderDashboard]];
+const ROUTES = [[/^settings(?:\/([\w-]{1,30}))?$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)(?:\/(go))?(?:\/r\/(r[a-z0-9]{3,24}))?$/, renderWorkout], [/^routes$/, renderRoutes], [/^plan$/, renderPlan], [/^r\/(r[a-z0-9]{3,24})$/, renderRoute], [/^d\/([a-z]{3,20})$/, renderDrill], [/^alerts$/, renderAlerts], [/^search$/, renderSearch], [/^reco$/, renderReco], [/^$/, renderDashboard]];
 let current = null;
 
 function route() {

@@ -3,6 +3,9 @@
 Ordered so that every phase ships something usable and the later phases build on the earlier ones. Status of each request lives in `REQUESTS.md`.
 Core idea: **clean, simple, self-explanatory**; a **Workout mode** that strips the screen to a few big buttons.
 
+## Status snapshot (0.8.0)
+Phase 6 (training plans) built: generation, week view, auto-match, catch-up, reminders. Still open: live in-workout indications (phase 4: "about to pass your previous distance / break a record" beyond the route ghost), more widget types and looks, map tiles (D2).
+
 ## Status snapshot (0.7.0)
 Phase 9: three Android widgets built (steps, weekly effort, measure now); more types and the designed widget backgrounds from the ChatGPT kit are still to come. Open: training plans (phase 6), map tiles (D2).
 

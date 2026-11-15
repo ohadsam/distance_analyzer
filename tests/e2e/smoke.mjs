@@ -97,7 +97,7 @@ await step('English is LTR; settings switches language without a reload', async 
 
 await step('dashboard offers walk and run and eight widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 10); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 11); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
@@ -165,7 +165,7 @@ await step('dashboard: effort and steps widgets, drill-down, filters, customise 
   await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
   await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);
   await page.selectOption('.filters select >> nth=1', 'walk'); await page.waitForSelector('text=Nothing here for this filter.'); await page.selectOption('.filters select >> nth=1', ''); await page.waitForSelector('.drill .list .item');
-  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); for (let i = 0; i < 3; i++) { await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); }
+  await page.goto(base + '#/'); await page.waitForSelector('.wcard'); await page.click('.dash-top button'); await page.click('[data-widget=pace] button.btn'); for (let i = 0; i < 4; i++) { await page.click('[data-widget=steps] button[aria-label^="Move up"]'); await page.waitForTimeout(150); }
   await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=pace]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
   assert.equal(await page.locator('[data-widget=pace]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
 });
@@ -299,10 +299,34 @@ await step('android steps: the phone step counter feeds the dashboard and the re
   const { page } = await newPage({ lang: 'en', native: { steps: { [key]: 9000 } } }); await page.goto(base); await page.waitForSelector('[data-widget=steps]'); assert.match(await page.textContent('[data-widget=steps]'), /6,?300/, 'quality steps: 9000 from the phone, counted at 70 % when not in a tracked workout');
   assert.ok(await page.evaluate(() => __n.sampled) >= 1, 'the sensor is sampled when the app opens'); await page.goto(base + '#/d/steps'); await page.waitForSelector('text=Counted by your phone all day'); assert.match(await page.textContent('.detail'), /9,?000/);
 });
+
+await step('training plan: build, week view, mark done, navigate weeks, persists, delete; the dashboard widget follows', async () => {
+  const SUN = new Date(2026, 10, 8, 8, 0); const { page, errors } = await newPage({ lang: 'en', clock: true, clockAt: SUN }); await page.goto(base + '#/plan'); await page.waitForSelector('#plan-create');
+  await shot(page, 'plan-builder'); await page.selectOption('#p-goal', '5k'); await page.selectOption('#p-kind', 'run'); await page.selectOption('#p-weeks', '8'); await page.click('#plan-create'); await page.waitForSelector('[data-session]');
+  assert.equal(await page.locator('[data-session]').count(), 3); assert.match(await page.textContent('.planhead'), /Week 1 of 8/); assert.match(await page.textContent('.plan'), /not medical advice/); await shot(page, 'plan-week');
+  await page.click('[data-session] [data-act=done] >> nth=0'); await page.waitForSelector('[data-session][data-status=done]'); assert.match(await page.textContent('.planbox'), /1 of 24 sessions done/);
+  await page.click('.planhead button[aria-label="Next week"]'); await page.waitForSelector('text=Week 2 of 8'); assert.equal(await page.locator('[data-session]').count(), 3);
+  await page.reload(); await page.waitForSelector('[data-session]'); assert.match(await page.textContent('.planbox'), /1 of 24 sessions done/, 'saved');
+  await page.goto(base + '#/'); await page.waitForSelector('[data-widget=plan]'); assert.match(await page.textContent('[data-widget=plan]'), /Week 1 of 8/); await page.click('[data-widget=plan]'); await page.waitForSelector('[data-session]');
+  await page.goto(base + '#/plan'); await page.waitForSelector('#plan-delete'); page.once('dialog', (d) => d.accept()); await page.click('#plan-delete'); await page.waitForSelector('#plan-create'); assert.deepEqual(errors, []);
+});
+await step('training plan: a matching workout completes the session; missed sessions get a gentle catch-up (move or skip)', async () => {
+  const SUN = new Date(2026, 10, 8, 8, 0); const { page } = await newPage({ lang: 'en', clock: true, clockAt: SUN }); await page.goto(base);
+  await page.evaluate(async (start) => { const P = await import('./js/plan.js'); const p = P.generatePlan({ age: 35, level: 'beginner', goal: 'general', sessions: 3, types: ['easy', 'long', 'intervals'], weeks: 8, startDay: start, baseEffort: 90, kind: 'walk' }); localStorage.setItem('da.plan', JSON.stringify(p)); window.__p = p; }, new Date(2026, 10, 8).getTime());
+  const mins = await page.evaluate(() => __p.list[0].minutes); await seedHours(page, [{ daysAgo: 0, hour: 7, min: mins + 2 }]);
+  await page.goto(base + '#/plan'); await page.waitForSelector('[data-session][data-status=done]'); assert.match(await page.textContent('.planbox'), /1 of 24/);
+  await page.clock.setSystemTime(new Date(2026, 10, 11, 10, 0)); await page.goto(base + '#/plan'); await page.reload(); await page.waitForSelector('.catch'); assert.match(await page.textContent('.catch'), /You missed 1 session/);
+  await page.click('.catch [data-act=move]'); await page.waitForFunction(() => !document.querySelector('.catch')); assert.ok(await page.locator('[data-session][data-status=planned]').count() >= 2, 'the moved session is planned again');
+});
+await step('training plan: an in-app reminder fires at the chosen hour on the day of a planned session', async () => {
+  const at = new Date(2026, 10, 8, 17, 59, 40); const { page } = await newPage({ lang: 'en', clock: true, clockAt: at }); await page.goto(base);
+  await page.evaluate(async (start) => { const P = await import('./js/plan.js'); localStorage.setItem('da.plan', JSON.stringify(P.generatePlan({ age: 35, level: 'beginner', goal: 'general', sessions: 3, types: ['easy', 'long'], weeks: 8, startDay: start, baseEffort: 90, kind: 'walk' }))); localStorage.setItem('da.planHour', '18'); }, new Date(2026, 10, 8).getTime());
+  await page.clock.runFor(45000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Planned workout today/);
+});
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });
-    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/reco', '#/d/reco', '#/routes', '#/d/routes']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
+    for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/reco', '#/d/reco', '#/routes', '#/d/routes', '#/plan']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
     for (const pack of ['ocean', 'high-contrast', 'mono']) { await page.goto(base + '#/'); await page.evaluate((p) => { document.documentElement.dataset.pack = p; }, pack); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} pack ${pack}`); }
     await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout`);
     await page.click('.big-btn'); await page.click('.controls button.round[aria-label]:last-child'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);
