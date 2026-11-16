@@ -88,7 +88,7 @@ export function elevationUrl(path, n = ELEV_POINTS) {
 /** The Overpass question: every walkable way within 18 m of the route, with its shape, and every crossing node near it. */
 export function overpassQuery(path) {
   const pts = sampleAlong(path, 36), line = pts.map((p) => `${p[0].toFixed(5)},${p[1].toFixed(5)}`).join(',');
-  return `[out:json][timeout:25];(way(around:18,${line})["highway"];node(around:15,${line})["highway"="crossing"];node(around:15,${line})["crossing"];);out tags geom 600;`;
+  return `[out:json][timeout:25];(way(around:18,${line})["highway"];node(around:15,${line})["highway"="crossing"];node(around:15,${line})["crossing"];);out tags geom 1500;`;
 }
 /** Overpass answer -> { ways: [{ tags, geom }], crossings: [{ lat, lon, signals }] } (tags trimmed to the few that matter). */
 const KEEP = ['highway', 'footway', 'surface', 'sidewalk', 'sidewalk:left', 'sidewalk:right', 'sidewalk:both', 'crossing', 'foot', 'tracktype', 'smoothness'];
@@ -98,7 +98,7 @@ export function parseOverpass(json) {
     const tags = {}; for (const k of KEEP) if (typeof el?.tags?.[k] === 'string') tags[k] = el.tags[k].slice(0, 40);
     if (el?.type === 'way' && Array.isArray(el.geometry) && el.geometry.length >= 2) {
       const geom = el.geometry.slice(0, 400).filter((g) => okPoint(g?.lat, g?.lon)).map((g) => [g.lat, g.lon]); if (geom.length >= 2 && tags.highway) ways.push({ tags, geom });
-    } else if (el?.type === 'node' && okPoint(el.lat, el.lon)) crossings.push({ lat: el.lat, lon: el.lon, signals: /signal|traffic_signals/.test(tags.crossing || '') });
+    } else if (el?.type === 'node' && okPoint(el.lat, el.lon) && tags.crossing !== 'no') crossings.push({ lat: el.lat, lon: el.lon, signals: /signal|traffic_signals/.test(tags.crossing || '') });
   }
   return { ways, crossings };
 }

@@ -2,7 +2,7 @@
 // street data, rank. Pure of the network: `api` = { route(points), elevation(path), tags(path) } is passed in (planApi.js in the app, fakes in tests).
 // Every enrichment may fail (offline, rate limit): the route is then still offered, with that fact missing and said so.
 import { simplify } from './route.js';
-import { viaSets, scaleVia, elevationStats, classifyRoute, countCrossings, rankRoutes, MIN_TARGET_M, MAX_TARGET_M } from './routePlan.js';
+import { viaSets, scaleVia, elevationStats, classifyRoute, countCrossings, rankRoutes, similar, MIN_TARGET_M, MAX_TARGET_M } from './routePlan.js';
 import { clamp } from './util.js';
 
 /** Run `fn` over `items`, at most `n` at a time; failures become null. */
@@ -28,7 +28,8 @@ export async function planRoutes(req, api, onProgress = () => {}) {
     const fixed = await pool(again, 3, async ({ c }) => { const via = scaleVia(start, end, c.via, clamp(targetM / c.distanceM, 0.55, 1.7)), r = await api.route([start, ...via, end]); return ok(r) ? { id: `${c.id}b`, via, path: simplify(r.path, 400), distanceM: r.distanceM } : null; });
     again.forEach(({ i }, k) => { const f = fixed[k]; if (f && Math.abs(f.distanceM - targetM) < Math.abs(first[i].distanceM - targetM)) first[i] = f; });
   }
-  const cands = first.filter(Boolean).sort((a, b) => Math.abs(a.distanceM - targetM) - Math.abs(b.distanceM - targetM)).slice(0, 7);
+  const cands = []; // the closest to the distance first; routes along the same streets are dropped BEFORE the (rate-limited) detail requests
+  for (const c of first.filter(Boolean).sort((a, b) => Math.abs(a.distanceM - targetM) - Math.abs(b.distanceM - targetM))) if (cands.length < 7 && !cands.some((o) => similar(o, c))) cands.push(c);
   const notes = { elevation: false, streets: false, tried: sets.length, found: cands.length };
   if (!cands.length) return { routes: [], notes };
   done = 0; onProgress('details', 0, cands.length);

@@ -30,7 +30,7 @@ export function renderRoutePlan() {
   const stored = getJson('planPrefs', {}), prefs = {}; for (const k of Object.keys(PREFS)) prefs[k] = PREFS[k].includes(stored[k]) ? stored[k] : DEFAULT_PREFS[k];
   const places = { start: null, end: null }, from = getJson('planStart', null);
   if (from && Number.isFinite(from.lat) && Number.isFinite(from.lon)) { places.start = { name: t('planMapPoint'), lat: from.lat, lon: from.lon }; setPref('planStart', 'null'); }
-  const body = h('div', { class: 'planbody' });
+  const body = h('div', { class: 'planbody' }); let alive = true;
 
   function consent() {
     return h('div', { class: 'card consent' }, h('h2', null, t('planConsentTitle')), h('p', null, t('planConsentBody')),
@@ -68,8 +68,9 @@ export function renderRoutePlan() {
     try {
       const s = await resolve('start', startF); if (!s) { prog.textContent = t('planNeedStart'); return; }
       let e = null; if (!same.checked) { e = await resolve('end', endF); if (!e) { prog.textContent = t('planNeedEnd'); return; } }
-      const targetM = Math.round(Math.min(MAX_TARGET_M, Math.max(MIN_TARGET_M, (Number(km.value) || 5) * 1000))); setPref('planKm', targetM / 1000);
+      const targetM = Math.round(Math.min(MAX_TARGET_M, Math.max(MIN_TARGET_M, (Number(km.value) || 5) * 1000))); setPref('planKm', targetM / 1000); km.value = String(targetM / 1000); // what was really asked for is shown
       const res = await planRoutes({ start: [s.lat, s.lon], end: e ? [e.lat, e.lon] : null, targetM, prefs }, api, (phase, n, total) => { prog.textContent = t(phase === 'routes' ? 'planProgRoutes' : 'planProgDetails', { n, total }); });
+      if (!alive) return; // left the screen meanwhile
       if (!res.routes.length) { prog.textContent = t('planNone'); return; }
       prog.textContent = t('planFound', { n: res.routes.length }); show(res, targetM);
     } catch { prog.textContent = t('planNetFail'); } finally { go.disabled = false; }
@@ -108,5 +109,5 @@ export function renderRoutePlan() {
       go, prog, results,
       h('p', { class: 'note' }, h('button', { type: 'button', class: 'linkbtn', id: 'plan-revoke', onclick: () => { setPlanNet(false); draw(); } }, t('planRevoke'))));
   }
-  const el = h('section', { class: 'routeplan' }, h('h1', null, t('planRouteTitle')), h('p', { class: 'note' }, t('planIntro')), body); draw(); return el;
+  const el = h('section', { class: 'routeplan' }, h('h1', null, t('planRouteTitle')), h('p', { class: 'note' }, t('planIntro')), body); draw(); el.cleanup = () => { alive = false; }; return el;
 }

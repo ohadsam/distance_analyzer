@@ -27,17 +27,17 @@ export function renderMap() {
   const note = credit(); const wrap = h('div', { class: 'mapwrap bigwrap' }, svg, note);
   const total = h('b', { class: 'measure-km', id: 'map-km', 'aria-live': 'polite' }), legsEl = h('span', { class: 'note' });
   const msg = h('p', { class: 'note', role: 'status', id: 'map-msg' }), tileBox = h('div', { class: 'maptiles' });
-  let view = followView(st.lat, st.lon, st.z, W, HT);
+  let view = followView(st.lat, st.lon, st.z, W, HT), saveT = 0;
 
   function draw() {
-    view = followView(st.lat, st.lon, st.z, W, HT); setJson('mapView', { lat: +st.lat.toFixed(5), lon: +st.lon.toFixed(5), z: st.z });
+    view = followView(st.lat, st.lon, st.z, W, HT); clearTimeout(saveT); saveT = setTimeout(() => setJson('mapView', { lat: +st.lat.toFixed(5), lon: +st.lon.toFixed(5), z: st.z }), 400); // not on every drag step
     content.replaceChildren(); const on = tilesOn(); layer.show(on ? tilesOf(view) : []); note.hidden = !on; svg.classList.toggle('on-map', on);
     if (!on) for (let i = 1; i < 8; i++) { mk('path', { d: `M${i * W / 8} 0V${HT}`, class: 'gridline' }, content); mk('path', { d: `M0 ${i * HT / 8}H${W}`, class: 'gridline' }, content); }
     const xy = st.pts.map((p) => view.toXY(p[0], p[1]));
     if (xy.length > 1) mk('path', { d: `M${xy.map((p) => p.join(' ')).join('L')}`, class: 'track-line' }, content);
     xy.forEach((p, i) => mk('circle', { cx: p[0], cy: p[1], r: i === 0 || i === xy.length - 1 ? 7 : 4.5, class: i === 0 ? 'track-start' : i === xy.length - 1 ? 'me' : 'wp' }, content));
     mk('path', { d: `M${W / 2 - 9} ${HT / 2}H${W / 2 + 9}M${W / 2} ${HT / 2 - 9}V${HT / 2 + 9}`, class: 'cross' }, content); // the centre: "Add point here" lands here
-    const mpp = 40075016 * Math.cos(st.lat * Math.PI / 180) / view.scale, len = niceLength(mpp * 90), px = len / mpp, y = HT - 14;
+    const mpp = 40075016 * Math.cos(st.lat * Math.PI / 180) / view.scale, len = niceLength(mpp * 90), px = len / mpp, y = HT - 32;
     mk('path', { d: `M14 ${y - 4}V${y}H${14 + px}V${y - 4}`, class: 'scale' }, content); mk('text', { x: 14, y: y - 7, class: 'scale-t' }, content).append(document.createTextNode(len >= 1000 ? `${len / 1000} ${t('km')}` : `${len} m`));
     const m = lineLength(st.pts); total.textContent = fmtKm(m); legsEl.textContent = st.pts.length < 2 ? t('mapTapHint') : t('mapPoints', { n: st.pts.length, last: Math.round(dist(st.pts[st.pts.length - 2], st.pts[st.pts.length - 1])) });
     tilesNote();

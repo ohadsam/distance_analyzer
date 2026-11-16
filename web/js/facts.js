@@ -1,8 +1,6 @@
 // "Your data" answers for the global search (pure): the longest and fastest workouts, totals, this week and month, streak, records, challenge.
 // Each fact is a search item { id, type: 'fact', title, text, href }; `text` carries the words people may type in both languages.
-import { totals, weekStart, streak } from './stats.js';
-import { monthSeries } from './stats.js';
-import { paceSec } from './stats.js';
+import { totals, weekStart, streak, monthSeries, paceSec } from './stats.js';
 import { recordFlags } from './records.js';
 import { challengeStatus, challengeTarget } from './challenge.js';
 
