@@ -8,7 +8,7 @@ import { serve } from '../../scripts/serve.mjs';
 
 const out = process.argv[2] || '/tmp/journey'; mkdirSync(out, { recursive: true });
 const server = await serve('web', 0), base = `http://localhost:${server.address().port}/`, browser = await chromium.launch();
-const findings = [], shotsList = []; let n = 0;
+const findings = [], shotsList = []; let n = 0, curLang = 'he'; const LANGS = ['he', 'en']; // Hebrew (the default) first, then English
 
 async function ctxPage({ lang = 'he', width = 390, height = 800, scheme = 'light', geo = true } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
@@ -31,10 +31,10 @@ async function audit(page, name) {
   await page.evaluate(axe.source); const ax = await page.evaluate(async () => (await axe.run(document, { resultTypes: ['violations'] })).violations.map((v) => `${v.id}(${v.nodes.length})`));
   const issues = []; if (r.overflow) issues.push('horizontal overflow'); if (r.h1 !== 1) issues.push(`h1 count ${r.h1}`); if (r.small.length) issues.push(`small targets: ${r.small.join(', ')}`); if (r.tiny.length) issues.push(`tiny text: ${r.tiny.join(', ')}`);
   if (r.broken.length) issues.push(`broken pictures: ${r.broken.join(', ')}`); if (ax.length) issues.push(`axe: ${ax.join(', ')}`); if (r.choices > 12) issues.push(`${r.choices} choices above the fold`);
-  findings.push({ name, choices: r.choices, issues });
+  findings.push({ name: `${curLang}/${name}`, choices: r.choices, issues });
 }
 async function shot(page, flow, label, { full = false, noaudit = false } = {}) {
-  n++; const file = `${flow}-${String(n).padStart(2, '0')}-${label}.png`; await page.waitForTimeout(250);
+  n++; const file = `${flow}-${curLang}-${String(n).padStart(2, '0')}-${label}.png`; await page.waitForTimeout(250);
   await page.screenshot({ path: `${out}/${file}`, fullPage: full }); shotsList.push({ flow, file, label }); if (!noaudit) await audit(page, `${flow}/${label}`);
 }
 const move = async (ctx, page, steps, dLat = 0.00007) => { for (let i = 1; i <= steps; i++) { await ctx.setGeolocation({ latitude: 32 + i * dLat, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } };
@@ -54,19 +54,20 @@ async function seed(page, rows) {
 const HIST = [{ daysAgo: 30, hour: 7, pace: 380 }, { daysAgo: 26, hour: 18, pace: 370, kind: 'walk' }, { daysAgo: 23, hour: 7, pace: 365 }, { daysAgo: 19, hour: 7, pace: 350, weather: { tempC: 12, cond: 'clear' } }, { daysAgo: 16, hour: 18, pace: 360, kind: 'walk' }, { daysAgo: 12, hour: 7, pace: 345 }, { daysAgo: 9, hour: 7, pace: 340, path: 'other', weather: { tempC: 27, cond: 'clear' } }, { daysAgo: 6, hour: 18, pace: 335, kind: 'walk' }, { daysAgo: 4, hour: 7, pace: 330, weather: { tempC: 18, cond: 'rain' } }, { daysAgo: 2, hour: 7, pace: 322 }, { daysAgo: 1, hour: 18, pace: 355, kind: 'walk' }, { daysAgo: 0, hour: 6, pace: 318 }];
 
 // ---------- A: first run (Hebrew, a brand-new person) ----------
-{ const { ctx, page, errors } = await ctxPage({ lang: 'he' });
-  await page.goto(base); await page.waitForSelector('#welcome'); await shot(page, 'A', 'he-first-launch');
-  await page.fill('#welcome-age', '41'); await page.click('#welcome-ok'); await page.waitForSelector('#welcome', { state: 'detached' }); await shot(page, 'A', 'he-home-after-welcome');
-  await page.click('a.start-card.walk, .start-card >> nth=0'); await page.waitForSelector('.gps-card'); await shot(page, 'A', 'he-workout-ready');
-  await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="running"]'); await move(ctx, page, 4); await shot(page, 'A', 'he-workout-running');
-  await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="paused"]'); await shot(page, 'A', 'he-workout-paused');
-  await page.click('.controls .btn.ghost'); await page.waitForSelector('.confirm'); await shot(page, 'A', 'he-finish-question');
-  await page.click('.confirm .btn.danger'); await page.waitForSelector('.start-card'); await shot(page, 'A', 'he-after-discard');
-  await page.goto(base + '#/settings'); await page.waitForSelector('details.sec'); await shot(page, 'A', 'he-settings-collapsed');
+async function flowA(lang) { curLang = lang; const { ctx, page, errors } = await ctxPage({ lang });
+  await page.goto(base); await page.waitForSelector('#welcome'); await shot(page, 'A', 'first-launch');
+  await page.fill('#welcome-age', '41'); await page.click('#welcome-ok'); await page.waitForSelector('#welcome', { state: 'detached' }); await shot(page, 'A', 'home-after-welcome');
+  await page.click('a.start-card.walk, .start-card >> nth=0'); await page.waitForSelector('.gps-card'); await shot(page, 'A', 'workout-ready');
+  await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="running"]'); await move(ctx, page, 4); await shot(page, 'A', 'workout-running');
+  await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="paused"]'); await shot(page, 'A', 'workout-paused');
+  await page.click('.controls .btn.ghost'); await page.waitForSelector('.confirm'); await shot(page, 'A', 'finish-question');
+  await page.click('.confirm .btn.danger'); await page.waitForSelector('.start-card'); await shot(page, 'A', 'after-discard');
+  await page.goto(base + '#/settings'); await page.waitForSelector('details.sec'); await shot(page, 'A', 'settings-collapsed');
   if (errors.length) findings.push({ name: 'A/console', issues: errors.slice(0, 3) }); await ctx.close(); }
 
+
 // ---------- B: an established person (English) ----------
-{ const { ctx, page, errors } = await ctxPage({ lang: 'en' });
+async function flowB(lang) { curLang = lang; const { ctx, page, errors } = await ctxPage({ lang });
   await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, HIST); await page.evaluate(() => localStorage.setItem('da.welcomed', '1'));
   await page.goto(base); await page.waitForSelector('.daycard'); await shot(page, 'B', 'home-top'); await page.evaluate(() => scrollTo(0, 700)); await shot(page, 'B', 'home-widgets');
   await page.goto(base + '#/d/effort'); await page.waitForSelector('.drill'); await shot(page, 'B', 'drill-effort');
@@ -85,18 +86,23 @@ const HIST = [{ daysAgo: 30, hour: 7, pace: 380 }, { daysAgo: 26, hour: 18, pace
   if (errors.length) findings.push({ name: 'B/console', issues: errors.slice(0, 3) }); await ctx.close(); }
 
 // ---------- C: a record and the celebration ----------
-{ const { ctx, page, errors } = await ctxPage({ lang: 'en' });
+async function flowC(lang) { curLang = lang; const { ctx, page, errors } = await ctxPage({ lang });
   await page.goto(base); await page.waitForSelector('.start-card'); await page.evaluate(() => localStorage.setItem('da.welcomed', '1'));
   await page.evaluate(async () => { const { celebrationCard } = await import('./js/ui/podium.js'); document.getElementById('app').replaceChildren(Object.assign(document.createElement('h1'), { textContent: 'Summary' }), celebrationCard([{ id: 'distance', value: 12340, prev: 10000 }, { id: 'pace', value: 300, prev: 320 }], { startedAt: Date.now(), kind: 'run' })); });
   await shot(page, 'C', 'record-ask'); await page.click('#rec-nophoto'); await page.waitForTimeout(3500); await shot(page, 'C', 'record-podium'); if (errors.length) findings.push({ name: 'C/console', issues: errors.slice(0, 3) }); await ctx.close(); }
 
 // ---------- D: variants (dark, Hebrew, 320 px, wide) ----------
-for (const [tag, o] of [['dark-en', { lang: 'en', scheme: 'dark' }], ['he-320', { lang: 'he', width: 320 }], ['wide-en', { lang: 'en', width: 1100, height: 800 }]]) {
-  const { ctx, page, errors } = await ctxPage(o); await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, HIST); await page.evaluate(() => localStorage.setItem('da.welcomed', '1'));
+async function flowD(lang, tag, o) { curLang = lang; { const { ctx, page, errors } = await ctxPage({ ...o, lang }); await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, HIST); await page.evaluate(() => localStorage.setItem('da.welcomed', '1'));
   await page.goto(base); await page.waitForSelector('.daycard'); await shot(page, 'D', `${tag}-home`);
   await page.goto(base + '#/workout/walk'); await page.waitForSelector('.gps-card'); await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="running"]'); await move(ctx, page, 3); await shot(page, 'D', `${tag}-workout`);
   await page.goto(base + '#/history'); await page.waitForSelector('.item'); await shot(page, 'D', `${tag}-history`);
-  if (errors.length) findings.push({ name: `D/${tag}/console`, issues: errors.slice(0, 3) }); await ctx.close(); }
+  if (errors.length) findings.push({ name: `D/${tag}/console`, issues: errors.slice(0, 3) }); await ctx.close(); } }
+
+// ---------- run everything in Hebrew first, then English ----------
+for (const lang of LANGS) {
+  await flowA(lang); await flowB(lang); await flowC(lang);
+  await flowD(lang, 'dark', { scheme: 'dark' }); await flowD(lang, '320px', { width: 320 }); await flowD(lang, 'wide', { width: 1100, height: 800 });
+}
 
 // ---------- report + contact sheets ----------
 writeFileSync(`${out}/findings.json`, JSON.stringify(findings, null, 1));
