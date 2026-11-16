@@ -274,7 +274,7 @@ await step('recommendations follow the routine: a person who walks at 7 and 18 g
   await shot(page, 'reco-habit');
 });
 await step('recommendations: dashboard widget and drill-down, toolbar button, effort recommendations, failure and retry', async () => {
-  const { page } = await newPage({ lang: 'en', clock: true, clockAt: SUMMER }); const calls = await mockWeather(page, hotForecast(SUMMER), { fail: true }); await page.goto(base); await page.waitForSelector('[data-widget=reco]');
+  const { page } = await newPage({ lang: 'en', clock: true, clockAt: SUMMER }); const calls = await mockWeather(page, hotForecast(SUMMER), { fail: true }); await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, [{ daysAgo: 2, km: 5, min: 30 }]); await page.reload(); await page.waitForSelector('[data-widget=reco]');
   assert.match(await page.textContent('[data-widget=reco]'), /Allow the forecast/); await page.click('[data-widget=reco]'); await page.waitForSelector('#reco-consent'); assert.equal(await page.textContent('h1'), 'Recommendations');
   await page.click('#reco-consent'); await page.waitForSelector('#reco-retry'); assert.match(await page.textContent('.recobox'), /Could not load the forecast/);
   await page.unroute('https://api.open-meteo.com/**'); await mockWeather(page, hotForecast(SUMMER)); await page.click('#reco-retry'); await page.waitForSelector('[data-reco=best]');
@@ -427,7 +427,7 @@ await step('training plan: build, week view, mark done, navigate weeks, persists
   await page.click('[data-session] [data-act=done] >> nth=0'); await page.waitForSelector('[data-session][data-status=done]'); assert.match(await page.textContent('.planbox'), /1 of 24 sessions done/);
   await page.click('.planhead button[aria-label="Next week"]'); await page.waitForSelector('text=Week 2 of 8'); assert.equal(await page.locator('[data-session]').count(), 3);
   await page.reload(); await page.waitForSelector('[data-session]'); assert.match(await page.textContent('.planbox'), /1 of 24 sessions done/, 'saved');
-  await page.goto(base + '#/'); await page.waitForSelector('[data-widget=plan]'); assert.match(await page.textContent('[data-widget=plan]'), /Week 1 of 8/); await page.click('[data-widget=plan]'); await page.waitForSelector('[data-session]');
+  await seed(page, [{ daysAgo: 2, km: 5, min: 30 }]); await page.goto(base + '#/'); await page.reload(); await page.waitForSelector('[data-widget=plan]'); assert.match(await page.textContent('[data-widget=plan]'), /Week 1 of 8/); await page.click('[data-widget=plan]'); await page.waitForSelector('[data-session]');
   await page.goto(base + '#/plan'); await page.waitForSelector('#plan-delete'); page.once('dialog', (d) => d.accept()); await page.click('#plan-delete'); await page.waitForSelector('#plan-create'); assert.deepEqual(errors, []);
 });
 await step('training plan: a matching workout completes the session; missed sessions get a gentle catch-up (move or skip)', async () => {
