@@ -226,6 +226,21 @@ await step('dashboard: effort and steps widgets, drill-down, filters, customise 
   await page.click('.dash-top button'); await page.waitForSelector('.wcard:not(.editing)'); assert.equal(await page.locator('[data-widget=weather]').count(), 0); await page.reload(); await page.waitForSelector('.wcard');
   assert.equal(await page.locator('[data-widget=weather]').count(), 0, 'hidden stays hidden'); assert.equal(await page.locator('.wcard').first().getAttribute('data-widget'), 'steps', 'moved to the top'); assert.deepEqual(errors, []);
 });
+await step('global search: actions, data facts and guide topics are found; the guide walks through every topic', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 9.4, min: 55, kind: 'run' }, { daysAgo: 3, km: 5, min: 30 }]);
+  await page.goto(base + '#/search'); await page.waitForSelector('#q');
+  await page.fill('#q', 'backup'); await page.waitForSelector('.result[data-type=action]'); await page.fill('#q', 'longest run'); await page.waitForSelector('.result[data-type=fact]'); assert.match(await page.textContent('.result[data-type=fact]'), /9\.4/);
+  await page.fill('#q', 'guide'); await page.waitForSelector('.result[data-type=guide], .result[data-type=action]'); await page.fill('#q', 'גיבוי'); await page.waitForSelector('.result[data-type=action]');
+  await page.keyboard.press('Enter'); await page.waitForSelector('#s-backup, #backup-save');
+  await page.goto(base + '#/guide'); await page.waitForSelector('#guide-start'); await page.click('#guide-start'); await page.waitForSelector('.guide.step'); let n = 1;
+  while (await page.locator('#guide-next').count()) { await page.click('#guide-next'); await page.waitForSelector('.guide.step'); n++; assert.ok(n < 40); }
+  assert.ok(n >= 8, `guide has ${n} steps`); assert.deepEqual(errors.filter((e) => !/404/.test(e)), []);
+});
+await step('live map explains itself: hint before the first fix, legend and scale once there is a path', async () => {
+  const { page, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
+  for (let i = 1; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.0002, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  await page.waitForSelector('.maplegend:not([hidden])'); assert.ok(await page.locator('.livemap .scale-t').count() >= 1, 'scale bar');
+});
 await step('weather: add it to a workout, the weather widget and filter use it', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 6, min: 33 }, { daysAgo: 3, km: 6, min: 40 }]);
   await page.goto(base + '#/history'); await page.waitForSelector('.item'); await page.click('.item >> nth=0'); await page.waitForSelector('#wx-save');
