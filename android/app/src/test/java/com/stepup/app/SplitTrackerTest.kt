@@ -7,10 +7,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SplitTrackerTest {
-    // 0.00001 degree of latitude is about 1.11 m: a fix every 2 s at 0.0000054 degrees = about 3 m/s
+    // 0.00001 degree of latitude is about 1.11 m: a fix every 2 s and 0.000054 degrees per fix = about 6 m per fix = 3 m/s
     private fun walk(tr: SplitTracker, seconds: Int, startT: Long = 1_000_000L): List<SplitTracker.Split> {
         val all = ArrayList<SplitTracker.Split>(); var lat = 32.0
-        for (i in 0..seconds step 2) { all.addAll(tr.add(lat, 34.8, startT + i * 1000L, 5f)); lat += 0.0000054 }
+        for (i in 0..seconds step 2) { all.addAll(tr.add(lat, 34.8, startT + i * 1000L, 5f)); lat += 0.000054 }
         return all
     }
     @Test fun reportsEachKilometreOnceWithTheInterpolatedTime() {
