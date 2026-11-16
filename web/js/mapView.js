@@ -26,8 +26,10 @@ export function followView(lat, lon, zoom, w, h) {
   const [cx, cy] = world(lat, lon);
   return makeView(cx, cy, TILE_PX * 2 ** zoom, w, h);
 }
+/** World coordinates [0, 1) -> lat/lon (the inverse of `world`). */
+export function unworld(x, y) { return [Math.atan(Math.sinh(Math.PI * (1 - 2 * y))) * 180 / Math.PI, x * 360 - 180]; }
 function makeView(cx, cy, scale, w, h) {
-  return { cx, cy, scale, w, h, toXY: (lat, lon) => { const [x, y] = world(lat, lon); return [Math.round((w / 2 + (x - cx) * scale) * 10) / 10, Math.round((h / 2 + (y - cy) * scale) * 10) / 10]; } };
+  return { cx, cy, scale, w, h, fromXY: (px, py) => unworld(cx + (px - w / 2) / scale, Math.min(0.999, Math.max(0.001, cy + (py - h / 2) / scale))), toXY: (lat, lon) => { const [x, y] = world(lat, lon); return [Math.round((w / 2 + (x - cx) * scale) * 10) / 10, Math.round((h / 2 + (y - cy) * scale) * 10) / 10]; } };
 }
 
 /** The tiles that cover the view: [{ key, url, x, y, w, h }] with box positions (floats), at the zoom whose tiles are about 128-256 px on screen. */

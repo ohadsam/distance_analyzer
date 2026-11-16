@@ -4,6 +4,7 @@ import axe from 'axe-core';
 import assert from 'node:assert/strict';
 import { mkdirSync } from 'node:fs';
 import { serve } from '../../scripts/serve.mjs';
+import { mockPlanner } from './mocks.mjs';
 
 const shots = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 if (shots) mkdirSync(shots, { recursive: true });
@@ -240,6 +241,32 @@ await step('live map explains itself: hint before the first fix, legend and scal
   const { page, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
   for (let i = 1; i <= 6; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
   await page.waitForSelector('.maplegend:not([hidden])'); assert.ok(await page.locator('.livemap .scale-t').count() >= 1, 'scale bar');
+});
+await step('map screen: move, lay points, the distance follows, undo, save as a route, the street map is an opt-in', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); const asked = [], PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64'); await page.route('https://tile.openstreetmap.org/**', (r) => { asked.push(r.request().url()); return r.fulfill({ status: 200, contentType: 'image/png', body: PNG }); });
+  await page.goto(base + '#/map'); await page.waitForSelector('svg.bigmap'); assert.equal(await page.textContent('h1'), 'Map and measuring'); assert.match(await page.textContent('#map-km'), /^0\.00/); assert.equal(asked.length, 0, 'no tiles before the opt-in');
+  await page.click('#map-add'); for (let i = 0; i < 3; i++) { await page.focus('svg.bigmap'); await page.keyboard.press('ArrowRight'); } await page.keyboard.press('Enter');
+  const kmText = await page.textContent('#map-km'); const km = parseFloat(kmText); if (Number.isNaN(km)) throw new Error('km text: ' + JSON.stringify(kmText)); assert.ok(km > 0.05 && km < 5, `km ${km}`); assert.match(await page.textContent('.measure'), /2 points/);
+  await page.click('#map-undo'); assert.match(await page.textContent('#map-km'), /^0\.00/); await page.click('#map-add'); await page.focus('svg.bigmap'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+  await page.click('#map-in'); await page.click('#map-out'); await page.click('#map-tiles-on'); await page.waitForFunction(() => document.querySelectorAll('svg.bigmap image').length > 0); assert.ok(asked.length > 0 && asked.every((u) => u.startsWith('https://tile.openstreetmap.org/')));
+  await page.fill('#map-name', 'Park loop'); await page.click('#map-save'); await page.waitForSelector('.route'); assert.match(await page.textContent('h1'), /Park loop/);
+  await page.goto(base + '#/map'); await page.waitForSelector('svg.bigmap'); await page.click('#map-save'); assert.match(await page.textContent('#map-msg'), /at least two points/); assert.deepEqual(errors, []);
+});
+await step('route planner: consent first, then address -> ranked routes with climbs, crossings and surface; save and follow; failures are explained', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); const calls = await mockPlanner(page);
+  await page.goto(base + '#/routeplan'); await page.waitForSelector('#plan-consent'); assert.equal(await page.textContent('h1'), 'Plan a route'); assert.equal(await page.locator('#rp-go').count(), 0); assert.equal(calls.nominatim + calls.osrm, 0, 'nothing is sent before consent');
+  await page.click('#plan-consent'); await page.waitForSelector('#rp-go'); await page.fill('#rp-start', 'Herzl 1'); await page.fill('#rp-km', '4'); await page.evaluate(() => document.querySelectorAll('details.fold').forEach((d) => { d.open = true; })); await page.selectOption('#rp-hills', 'flat'); await page.click('#rp-go');
+  await page.waitForSelector('.rpcard'); const n = await page.locator('.rpcard').count(); assert.ok(n >= 2 && n <= 5, `cards ${n}`);
+  const scores = await page.locator('.rpcard').evaluateAll((els) => els.map((e) => Number(e.dataset.score))); assert.deepEqual([...scores].sort((a, b) => b - a), scores, 'best first'); assert.equal(await page.getAttribute('.rpcard >> nth=0', 'data-rank'), '1');
+  const first = await page.textContent('.rpcard >> nth=0'); assert.match(first, /Match \d+%/); assert.match(first, /\d+ crossings/); assert.match(first, /sidewalks and paths/); assert.match(first, /\d+ m/); assert.ok(calls.nominatim >= 1 && calls.osrm >= 6 && calls.elevation >= 1 && calls.overpass >= 1);
+  await page.waitForFunction(() => /Found \d+ routes/.test(document.getElementById('rp-status').textContent));
+  await page.click('.rp-save >> nth=0'); await page.waitForFunction(() => /Saved in your routes/.test(document.querySelector('.rpcard .note').textContent)); await page.goto(base + '#/routes'); await page.waitForSelector('.item'); assert.ok(await page.locator('.item').count() >= 1);
+  await page.goto(base + '#/routeplan'); await page.fill('#rp-start', 'Herzl 1'); await page.fill('#rp-km', '6'); await page.uncheck('#rp-same'); await page.fill('#rp-end', 'Dizengoff 50'); await page.click('#rp-go'); await page.waitForSelector('.rpcard');
+  assert.match(await page.inputValue('#rp-end'), /Dizengoff/); await page.click('.rp-start >> nth=0'); await page.waitForFunction(() => /^#\/workout\/walk(\/go)?\/r\/r/.test(location.hash));
+  const bad = await newPage({ lang: 'he' }); await mockPlanner(bad.page, { fail: true }); await bad.page.goto(base + '#/routeplan'); await bad.page.click('#plan-consent'); assert.equal(await bad.page.textContent('h1'), 'תכנון מסלול');
+  await bad.page.fill('#rp-start', 'הרצל 1'); await bad.page.click('#rp-go'); await bad.page.waitForFunction(() => /לא נמצא מסלול|לא הצלחנו/.test(document.getElementById('rp-status').textContent)); assert.equal(await bad.page.locator('.rpcard').count(), 0);
+  await bad.page.fill('#rp-start', 'nowhere at all'); await bad.page.click('#rp-go'); await bad.page.waitForFunction(() => /כתובת מוצא/.test(document.getElementById('rp-status').textContent));
+  await bad.page.click('#plan-revoke'); await bad.page.waitForSelector('#plan-consent'); assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
 });
 await step('weather: add it to a workout, the weather widget and filter use it', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 6, min: 33 }, { daysAgo: 3, km: 6, min: 40 }]);

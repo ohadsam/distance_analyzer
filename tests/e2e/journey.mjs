@@ -5,6 +5,7 @@ import { chromium } from 'playwright';
 import axe from 'axe-core';
 import { mkdirSync, writeFileSync, readdirSync } from 'node:fs';
 import { serve } from '../../scripts/serve.mjs';
+import { mockPlanner } from './mocks.mjs';
 
 const out = process.argv[2] || '/tmp/journey'; mkdirSync(out, { recursive: true }); const SHEETS_ONLY = process.argv.includes('--sheets'); // --sheets: only rebuild the contact sheets from the screenshots already in <out-dir>
 const server = await serve('web', 0), base = `http://localhost:${server.address().port}/`, browser = await chromium.launch();
@@ -99,9 +100,36 @@ async function flowD(lang, tag, o) { curLang = lang; { const { ctx, page, errors
   await page.goto(base + '#/history'); await page.waitForSelector('.item'); await shot(page, 'D', `${tag}-history`);
   if (errors.length) findings.push({ name: `D/${tag}/console`, issues: errors.slice(0, 3) }); await ctx.close(); } }
 
+
+// ---------- E: the map, the planner, and the user-guide screenshots (GUIDE_DIR=web/art/guide writes <lang>-<id>.jpg for every guide step) ----------
+const GUIDE_DIR = process.env.GUIDE_DIR || ''; if (GUIDE_DIR) mkdirSync(GUIDE_DIR, { recursive: true });
+async function flowE(lang) { curLang = lang; const { ctx, page, errors } = await ctxPage({ lang }); await mockPlanner(page);
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64'); await page.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ status: 200, contentType: 'image/png', body: png }));
+  const g = async (id) => { if (GUIDE_DIR) { await page.waitForTimeout(350); await page.screenshot({ path: `${GUIDE_DIR}/${lang}-${id}.jpg`, type: 'jpeg', quality: 72, clip: { x: 0, y: 0, width: 390, height: 780 } }); } };
+  await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, HIST); await page.evaluate(() => localStorage.setItem('da.welcomed', '1'));
+  await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/ui/routes.js'); const rows = await S.listWorkouts(); await R.saveRouteFromWorkout(rows[0], 'Park loop', false); });
+  const first = await page.evaluate(async () => (await (await import('./js/store.js')).listWorkouts({ points: false }))[0].startedAt);
+  await page.goto(base); await page.waitForSelector('.daycard'); await g('welcome'); await g('dashboard');
+  await page.goto(base + '#/workout/walk'); await page.waitForSelector('.gps-card[data-gps="good"]'); await g('start');
+  await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="running"]'); await move(ctx, page, 5); await g('running');
+  await page.click('#wk-metro').catch(() => {}); await page.waitForTimeout(400); await g('tools'); await page.click('.big-btn'); await page.click('.controls .btn.ghost'); await page.waitForSelector('.confirm'); await g('finish');
+  await page.click('.confirm .btn.danger').catch(() => {}); await page.goto(base + '#/history'); await page.waitForSelector('.item'); await g('records'); await g('history');
+  await page.goto(base + `#/w/${first}`); await page.waitForSelector('.track'); await g('detail'); await page.goto(base + '#/d/effort'); await page.waitForSelector('.drill .chart'); await g('drill');
+  await page.goto(base + '#/routes'); await page.waitForSelector('.item'); await shot(page, 'E', 'routes'); await g('routes');
+  await page.goto(base + '#/map'); await page.waitForSelector('svg.bigmap'); await shot(page, 'E', 'map-empty');
+  await page.click('#map-tiles-on'); for (let i = 0; i < 2; i++) { await page.click('#map-add'); await page.focus('svg.bigmap'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowDown'); } await page.click('#map-add'); await page.waitForTimeout(300); await shot(page, 'E', 'map-measured'); await g('map');
+  await page.goto(base + '#/routeplan'); await page.waitForSelector('#plan-consent'); await shot(page, 'E', 'plan-consent'); await page.click('#plan-consent'); await page.waitForSelector('#rp-go'); await page.fill('#rp-start', 'Herzl 1'); await page.fill('#rp-km', '5');
+  await page.evaluate(() => document.querySelectorAll('details.fold').forEach((d) => { d.open = true; })); await shot(page, 'E', 'plan-form'); await page.click('#rp-go'); await page.waitForSelector('.rpcard'); await page.waitForTimeout(500); await shot(page, 'E', 'plan-results', { full: true });
+  await page.evaluate(() => window.scrollTo(0, 0)); await page.evaluate(() => document.getElementById('rp-results').scrollIntoView()); await g('routeplan');
+  await page.goto(base + '#/plan'); await page.waitForTimeout(500); await g('plan'); await page.goto(base + '#/reco'); await page.waitForTimeout(500); await g('reco'); await page.goto(base + '#/alerts'); await page.waitForTimeout(400); await g('alerts');
+  await page.goto(base + '#/search'); await page.fill('#q', lang === 'he' ? 'גיבוי' : 'backup'); await page.waitForSelector('.result'); await g('search');
+  await page.goto(base + '#/settings'); await page.waitForTimeout(500); await g('settings'); await page.goto(base + '#/settings/s-backup'); await page.waitForTimeout(500); await shot(page, 'E', 'settings-backup'); await g('backup');
+  await page.goto(base + '#/guide'); await page.waitForSelector('#guide-start'); await shot(page, 'E', 'guide-index'); await page.click('#guide-start'); await page.waitForSelector('.guide.step'); await shot(page, 'E', 'guide-step');
+  if (errors.length) findings.push({ name: 'E/console', issues: errors.filter((e) => !/Failed to load resource/.test(e)).slice(0, 3) }); await ctx.close(); }
+
 // ---------- run everything in Hebrew first, then English ----------
 for (const lang of LANGS) {
-  await flowA(lang); await flowB(lang); await flowC(lang);
+  await flowA(lang); await flowB(lang); await flowC(lang); await flowE(lang);
   await flowD(lang, 'dark', { scheme: 'dark' }); await flowD(lang, '320px', { width: 320 }); await flowD(lang, 'wide', { width: 1100, height: 800 });
 }
 

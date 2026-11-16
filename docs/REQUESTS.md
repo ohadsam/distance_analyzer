@@ -70,3 +70,9 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 53 | Use the celebration kit (podium layers, cards, badges) | ✅ 0.15.0 |
 | 54 | Implement all UI/UX suggestions: choose workout numbers, time-of-day home, hands-free, share workout picture, history sort/records/voice filter, GPX, countdown, wide layout | ✅ 0.16.0 (device checks pending; polished art requested in ROUND7 prompt) |
 | 55 | Use the round-7 workout visual kit | ✅ 0.17.0 |
+| 56 | Smart bilingual UX journey with screenshots, image review and fixes | ✅ 0.18.0 (`tests/e2e/journey.mjs`; sheets reviewed, fixes applied) |
+| 57 | Interactive in-app user guide built from the screenshots | ✅ 0.18.0 (`#/guide`) |
+| 58 | Global search over actions, capabilities, guide and data facts | ✅ 0.18.0 |
+| 59 | A clear live map (legend, scale, hint) | ✅ 0.18.0 |
+| 60 | Map screen with distance measuring on the map | ✅ 0.18.0 (`#/map`) |
+| 61 | Route planner: start address, wanted distance, end address (may equal the start); several routes ranked by closeness to the request, considering climbs, road crossings, sidewalks, trails | ✅ 0.18.0 (`#/routeplan`; live services unverified from the sandbox; crossings / sidewalks depend on OpenStreetMap coverage) |

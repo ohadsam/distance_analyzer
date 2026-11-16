@@ -18,7 +18,8 @@ import { workoutRow } from './home.js';
 
 const BAND_KEY = { morning: 'bandMorning', midday: 'bandMidday', evening: 'bandEvening', night: 'bandNight' };
 const say = (msg) => { const sr = document.getElementById('sr'); if (sr) sr.textContent = msg; };
-const newId = () => `r${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+export const newRouteId = () => `r${Date.now().toString(36)}${Math.floor(Math.random() * 1296).toString(36)}`;
+const newId = newRouteId;
 
 // ---------- data operations ----------
 export async function saveRouteFromWorkout(rec, name, oneTime) {
@@ -58,6 +59,7 @@ export function quickActions(suggested, { routesLink = true } = {}) {
   return h('div', { class: 'quick', role: 'group', 'aria-label': t('quickActions') },
     h('a', { class: 'quick-main', href: `#/workout/${kind}/go`, id: 'qa-measure' }, icon('gps', 32), h('span', null, h('b', null, t('qaMeasure')), h('small', null, t('qaMeasureHint')))),
     routesLink ? h('a', { class: 'quick-btn', href: '#/routes', id: 'qa-routes' }, icon('route', 24), t('qaRoutes')) : null,
+    routesLink ? null : h('div', { class: 'quick-two' }, h('a', { class: 'quick-btn', href: '#/map', id: 'qa-map' }, icon('map', 24), t('mapTitle')), h('a', { class: 'quick-btn', href: '#/routeplan', id: 'qa-routeplan' }, icon('target', 24), t('planRouteTitle'))),
     suggested ? h('a', { class: 'quick-btn', href: `#/r/${suggested.id}`, id: 'qa-suggested' }, icon('star', 24), `${t('qaSuggested')}: ${suggested.name}`) : null);
 }
 

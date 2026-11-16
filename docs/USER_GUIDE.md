@@ -76,3 +76,12 @@ Every finished workout is saved on the phone. Open it to see the route, the pace
 
 ## Look
 Settings → Look: eight colour looks, each with light and dark; "High contrast" is best in strong sunlight.
+
+## Map and measuring
+Open **Routes -> Map and measuring**. Drag the map to move, tap to add a point (or press Enter at the crosshair with the keyboard) and read the length of your line under the map. Undo or clear to start again, **Save as a route** to keep it, **Plan a route from here** to start the planner at the map's centre. Without the street map you see a plain grid; turn the street map on from the card under the map (it loads tiles from OpenStreetMap).
+
+## Plan a route
+Open **Routes -> Plan a route**. The first time you are asked to allow online services (the address you type and points along the routes are sent to public services; nothing before you allow it; you can stop at the bottom of the screen). Type a start address (or use your location), the distance you want and an end address (or leave "Finish where I started"). Under **Preferences** choose flat or hilly, as few road crossings as possible, sidewalks or trails. **Find routes** shows up to five different routes, best first, each with a match %, climb, crossings and surface. **Start this route** opens the workout screen following it; **Save the route** adds it to your routes. Routes are suggestions: check them against what you see on the way.
+
+## User guide
+Settings -> **User guide** (or search "guide") opens a tour of the app with a picture for each area and a "Try it" button.

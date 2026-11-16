@@ -213,3 +213,19 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 .ld { inline-size: 10px; block-size: 10px; border-radius: 50%; display: inline-block; } .ld.start { background: var(--walk); } .ld.me { background: var(--run); margin-inline-start: 8px; }
 .maphint { position: absolute; inset: auto 0 12px 0; text-align: center; color: var(--muted); font-size: .85rem; pointer-events: none; padding-inline: 16px; }
 .livemap .gridline { stroke: var(--outline); opacity: .18; stroke-width: 1; } .livemap .scale { fill: none; stroke: var(--muted); stroke-width: 1.5; } .livemap .scale-t { fill: var(--muted); font-size: 10px; }
+
+/* map screen and route planner */
+.bigmap { inline-size: 100%; block-size: auto; aspect-ratio: 320 / 360; max-block-size: 62vh; background: var(--surface); border: 1px solid var(--outline); border-radius: var(--radius); touch-action: none; cursor: grab; display: block; }
+.bigmap:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.bigmap .gridline { stroke: var(--outline); opacity: .35; stroke-width: 1; } .bigmap .track-line { fill: none; stroke: var(--primary); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.bigmap .track-start { fill: var(--walk); stroke: var(--surface); stroke-width: 2; } .bigmap .me { fill: var(--run); stroke: var(--surface); stroke-width: 2; } .bigmap .wp { fill: var(--primary); stroke: var(--surface); stroke-width: 2; }
+.bigmap .cross { stroke: var(--muted); stroke-width: 2; fill: none; } .bigmap .scale { fill: none; stroke: var(--text); stroke-width: 2; } .bigmap .scale-t { fill: var(--text); font-size: 11px; paint-order: stroke; stroke: var(--surface); stroke-width: 3px; }
+.maptools { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 8px; } .mapbtn { display: inline-flex; align-items: center; gap: 6px; }
+.measure .measure-km { font-size: 1.6rem; } .maptiles .card { margin-block: 8px; }
+.addr { display: flex; gap: 8px; } .addr input { flex: 1; } .placeopts { display: grid; gap: 6px; } .placeopt { text-align: start; inline-size: 100%; }
+.plain { list-style: none; padding: 0; margin-block: 6px; display: grid; gap: 4px; } .linkbtn { background: none; border: 0; color: var(--primary); text-decoration: underline; font: inherit; min-block-size: 44px; padding: 0; cursor: pointer; }
+.rplist { display: grid; gap: 14px; margin-block: 12px; } .rpcard { display: grid; gap: 8px; } .rphead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .rpscore { font-size: 1.15rem; } .rpkm { color: var(--muted); }
+.rpbar { block-size: 8px; border-radius: 4px; background: var(--outline); overflow: hidden; } .rpbar > i { display: block; block-size: 100%; background: var(--primary); }
+.rpstats { display: flex; flex-wrap: wrap; gap: 6px 14px; } .rpstat { display: inline-flex; align-items: center; gap: 4px; font-size: .9rem; }
+.profile { inline-size: 100%; block-size: 44px; } .profile .prof-area { fill: var(--primary); opacity: .18; } .profile .prof-line { fill: none; stroke: var(--primary); stroke-width: 2; }
+.rpwhy { font-size: .9rem; color: var(--muted); } .quick-two { display: contents; }
