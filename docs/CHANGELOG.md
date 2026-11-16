@@ -6,6 +6,7 @@
 - **User guide** (`#/guide`): an interactive tour of every area with screenshots made from the real app in Hebrew and English (`GUIDE_DIR=web/art/guide node tests/e2e/journey.mjs`), also searchable.
 - **Search finds everything**: screens, settings, actions ("backup", "start a run", "plan a route"), guide topics and facts about your data ("longest run", totals, this week, streak), in both languages, Enter opens the first result.
 - **Clear live map**: legend (start / you), scale bar, grid and a hint before the first fix; **a quiet first-run home** (just the Start buttons until the first workout), a roomier day card, no duplicate "My routes", wide layouts for lists.
+- ChatGPT prompt for the next art round: `docs/prompts/ROUND8_PROMPT.md` (new walk / run characters with animation, every icon redesigned and animated, speedometer, active navigation states, motion spec).
 - Verified: unit tests (planner maths, parsers, scoring, orchestration with a fake network, map helpers), e2e (consent before any request, ranked cards, save / follow, failure messages in Hebrew, map measuring, guide walk-through, search), axe, 320 px. Not verified: the live services (sandbox blocks them), device use.
 
 ## 0.17.0
