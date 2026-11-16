@@ -1,0 +1,14 @@
+{
+  "svg_count": 92,
+  "tier1_count": 80,
+  "max_svg_bytes": 4379,
+  "errors": [],
+  "new_semantic_redraws": 34,
+  "all_tier1_currentColor": true,
+  "character_pivots": "fill-box percentage-based, compatible with both 96 and 200 scaling",
+  "remaining_limitations": [
+    "CSS animation requires inline SVG, not img tag.",
+    "Visual testing on physical Android devices is not included.",
+    "Original artwork released for CC0 use; no guarantee of legal originality against every existing icon design."
+  ]
+}

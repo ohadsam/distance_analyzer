@@ -231,3 +231,66 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 .rpwhy { font-size: .9rem; color: var(--muted); } .quick-two { display: contents; }
 /* svg maps keep their own left-to-right geometry (scale-bar text anchors at the left edge in Hebrew too); the OpenStreetMap credit gets a comfortable target */
 .bigmap, .livemap { direction: ltr; } .mapwrap .credit { min-block-size: 24px; display: inline-flex; align-items: center; }
+
+/* ---- motion (round 8): icons, characters, gauges. Nothing moves unless an ancestor has .anim-on (start cards, the running workout screen, the bell while alerts are unread). ---- */
+/* StepUp Tier 1 motion. SVG must be inline for external CSS to affect inner groups. */
+.anim-on .tier1-icon [class^="m-"],.anim-on .tier1-icon [class*=" m-"]{transform-box:fill-box;transform-origin:center center}
+.anim-on .tier1-icon .m-bell{animation:bell 1.4s ease-in-out infinite}
+.anim-on .tier1-icon .m-heart,.anim-on .tier1-icon .m-beat{animation:beat 1.2s ease-in-out infinite}
+.anim-on .tier1-icon .m-ping,.anim-on .tier1-icon .m-dot{animation:ping 1.8s ease-in-out infinite}
+.anim-on .tier1-icon .m-rays,.anim-on .tier1-icon .m-gear{animation:spin 12s linear infinite}
+.anim-on .tier1-icon .m-drop,.anim-on .tier1-icon .m-level{animation:drop 1.6s ease-in-out infinite}
+.anim-on .tier1-icon .m-line,.anim-on .tier1-icon .m-tick,.anim-on .tier1-icon .m-shine{animation:shine 1.5s ease-in-out infinite}
+.anim-on .tier1-icon .m-foot-a,.anim-on .tier1-icon .m-leg-a,.anim-on .tier1-icon .m-arm-b{animation:step-a 1.2s ease-in-out infinite}
+.anim-on .tier1-icon .m-foot-b,.anim-on .tier1-icon .m-leg-b,.anim-on .tier1-icon .m-arm-a{animation:step-b 1.2s ease-in-out infinite}
+.anim-on .tier1-icon .m-flame,.anim-on .tier1-icon .m-tri{animation:beat 1.4s ease-in-out infinite}
+.anim-on .tier1-icon .m-hand,.anim-on .tier1-icon .m-arrow,.anim-on .tier1-icon .m-flag,.anim-on .tier1-icon .m-arrows{animation:turn 1.8s ease-in-out infinite}
+.anim-on .tier1-icon .m-needle{transform-box:view-box;transform-origin:12px 12px;transform:rotate(var(--deg,-120deg));animation:needle 1.6s cubic-bezier(.2,.7,.2,1) 1 both}
+@keyframes bell{0%,100%{transform:rotate(0)}25%{transform:rotate(9deg)}75%{transform:rotate(-9deg)}}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.065)}}
+@keyframes ping{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drop{0%,100%{transform:translateY(0)}50%{transform:translateY(1px)}}
+@keyframes shine{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes step-a{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes step-b{0%,100%{transform:rotate(12deg)}50%{transform:rotate(-12deg)}}
+@keyframes turn{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes needle{from{transform:rotate(-120deg)}to{transform:rotate(var(--deg,-120deg))}}
+@media(prefers-reduced-motion:reduce){.anim-on .tier1-icon [class^="m-"]:not(.m-needle),.anim-on .tier1-icon [class*=" m-"]:not(.m-needle){animation:none!important;transform:none!important}.anim-on .tier1-icon .m-needle{animation:none!important}}
+
+/* StepUp refined character motion: works for 96 and 200 SVG because fill-box pivots scale with the art. */
+.anim-on .m-arm-a,.anim-on .m-arm-b,.anim-on .m-leg-a,.anim-on .m-leg-b,.anim-on .m-head,.anim-on .m-torso,.anim-on .m-ribbon,.anim-on .m-shadow,.anim-on .m-streaks {transform-box:fill-box;}
+.anim-on .m-arm-a,.anim-on .m-arm-b{transform-origin:50% 12%}
+.anim-on .m-leg-a,.anim-on .m-leg-b{transform-origin:50% 8%}
+.anim-on .m-head{transform-origin:50% 85%}
+.anim-on .m-ribbon{transform-origin:88% 50%}
+.anim-on .m-arm-a,.anim-on .m-leg-b{animation:step-forward var(--cycle,1200ms) ease-in-out infinite alternate}
+.anim-on .m-arm-b,.anim-on .m-leg-a{animation:step-back var(--cycle,1200ms) ease-in-out infinite alternate}
+.anim-on .m-head,.anim-on .m-torso{animation:bob calc(var(--cycle,1200ms)/2) ease-in-out infinite alternate}
+.anim-on .m-ribbon{animation:ribbon 650ms ease-in-out infinite alternate}
+.anim-on .m-shadow{animation:shadow 600ms ease-in-out infinite alternate}
+.anim-on .m-streaks{animation:streaks 700ms ease-in-out infinite alternate}
+.anim-on .character-run .m-arm-a,.anim-on .character-run .m-leg-b{animation-duration:700ms}
+.anim-on .character-run .m-arm-b,.anim-on .character-run .m-leg-a{animation-duration:700ms}
+@keyframes step-forward{from{transform:rotate(-27deg)}to{transform:rotate(28deg)}}
+@keyframes step-back{from{transform:rotate(27deg)}to{transform:rotate(-28deg)}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-1px)}}
+@keyframes ribbon{from{transform:rotate(-9deg)}to{transform:rotate(11deg)}}
+@keyframes shadow{from{transform:scaleX(.94);opacity:.35}to{transform:scaleX(1.04);opacity:.2}}
+@keyframes streaks{from{opacity:.1}to{opacity:.65}}
+@media(prefers-reduced-motion:reduce){.anim-on .m-arm-a,.anim-on .m-arm-b,.anim-on .m-leg-a,.anim-on .m-leg-b,.anim-on .m-head,.anim-on .m-torso,.anim-on .m-ribbon,.anim-on .m-shadow,.anim-on .m-streaks{animation:none!important}}
+
+/* TIER 2 gauge: needle geometry initially at -120 degrees. */
+.gauge .m-needle{transform-box:view-box;transform-origin:50px 50px;transform:rotate(calc(var(--deg,-120deg) + 120deg))}
+.gauge.anim-on .m-needle{animation:gauge-sweep 1600ms cubic-bezier(.2,.7,.2,1) 1 both,gauge-tremble 900ms ease-in-out 1600ms infinite alternate}
+.gauge.anim-on .m-zone-glow{animation:zone-glow 1800ms ease-in-out infinite alternate}
+@keyframes gauge-sweep{from{transform:rotate(0deg)}to{transform:rotate(calc(var(--deg,-120deg) + 120deg))}}
+@keyframes gauge-tremble{from{transform:rotate(calc(var(--deg,-120deg) + 119deg))}to{transform:rotate(calc(var(--deg,-120deg) + 121deg))}}
+@keyframes zone-glow{from{opacity:0}to{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.gauge.anim-on .m-needle,.gauge.anim-on .m-zone-glow{animation:none!important}}
+
+/* calm animations (Settings) stop every moving part; the poses and the needle stay where they are */
+html[data-calm="1"] .anim-on [class^="m-"], html[data-calm="1"] .anim-on [class*=" m-"], html[data-calm="1"].anim-on [class*="m-"] { animation: none !important; }
+html[data-calm="1"] .anim-on .tier1-icon [class^="m-"]:not(.m-needle), html[data-calm="1"] .anim-on .tier1-icon [class*=" m-"]:not(.m-needle) { transform: none !important; }
+.figure { display: block; flex: none; } .start-card .figure { inline-size: 64px; block-size: 64px; } .start-card { gap: 12px; }
+.metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }

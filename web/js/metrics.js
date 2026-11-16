@@ -4,7 +4,7 @@ import { fmtPace, fmtClock } from './format.js';
 
 export const METRICS = ['pace', 'speed', 'time', 'avg', 'lastkm', 'kcal', 'cadence'];
 /** The picture beside each number's caption. */
-export const METRIC_ICON = { pace: 'pace', speed: 'speed', time: 'stopwatch', avg: 'avgpace', lastkm: 'lastkm', kcal: 'calories', cadence: 'cadence' };
+export const METRIC_ICON = { pace: 'gauge-pace', speed: 'gauge-speed', time: 'stopwatch', avg: 'avgpace', lastkm: 'lastkm', kcal: 'calories', cadence: 'cadence' };
 export const DEFAULT_METRICS = ['pace', 'time'];
 /** Any stored value -> a valid pair of metric ids. */
 export const metricPair = (a, b) => { const x = METRICS.includes(a) ? a : DEFAULT_METRICS[0]; let y = METRICS.includes(b) ? b : DEFAULT_METRICS[1]; if (y === x) y = METRICS.find((m) => m !== x); return [x, y]; };
@@ -21,4 +21,12 @@ export function metricValue(id, w, ctx) {
     case 'cadence': return { cap: 'wkCadence', text: ctx.bpm > 0 ? String(Math.round(ctx.bpm)) : '–' };
     default: return { cap: 'pace', unit: 'perKm', text: fmtPace(ps) };
   }
+}
+
+/** Where the needle of the speed / pace gauge points, in degrees from -120 (slow) to +120 (fast); null for numbers that have no gauge. Speed 0..20 km/h, pace 10:00..3:30 per km. */
+export function gaugeDeg(id, w) {
+  if (id !== 'speed' && id !== 'pace') return null;
+  const ps = w ? recentPaceSec(w) : 0; if (!(ps > 0)) return -120;
+  const v = id === 'speed' ? (3600 / ps) / 20 : (600 - ps) / (600 - 210);
+  return Math.round(-120 + 240 * Math.min(1, Math.max(0, v)));
 }

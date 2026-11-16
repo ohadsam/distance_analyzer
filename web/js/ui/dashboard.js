@@ -3,7 +3,7 @@
 import { art, isDark, emptyState } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
-import { icon } from '../icons.js';
+import { icon, figure } from '../icons.js';
 import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref, getNum } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
@@ -155,7 +155,7 @@ export function renderDashboard() {
   async function draw() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return; // only the newest draw may paint (fast taps start several)
     const resume = active.load(); // read on every draw: a discard must show at once
-    const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!active.load()) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, icon(kind, 36), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
+    const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!active.load()) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, figure(`${kind}-96`, 64), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
     if (!getPref('dash', '') && !getPref('welcomed', '') && !c.all.length) setJson('dash', { order: [...WIDGETS], hidden: [...DEFAULT_HIDDEN] });
     const layout = loadLayout();
     const change = (fn) => { const L = loadLayout(); fn(L); setJson('dash', L); draw(); }; // always from the saved layout, so a fast second tap never works on a stale copy

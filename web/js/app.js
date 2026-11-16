@@ -36,19 +36,19 @@ function route() {
   setChildren(document.getElementById('app'), current);
   setChildren(document.getElementById('topbar'), h('a', { href: '#/', class: 'brand', 'aria-label': t('appName') }, brandMark(30), brandWordmark(20)),
     h('nav', { class: 'tabs', 'aria-label': t('settings') }, h('a', { href: '#/search', class: 'tab', 'aria-label': t('search') }, icon('search', 22)),
-      h('a', { href: '#/alerts', class: 'tab', id: 'tab-alerts', 'aria-label': t('alertsTitle') }, icon('bell', 22), h('i', { class: 'dot', hidden: !unreadCount(alertStore.load()) })), h('a', { href: '#/settings', class: 'tab', 'aria-label': t('settings') }, icon('settings', 22))));
+      h('a', { href: '#/alerts', class: `tab${unreadCount(alertStore.load()) ? ' anim-on' : ''}`, id: 'tab-alerts', 'aria-label': t('alertsTitle') }, icon('bell', 22), h('i', { class: 'dot', hidden: !unreadCount(alertStore.load()) })), h('a', { href: '#/settings', class: 'tab', 'aria-label': t('settings') }, icon('settings', 22))));
   // bottom navigation: the four places people go most (hidden in workout mode, where the screen is for the workout)
   const at = (re) => re.test(path);
   const items = [['#/', 'home', t('home'), path === '' || /^d\//.test(path)], ['#/routes', 'route', t('routesTitle'), at(/^(routes|r\/)/)], ['#/plan', 'calendar', t('planTitle'), at(/^plan/)], ['#/reco', 'star', t('recoTitle'), at(/^reco/)]];
   document.getElementById('bottomnav').setAttribute('aria-label', t('menu'));
-  setChildren(document.getElementById('bottomnav'), ...items.map(([href, ic, label, on]) => h('a', { href, class: 'bn', 'aria-label': label, 'aria-current': on ? 'page' : null }, icon(ic, 24), h('span', null, label))));
+  setChildren(document.getElementById('bottomnav'), ...items.map(([href, ic, label, on]) => h('a', { href, class: 'bn', 'aria-label': label, 'aria-current': on ? 'page' : null }, icon(on ? `${ic}-active` : ic, 24), h('span', null, label))));
   document.title = t('appName'); document.getElementById('app').focus({ preventScroll: true });
 }
 
 setLang(getPref('lang', 'he'));
 applyLook();
 addEventListener('hashchange', route);
-addEventListener('stepup-alerts', () => { const d = document.querySelector('#tab-alerts .dot'); if (d) d.hidden = !unreadCount(alertStore.load()); });
+addEventListener('stepup-alerts', () => { const d = document.querySelector('#tab-alerts .dot'), n = unreadCount(alertStore.load()); if (d) d.hidden = !n; document.getElementById('tab-alerts')?.classList.toggle('anim-on', !!n); });
 startReminderLoop();
 // Android: a tapped notification asks for a screen; the step sensor is sampled when the app is in front; the notification schedule is refreshed.
 function onFront() {

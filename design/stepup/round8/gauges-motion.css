@@ -1,0 +1,8 @@
+/* TIER 2 gauge: needle geometry initially at -120 degrees. */
+.gauge .m-needle{transform-box:view-box;transform-origin:50px 50px;transform:rotate(calc(var(--deg,-120deg) + 120deg))}
+.gauge.anim-on .m-needle{animation:gauge-sweep 1600ms cubic-bezier(.2,.7,.2,1) 1 both,gauge-tremble 900ms ease-in-out 1600ms infinite alternate}
+.gauge.anim-on .m-zone-glow{animation:zone-glow 1800ms ease-in-out infinite alternate}
+@keyframes gauge-sweep{from{transform:rotate(0deg)}to{transform:rotate(calc(var(--deg,-120deg) + 120deg))}}
+@keyframes gauge-tremble{from{transform:rotate(calc(var(--deg,-120deg) + 119deg))}to{transform:rotate(calc(var(--deg,-120deg) + 121deg))}}
+@keyframes zone-glow{from{opacity:0}to{opacity:.4}}
+@media(prefers-reduced-motion:reduce){.gauge.anim-on .m-needle,.gauge.anim-on .m-zone-glow{animation:none!important}}

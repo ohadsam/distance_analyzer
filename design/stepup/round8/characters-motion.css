@@ -1,0 +1,21 @@
+/* StepUp refined character motion: works for 96 and 200 SVG because fill-box pivots scale with the art. */
+.anim-on .m-arm-a,.anim-on .m-arm-b,.anim-on .m-leg-a,.anim-on .m-leg-b,.anim-on .m-head,.anim-on .m-torso,.anim-on .m-ribbon,.anim-on .m-shadow,.anim-on .m-streaks {transform-box:fill-box;}
+.anim-on .m-arm-a,.anim-on .m-arm-b{transform-origin:50% 12%}
+.anim-on .m-leg-a,.anim-on .m-leg-b{transform-origin:50% 8%}
+.anim-on .m-head{transform-origin:50% 85%}
+.anim-on .m-ribbon{transform-origin:88% 50%}
+.anim-on .m-arm-a,.anim-on .m-leg-b{animation:step-forward var(--cycle,1200ms) ease-in-out infinite alternate}
+.anim-on .m-arm-b,.anim-on .m-leg-a{animation:step-back var(--cycle,1200ms) ease-in-out infinite alternate}
+.anim-on .m-head,.anim-on .m-torso{animation:bob calc(var(--cycle,1200ms)/2) ease-in-out infinite alternate}
+.anim-on .m-ribbon{animation:ribbon 650ms ease-in-out infinite alternate}
+.anim-on .m-shadow{animation:shadow 600ms ease-in-out infinite alternate}
+.anim-on .m-streaks{animation:streaks 700ms ease-in-out infinite alternate}
+.anim-on .character-run .m-arm-a,.anim-on .character-run .m-leg-b{animation-duration:700ms}
+.anim-on .character-run .m-arm-b,.anim-on .character-run .m-leg-a{animation-duration:700ms}
+@keyframes step-forward{from{transform:rotate(-27deg)}to{transform:rotate(28deg)}}
+@keyframes step-back{from{transform:rotate(27deg)}to{transform:rotate(-28deg)}}
+@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-1px)}}
+@keyframes ribbon{from{transform:rotate(-9deg)}to{transform:rotate(11deg)}}
+@keyframes shadow{from{transform:scaleX(.94);opacity:.35}to{transform:scaleX(1.04);opacity:.2}}
+@keyframes streaks{from{opacity:.1}to{opacity:.65}}
+@media(prefers-reduced-motion:reduce){.anim-on .m-arm-a,.anim-on .m-arm-b,.anim-on .m-leg-a,.anim-on .m-leg-b,.anim-on .m-head,.anim-on .m-torso,.anim-on .m-ribbon,.anim-on .m-shadow,.anim-on .m-streaks{animation:none!important}}

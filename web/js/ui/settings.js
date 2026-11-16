@@ -1,5 +1,5 @@
 import { h, setChildren } from '../util.js';
-import { icon } from '../icons.js';
+import { icon, refreshFigures } from '../icons.js';
 import { art } from '../art.js';
 import { metricValue, metricPair, METRICS } from '../metrics.js';
 import { challengeTarget } from '../challenge.js';
@@ -25,7 +25,8 @@ export function applyLook() {
   const root = document.documentElement, rawTheme = getPref('theme', 'auto'), rawPack = getPref('pack', 'momentum'), theme = ['light', 'dark'].includes(rawTheme) ? rawTheme : 'auto', pack = PACKS.some(([v]) => v === rawPack) ? rawPack : 'momentum'; // storage is untrusted: only known values reach the DOM
   if (theme === 'auto') delete root.dataset.theme; else root.dataset.theme = theme;
   if (pack === 'momentum') delete root.dataset.pack; else root.dataset.pack = pack;
-  refreshArt();
+  refreshArt(); refreshFigures();
+  if (getPref('calm', '0') === '1') root.dataset.calm = '1'; else delete root.dataset.calm; // calm animations: the pictures stay still
   const bg = getComputedStyle(root).getPropertyValue('--background').trim(); if (bg) document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);
 }
 
@@ -68,6 +69,7 @@ export function renderSettings(focusId) {
     field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); syncNative(); redraw(); }), 's-lang'),
     field(t('theme'), select('s-theme', getPref('theme', 'auto'), [['auto', t('themeAuto')], ['light', t('themeLight')], ['dark', t('themeDark')]], (v) => { setPref('theme', v); applyLook(); }), 's-theme'),
     field(t('lookPack'), select('s-pack', getPref('pack', 'momentum'), PACKS.map(([v, k]) => [v, t(k)]), (v) => { setPref('pack', v); applyLook(); }), 's-pack'),
+    check('s-calm', t('setCalm'), getPref('calm', '0') === '1', (on) => { setPref('calm', on ? '1' : '0'); applyLook(); }), h('p', { class: 'note' }, t('setCalmHint')),
     h('h2', null, t('profile')),
     field(t('age'), num('s-age', 'age', 35, 5, 100), 's-age'), field(t('height'), num('s-height', 'height', 170, 100, 230), 's-height'), field(`${t('weight')} (${t('kg')})`, num('s-weight', 'weight', 70, 30, 250), 's-weight'),
     h('h2', null, t('wEffort')),

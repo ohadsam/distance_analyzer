@@ -268,6 +268,19 @@ await step('route planner: consent first, then address -> ranked routes with cli
   await bad.page.fill('#rp-start', 'nowhere at all'); await bad.page.click('#rp-go'); await bad.page.waitForFunction(() => /כתובת מוצא/.test(document.getElementById('rp-status').textContent));
   await bad.page.click('#plan-revoke'); await bad.page.waitForSelector('#plan-consent'); assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
 });
+await step('round-8 art: characters on the start cards move, calm animations stop them, the navigation shows where you are, the gauge needle follows your pace', async () => {
+  const { page, ctx, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
+  assert.equal(await page.locator('.start-card svg.figure').count(), 2); assert.ok(await page.locator('.start-card.walk .m-leg-a').count() >= 1 && await page.locator('.start-card.run .m-arm-a').count() >= 1);
+  const anim = (sel) => page.evaluate((q) => getComputedStyle(document.querySelector(q)).animationName, sel);
+  assert.notEqual(await anim('.start-card.run .m-leg-a'), 'none', 'the runner moves'); const homeIcon = await page.innerHTML('#bottomnav .bn:nth-child(1) svg');
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.check('#s-calm'); assert.equal(await page.getAttribute('html', 'data-calm'), '1');
+  await page.goto(base + '#/'); await page.waitForSelector('.start-card'); assert.equal(await anim('.start-card.run .m-leg-a'), 'none', 'calm: still'); await page.reload(); await page.waitForSelector('.start-card'); assert.equal(await page.getAttribute('html', 'data-calm'), '1', 'remembered');
+  await page.goto(base + '#/routes'); await page.waitForSelector('h1'); assert.notEqual(await page.innerHTML('#bottomnav .bn:nth-child(1) svg'), homeIcon, 'the home icon is no longer the active one');
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.uncheck('#s-calm'); assert.equal(await page.getAttribute('html', 'data-calm'), null);
+  await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); assert.match((await page.getAttribute('#wk-a svg', 'style')) || '--deg: -120deg', /-120deg/);
+  for (let i = 1; i <= 6; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  const deg = parseInt(((await page.getAttribute('#wk-a svg', 'style')) || '').match(/--deg:\s*(-?\d+)deg/)?.[1] ?? '-120', 10); assert.ok(deg > -120, `needle at ${deg}`); assert.equal(await page.locator('.workout.anim-on').count(), 1); assert.deepEqual(errors, []);
+});
 await step('weather: add it to a workout, the weather widget and filter use it', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 6, min: 33 }, { daysAgo: 3, km: 6, min: 40 }]);
   await page.goto(base + '#/history'); await page.waitForSelector('.item'); await page.click('.item >> nth=0'); await page.waitForSelector('#wx-save');

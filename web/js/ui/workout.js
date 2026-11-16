@@ -1,6 +1,6 @@
 // Workout mode: one calm screen with big numbers and few buttons. Tracking (GPS) -> workout.js (pure); persistence -> store.js.
 import { workoutShareBox } from './workoutShare.js';
-import { metricValue, metricPair, METRICS, DEFAULT_METRICS, METRIC_ICON } from '../metrics.js';
+import { metricValue, metricPair, METRICS, DEFAULT_METRICS, METRIC_ICON, gaugeDeg } from '../metrics.js';
 import { brokenRecords } from '../records.js';
 import { celebrationCard } from './podium.js';
 import { trackPicture } from './maptiles.js';
@@ -8,7 +8,7 @@ import { speak } from '../voice.js';
 import { badgeFor, art } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
-import { icon } from '../icons.js';
+import { icon, setNeedle } from '../icons.js';
 import { stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
 import { active, saveWorkout, getNum, getPref, setPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
@@ -210,8 +210,8 @@ export function renderWorkout(kind, go, routeId) {
     const n = Date.now();
     vDist.textContent = w ? (w.distanceM / 1000).toFixed(2) : '0.00';
     const ctx = { now: n, weightKg: getNum('weight', 70, 30, 250), bpm: Number(rhythm.el.dataset.bpm) || 0 }, [a, b] = pair();
-    for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; const label = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); if (cap.dataset.m !== id + label) { cap.dataset.m = id + label; setChildren(cap, icon(METRIC_ICON[id] || 'pace', 16), label); } }
-    el.dataset.phase = phase; paintBody(); syncKeys();
+    for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; const label = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); if (cap.dataset.m !== id + label) { cap.dataset.m = id + label; setChildren(cap, icon(METRIC_ICON[id] || 'gauge-pace', 16), label); } const dg = gaugeDeg(id, w); if (dg != null) setNeedle(cap.firstChild, dg); }
+    el.dataset.phase = phase; el.classList.toggle('anim-on', phase === 'running'); paintBody(); syncKeys();
   }
   let bodyPhase = '';
   function paintBody() { // rebuild the button area only when the phase changes

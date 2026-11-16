@@ -1,0 +1,24 @@
+/* StepUp Tier 1 motion. SVG must be inline for external CSS to affect inner groups. */
+.anim-on .tier1-icon [class^="m-"],.anim-on .tier1-icon [class*=" m-"]{transform-box:fill-box;transform-origin:center center}
+.anim-on .tier1-icon .m-bell{animation:bell 1.4s ease-in-out infinite}
+.anim-on .tier1-icon .m-heart,.anim-on .tier1-icon .m-beat{animation:beat 1.2s ease-in-out infinite}
+.anim-on .tier1-icon .m-ping,.anim-on .tier1-icon .m-dot{animation:ping 1.8s ease-in-out infinite}
+.anim-on .tier1-icon .m-rays,.anim-on .tier1-icon .m-gear{animation:spin 12s linear infinite}
+.anim-on .tier1-icon .m-drop,.anim-on .tier1-icon .m-level{animation:drop 1.6s ease-in-out infinite}
+.anim-on .tier1-icon .m-line,.anim-on .tier1-icon .m-tick,.anim-on .tier1-icon .m-shine{animation:shine 1.5s ease-in-out infinite}
+.anim-on .tier1-icon .m-foot-a,.anim-on .tier1-icon .m-leg-a,.anim-on .tier1-icon .m-arm-b{animation:step-a 1.2s ease-in-out infinite}
+.anim-on .tier1-icon .m-foot-b,.anim-on .tier1-icon .m-leg-b,.anim-on .tier1-icon .m-arm-a{animation:step-b 1.2s ease-in-out infinite}
+.anim-on .tier1-icon .m-flame,.anim-on .tier1-icon .m-tri{animation:beat 1.4s ease-in-out infinite}
+.anim-on .tier1-icon .m-hand,.anim-on .tier1-icon .m-arrow,.anim-on .tier1-icon .m-flag,.anim-on .tier1-icon .m-arrows{animation:turn 1.8s ease-in-out infinite}
+.anim-on .tier1-icon .m-needle{transform-box:view-box;transform-origin:12px 12px;transform:rotate(var(--deg,-120deg));animation:needle 1.6s cubic-bezier(.2,.7,.2,1) 1 both}
+@keyframes bell{0%,100%{transform:rotate(0)}25%{transform:rotate(9deg)}75%{transform:rotate(-9deg)}}
+@keyframes beat{0%,100%{transform:scale(1)}50%{transform:scale(1.065)}}
+@keyframes ping{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drop{0%,100%{transform:translateY(0)}50%{transform:translateY(1px)}}
+@keyframes shine{0%,100%{opacity:1}50%{opacity:.6}}
+@keyframes step-a{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes step-b{0%,100%{transform:rotate(12deg)}50%{transform:rotate(-12deg)}}
+@keyframes turn{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes needle{from{transform:rotate(-120deg)}to{transform:rotate(var(--deg,-120deg))}}
+@media(prefers-reduced-motion:reduce){.anim-on .tier1-icon [class^="m-"],.anim-on .tier1-icon [class*=" m-"]{animation:none!important;transform:none!important}}

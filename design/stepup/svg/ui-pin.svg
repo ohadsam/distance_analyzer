@@ -1,1 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2Q21 2 21 11Q21 16 12 23Q3 16 3 11Q3 2 12 2ZM12 7A3.5 3.5 0 1 0 12 14 3.5 3.5 0 0 0 12 7Z" fill="currentColor" fill-rule="evenodd"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g class="m-ping"><path d="M12 1Q21 1 21 10Q21 16 12 23Q3 16 3 10Q3 1 12 1Z" fill="currentColor"/><circle cx="12" cy="10" r="5" fill="currentColor" opacity="0.35"/><circle cx="12" cy="10" r="2" fill="currentColor"/></g></svg>

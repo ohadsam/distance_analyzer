@@ -22,6 +22,8 @@ export const EN = {
   planAttr: 'Map data © OpenStreetMap contributors. Routes are suggestions: check them against what you see on the way.',
   g_map_t: 'The map and measuring', g_map_x: 'Drag the map to move, tap to lay points, and the distance of your line appears below. Save the line as a route, or plan a route from the map centre. The street map is optional.',
   g_routeplan_t: 'Plan a route', g_routeplan_x: 'Type a start address, the distance you want and an end address (or finish where you started). StepUp offers several routes and ranks them by the distance, the climbs, the road crossings, sidewalks and trails. It asks before using online services.',
+  setCalm: 'Calm animations', setCalmHint: 'Turns off the moving pictures (the walking and running characters, the needle, ringing bell). Also follows the phone\'s reduce-motion setting.',
+  actCalm: 'Turn animations off',
   actMap: 'Open the map', actMeasureMap: 'Measure a distance on the map', actRoutePlan: 'Plan a route by address and distance',
 };
 export const HE = {
@@ -47,5 +49,7 @@ export const HE = {
   planAttr: 'נתוני המפה © תורמי OpenStreetMap. המסלולים הם הצעות: בדקו אותם מול מה שאתם רואים בדרך.',
   g_map_t: 'המפה והמדידה', g_map_x: 'גררו את המפה כדי להזיז, הקישו כדי להניח נקודות, ואורך הקו שלכם מופיע למטה. אפשר לשמור את הקו כמסלול, או לתכנן מסלול ממרכז המפה. מפת הרחובות היא אופציונלית.',
   g_routeplan_t: 'תכנון מסלול', g_routeplan_x: 'כתבו כתובת מוצא, את המרחק שאתם רוצים וכתובת סיום (או לסיים איפה שהתחלתם). StepUp מציע כמה מסלולים ומדרג אותם לפי המרחק, העליות, חציות הכביש, המדרכות והשבילים. הוא שואל לפני שמשתמשים בשירותי רשת.',
+  setCalm: 'אנימציות רגועות', setCalmHint: 'מכבה את התמונות הנעות (דמויות ההליכה והריצה, המחוג, פעמון מצלצל). מכבד גם את הגדרת הטלפון להפחתת תנועה.',
+  actCalm: 'כיבוי אנימציות',
   actMap: 'פתיחת המפה', actMeasureMap: 'מדידת מרחק על המפה', actRoutePlan: 'תכנון מסלול לפי כתובת ומרחק',
 };
