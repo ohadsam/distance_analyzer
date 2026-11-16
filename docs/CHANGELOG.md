@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.20.1
+- Hebrew: the four service lines on the route planner's consent card mixed Hebrew and English in a way that scrambled the order (the service name drifted to the next line). They now end in Hebrew with the service name in parentheses.
+- Full re-check of 0.20.0 before this fix: static checks, 127 unit tests, 45 e2e steps (axe, 320 px, calm animations, planner, map, guide walk-through) and the Hebrew + English journey (92 screens audited; the only audit finding is the 24 px OpenStreetMap credit link, which is the minimum target size WCAG 2.2 allows; the rest is the "many choices above the fold" heuristic on dense screens).
+
 ## 0.20.0
 - **Trail is now an athlete** (round 9c, `design/stepup/round9/`, "Athlete V3"): a sports jersey with the StepUp mark, shorts, running shoes and a sun headband, eight poses (idle, walk, run, finish, rest, wave, focus, ready) with the walk (1.2 s) and run (0.7 s) cycles from the kit's motion CSS. She replaces the first Trail on the start cards, the welcome card and the workout summary.
 - **Trail in the user guide**: she waves on the guide's front page and talks you through every step (wave on the first, finish on the last, idle / focus between). The guide's 20 screenshots (Hebrew and English) were regenerated from this version of the app, including the map and the route planner (`GUIDE_DIR=web/art/guide node tests/e2e/journey.mjs`).

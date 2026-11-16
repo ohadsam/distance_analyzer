@@ -34,7 +34,7 @@ export const HE = {
   mapPlanHere: 'תכנן מסלול מכאן', mapRouteName: 'מסלול שנמדד', planFull: 'יש לכם את המספר המרבי של מסלולים. מחקו אחד קודם.',
   planRouteTitle: 'תכנון מסלול', planIntro: 'כתבו מאיפה מתחילים, כמה רוצים ללכת ואיפה לסיים. StepUp מוצא כמה מסלולים שונים בסביבה ומדרג אותם לפי הקרבה למה שביקשתם, וגם לפי עליות, חציות כביש, מדרכות ושבילים.',
   planConsentTitle: 'להשתמש בשירותי רשת?', planConsentBody: 'התכנון צריך אינטרנט. רק כשאתם לוחצים על כפתור, StepUp שולח את אלה לשירותים ציבוריים - בלי חשבון ובלי מזהה:',
-  planSvc1: 'הכתובת שהקלדתם: OpenStreetMap Nominatim', planSvc2: 'נקודות לאורך מסלולים אפשריים: שירות המסלולים להולכי רגל של FOSSGIS', planSvc3: 'נקודות לאורך המסלול, לחישוב העליות: Open-Meteo', planSvc4: 'קו המסלול, לחציות ומדרכות: Overpass (נתוני OpenStreetMap)',
+  planSvc1: 'הכתובת שהקלדתם, לחיפוש המקום (Nominatim של OpenStreetMap)\u200F', planSvc2: 'נקודות לאורך מסלולים אפשריים, לחישוב מסלול להולכי רגל (FOSSGIS)\u200F', planSvc3: 'נקודות לאורך המסלול, לחישוב העליות (Open-Meteo)\u200F', planSvc4: 'קו המסלול, לבדיקת חציות ומדרכות (Overpass, נתוני OpenStreetMap)\u200F',
   planConsentBtn: 'אישור והמשך', planRevoke: 'הפסק להשתמש בשירותי רשת לתכנון', planAddrPh: 'רחוב, מספר, עיר', planSearching: 'מחפש...', planNoPlace: 'המקום לא נמצא. נסו כתובת מלאה יותר.', planNetFail: 'לא הצלחנו להגיע לשירות. בדקו את החיבור ונסו שוב.',
   planMyPlace: 'המיקום שלי', planMapPoint: 'נקודה מהמפה', planStart: 'כתובת מוצא', planEnd: 'כתובת סיום', planKm: 'המרחק הרצוי (ק״מ)', planSameEnd: 'לסיים איפה שהתחלתי', planPrefs: 'העדפות',
   planPref_hills: 'עליות', planPref_crossings: 'חציות כביש', planPref_surface: 'משטח', planHillsAny: 'ללא העדפה', planHillsFlat: 'כמה שיותר שטוח', planHillsHilly: 'אני אוהב עליות',
