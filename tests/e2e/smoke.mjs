@@ -233,7 +233,7 @@ await step('global search: actions, data facts and guide topics are found; the g
   await page.fill('#q', 'guide'); await page.waitForSelector('.result[data-type=guide], .result[data-type=action]'); await page.fill('#q', 'גיבוי'); await page.waitForSelector('.result[data-type=action]');
   await page.keyboard.press('Enter'); await page.waitForSelector('#s-backup, #backup-save');
   await page.goto(base + '#/guide'); await page.waitForSelector('#guide-start'); await page.click('#guide-start'); await page.waitForSelector('.guide.step'); let n = 1;
-  while (await page.locator('#guide-next').count()) { await page.click('#guide-next'); await page.waitForSelector('.guide.step'); n++; assert.ok(n < 40); }
+  while (await page.locator('#guide-next').count()) { const cur = await page.getAttribute('.guide.step', 'data-step'); await page.click('#guide-next'); await page.waitForFunction((c) => document.querySelector('.guide.step')?.getAttribute('data-step') !== c, cur); n++; assert.ok(n < 40); }
   assert.ok(n >= 8, `guide has ${n} steps`); assert.deepEqual(errors.filter((e) => !/404/.test(e)), []);
 });
 await step('live map explains itself: hint before the first fix, legend and scale once there is a path', async () => {
