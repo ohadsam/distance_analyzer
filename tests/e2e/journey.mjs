@@ -105,7 +105,7 @@ async function flowD(lang, tag, o) { curLang = lang; { const { ctx, page, errors
 const GUIDE_DIR = process.env.GUIDE_DIR || ''; if (GUIDE_DIR) mkdirSync(GUIDE_DIR, { recursive: true });
 async function flowE(lang) { curLang = lang; const { ctx, page, errors } = await ctxPage({ lang }); await mockPlanner(page);
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64'); await page.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ status: 200, contentType: 'image/png', body: png }));
-  const g = async (id) => { if (GUIDE_DIR) { await page.waitForTimeout(350); await page.screenshot({ path: `${GUIDE_DIR}/${lang}-${id}.jpg`, type: 'jpeg', quality: 72, clip: { x: 0, y: 0, width: 390, height: 780 } }); } };
+  const g = async (id, top = true) => { if (GUIDE_DIR) { if (top) await page.evaluate(() => window.scrollTo(0, 0)); await page.waitForTimeout(350); await page.screenshot({ path: `${GUIDE_DIR}/${lang}-${id}.jpg`, type: 'jpeg', quality: 72, clip: { x: 0, y: 0, width: 390, height: 780 } }); } };
   await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, HIST); await page.evaluate(() => localStorage.setItem('da.welcomed', '1'));
   await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/ui/routes.js'); const rows = await S.listWorkouts(); await R.saveRouteFromWorkout(rows[0], 'Park loop', false); });
   const first = await page.evaluate(async () => (await (await import('./js/store.js')).listWorkouts({ points: false }))[0].startedAt);
@@ -120,7 +120,7 @@ async function flowE(lang) { curLang = lang; const { ctx, page, errors } = await
   await page.click('#map-tiles-on'); for (let i = 0; i < 2; i++) { await page.click('#map-add'); await page.focus('svg.bigmap'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowDown'); } await page.click('#map-add'); await page.waitForTimeout(300); await shot(page, 'E', 'map-measured'); await g('map');
   await page.goto(base + '#/routeplan'); await page.waitForSelector('#plan-consent'); await shot(page, 'E', 'plan-consent'); await page.click('#plan-consent'); await page.waitForSelector('#rp-go'); await page.fill('#rp-start', 'Herzl 1'); await page.fill('#rp-km', '5');
   await page.evaluate(() => document.querySelectorAll('details.fold').forEach((d) => { d.open = true; })); await shot(page, 'E', 'plan-form'); await page.click('#rp-go'); await page.waitForSelector('.rpcard'); await page.waitForTimeout(500); await shot(page, 'E', 'plan-results', { full: true });
-  await page.evaluate(() => window.scrollTo(0, 0)); await page.evaluate(() => document.getElementById('rp-results').scrollIntoView()); await g('routeplan');
+  await page.evaluate(() => window.scrollTo(0, 0)); await page.evaluate(() => document.getElementById('rp-results').scrollIntoView()); await g('routeplan', false);
   await page.goto(base + '#/plan'); await page.waitForTimeout(500); await g('plan'); await page.goto(base + '#/reco'); await page.waitForTimeout(500); await g('reco'); await page.goto(base + '#/alerts'); await page.waitForTimeout(400); await g('alerts');
   await page.goto(base + '#/search'); await page.fill('#q', lang === 'he' ? 'גיבוי' : 'backup'); await page.waitForSelector('.result'); await g('search');
   await page.goto(base + '#/settings'); await page.waitForTimeout(500); await g('settings'); await page.goto(base + '#/settings/s-backup'); await page.waitForTimeout(500); await shot(page, 'E', 'settings-backup'); await g('backup');
@@ -136,7 +136,7 @@ for (const lang of LANGS) {
 }
 
 // ---------- report + contact sheets ----------
-if (!SHEETS_ONLY) writeFileSync(`${out}/findings.json`, JSON.stringify(findings, null, 1)); else for (const f of readdirSync(out).filter((x) => /^[A-D]-(he|en)-\d+-.*\.png$/.test(x) && !/full/.test(x)).sort((a, b) => Number(a.split('-')[2]) - Number(b.split('-')[2]) || a.localeCompare(b))) shotsList.push({ flow: f[0], file: f, label: f });
+if (!SHEETS_ONLY) writeFileSync(`${out}/findings.json`, JSON.stringify(findings, null, 1)); else for (const f of readdirSync(out).filter((x) => /^[A-E]-(he|en)-\d+-.*\.png$/.test(x) && !/full/.test(x)).sort((a, b) => Number(a.split('-')[2]) - Number(b.split('-')[2]) || a.localeCompare(b))) shotsList.push({ flow: f[0], file: f, label: f });
 let bad = 0; for (const f of findings) { if (f.issues.length) { bad++; console.log(`✗ ${f.name}${f.choices != null ? ` [${f.choices} choices]` : ''}: ${f.issues.join(' | ')}`); } }
 console.log(`${findings.length} screens audited, ${bad} with findings`);
 const files = shotsList.filter((x) => !/full/.test(x.label)); const sheet = await (await browser.newContext({ viewport: { width: 1700, height: 900 } })).newPage();
