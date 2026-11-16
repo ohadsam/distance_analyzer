@@ -1,6 +1,6 @@
 // The dashboard: customisable widgets (show/hide/reorder), filters (period, activity, weather, text) and drill-down (each widget opens a
 // detail view). Data logic lives in stats/steps/effort (pure); this file only arranges and draws.
-import { art, isDark } from '../art.js';
+import { art, isDark, emptyState } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
@@ -135,7 +135,7 @@ function dayCard(c) {
   if (!c.all.length) return null;
   const part = dayPart(c.now), today = todaySummary(c.all, c.now), st = challengeStatus(c.all, c.now, challengeTarget(getPref('challengeN', '3')));
   return h('div', { class: 'card daycard', 'data-part': part }, art('workout', `banner-${part}`, 'daybanner'), h('h2', null, t(`greet_${part}`)),
-    leadsWithSummary(part, today) ? h('p', null, today.n ? t('todayLine', { n: today.n, km: today.km, min: today.minutes }) : t('todayNone')) : h('p', null, t(`hint_${part}`)),
+    leadsWithSummary(part, today) ? h('p', null, today.n ? [t('todayN', { n: today.n }), h('br'), t('todayKm', { km: today.km, min: today.minutes })] : t('todayNone')) : h('p', null, t(`hint_${part}`)),
     st.target ? h('p', { class: 'note' }, st.complete ? t('chDone') : t('chProgress', { done: st.done, target: st.target })) : null);
 }
 
@@ -144,7 +144,7 @@ function welcome(c, redraw) {
   if (getPref('welcomed', '') || c.all.length) return null;
   const done = () => { setPref('welcomed', '1'); redraw(); };
   const age = h('input', { id: 'welcome-age', type: 'number', inputMode: 'numeric', min: 5, max: 100, value: getPref('age', '') || '', placeholder: '35' });
-  return h('div', { class: 'card welcome', id: 'welcome' }, art('onboarding', 'welcome'), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')), h('p', { class: 'note' }, t('welcomePerms')),
+  return h('div', { class: 'card welcome', id: 'welcome' }, art('onboarding', 'welcome'), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')), h('p', { class: 'note' }, t('welcomePerms')), h('a', { class: 'link', href: '#/guide' }, t('guideStart')),
     h('label', { for: 'welcome-age' }, t('age')), age,
     h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'welcome-ok', onclick: () => { const a = Number(age.value); if (a >= 5 && a <= 100) setPref('age', Math.round(a)); done(); } }, t('welcomeOk')), h('button', { type: 'button', class: 'btn ghost', onclick: done }, t('welcomeSkip'))));
 }
@@ -169,14 +169,15 @@ export function renderDashboard() {
       return h('a', { class: 'wcard', href: `#/d/${id}`, 'data-widget': id }, h('div', { class: 'whead' }, title, icon('forward', 18)), body);
     };
     const visible = editing ? layout.order : layout.order.filter((id) => !layout.hidden.includes(id));
+    const fresh = !c.all.length && !native.stepsAvailable() && !editing; // before the first workout the dashboard is just the Start buttons (the empty widgets would only be noise)
     setChildren(el,
       h('div', { class: 'dash-top' }, h('h1', null, t('dashboard')), h('button', { type: 'button', class: 'btn ghost', 'aria-pressed': String(editing), onclick: () => { editing = !editing; draw(); } }, t(editing ? 'editDone' : 'edit'))),
       resume ? h('div', { class: 'card resume' }, icon(resume.kind, 28), h('span', { class: 'grow' }, h('b', null, t('resumeTitle')), h('small', null, fmtKm(resume.distanceM))), h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (confirm(t('discardAsk'))) { active.clear(); draw(); } } }, t('discard')), h('a', { class: 'btn', href: `#/workout/${resume.kind}` }, t('resumeBtn'))) : null,
       quickActions(suggest(c.routes, c.all)[0]?.route || null),
       h('div', { class: 'starts' }, startLink('walk'), startLink('run')),
       welcome(c, draw), dayCard(c),
-      filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),
-      h('a', { class: 'link', href: '#/history' }, t('allWorkouts')));
+      fresh ? emptyState('no-workouts', t('dashEmpty')) : [filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),
+      h('a', { class: 'link', href: '#/history' }, t('allWorkouts'))]);
   }
   draw(); el.cleanup = () => { el.alive = false; };
   return el;

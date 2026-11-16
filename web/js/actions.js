@@ -1,0 +1,23 @@
+// Everything the app can DO, as search items (type 'action'): [id, i18n key of the title, extra keywords in both languages, href].
+// Typing a verb ("backup", "start a run", "share") finds the place where it happens. Settings fields are indexed separately in ui/search.js.
+export const ACTIONS = [
+  ['start-walk', 'actStartWalk', 'start begin go walking measure הליכה להתחיל צא', '#/workout/walk'], ['start-run', 'actStartRun', 'start begin go running jog measure ריצה להתחיל צא', '#/workout/run'],
+  ['measure-now', 'actMeasureNow', 'quick now instantly one tap מדידה עכשיו מהיר', '#/workout/walk/go'],
+  ['metronome', 'actMetronome', 'rhythm coach cadence breathing steps per minute beat click מטרונום קצב נשימה צעדים', '#/workout/run'], ['countdown', 'actCountdown', '3 2 1 ספירה לאחור', '#/settings/s-countdown'],
+  ['pause', 'actPause', 'pause resume stop double tap volume key hands free השהיה המשך הקשה כפולה ידיים חופשיות', '#/settings/s-handsfree'], ['sunlight', 'actSunlight', 'bright sun high contrast outdoor שמש ניגודיות', '#/settings/s-sun'],
+  ['voice', 'actVoice', 'speak voice audio announce kilometre times tts הקראה קול', '#/settings/s-voice'], ['metrics', 'actMetrics', 'numbers screen pace speed time calories cadence last kilometre מספרים מסך קצב מהירות', '#/settings/s-wka'],
+  ['history', 'actHistory', 'workouts list log past sort records filter היסטוריה אימונים יומן שיאים', '#/history'], ['export-gpx', 'actExportGpx', 'gpx file strava garmin komoot download track ייצוא קובץ מסלול', '#/history'],
+  ['share-picture', 'actSharePicture', 'share picture image card post instagram whatsapp שיתוף תמונה כרטיס', '#/history'], ['save-route', 'actSaveRoute', 'route save favourite path שמירת מסלול', '#/routes'],
+  ['routes', 'actRoutes', 'routes paths suggestions one time trip מסלולים', '#/routes'], ['plan', 'actPlan', 'training plan schedule weeks goal 5k 10k program תוכנית אימונים יעד', '#/plan'],
+  ['reco', 'actReco', 'recommendations weather best time when to walk run המלצות מזג אוויר זמן מתאים', '#/reco'], ['alerts', 'actAlerts', 'alerts notifications inbox reminders התראות תזכורות', '#/alerts'],
+  ['dashboard', 'actDashboard', 'home widgets customise reorder hide filter drill down דשבורד ווידג׳טים התאמה', '#/'], ['challenge', 'actChallenge', 'weekly challenge goal workouts per week medal אתגר שבועי', '#/d/challenge'],
+  ['month', 'actMonth', 'monthly summary month compare סיכום חודשי', '#/d/month'], ['effort', 'actEffort', 'effort bar weekly minutes guideline age מד מאמץ דקות שבועי', '#/d/effort'], ['steps', 'actSteps', 'steps counter daily goal צעדים יעד יומי', '#/d/steps'],
+  ['backup', 'actBackup', 'backup save export data file restore import גיבוי שמירה שחזור נתונים', '#/settings/s-backup'], ['updates', 'actUpdates', 'update version check new release עדכון גרסה בדיקת עדכונים', '#/settings/s-about'],
+  ['apk', 'actApk', 'android app apk download install אפליקציית אנדרואיד הורדה התקנה', '#/settings/s-about'], ['share-app', 'actShareApp', 'share app friend invite link שיתוף אפליקציה חבר קישור', '#/settings/s-about'],
+  ['language', 'actLanguage', 'language hebrew english שפה עברית אנגלית', '#/settings/s-lang'], ['theme', 'actTheme', 'dark light theme colours look מראה כהה בהיר צבעים', '#/settings/s-theme'],
+  ['profile', 'actProfile', 'age height weight profile גיל גובה משקל פרופיל', '#/settings/s-age'], ['reminders', 'actReminders', 'reminders walk movement break smart nudge תזכורות הפסקת תנועה', '#/settings/f-s-rem'],
+  ['weekly-summary', 'actWeekly', 'sunday weekly summary notification סיכום שבועי יום ראשון', '#/settings/s-weekly'], ['street-map', 'actStreetMap', 'map tiles street openstreetmap מפת רחובות', '#/settings/s-tiles'],
+  ['online-weather', 'actOnlineWeather', 'weather forecast online internet location תחזית אינטרנט מיקום', '#/settings/s-online'], ['guide', 'actGuide', 'help how to tutorial guide manual instructions tour עזרה מדריך הדרכה איך', '#/guide'],
+  ['widgets', 'actWidgets', 'android home screen widgets steps week last workout next session ווידג׳טים מסך הבית', '#/guide/widgets'], ['record', 'actRecord', 'record podium victory photo selfie share celebrate שיא פודיום תמונת ניצחון', '#/guide/records'],
+];
+export const actionItems = (t, both) => ACTIONS.map(([id, key, words, href]) => ({ id: `act:${id}`, type: 'action', title: t(key), text: `${both(key)} ${words}`, href }));

@@ -53,11 +53,11 @@ function routeCard(route, rows) {
 }
 
 /** Quick actions: measure now (starts at once, last activity), my routes, and the suggested route when there is one. */
-export function quickActions(suggested) {
+export function quickActions(suggested, { routesLink = true } = {}) {
   const kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk';
   return h('div', { class: 'quick', role: 'group', 'aria-label': t('quickActions') },
     h('a', { class: 'quick-main', href: `#/workout/${kind}/go`, id: 'qa-measure' }, icon('gps', 32), h('span', null, h('b', null, t('qaMeasure')), h('small', null, t('qaMeasureHint')))),
-    h('a', { class: 'quick-btn', href: '#/routes', id: 'qa-routes' }, icon('route', 24), t('qaRoutes')),
+    routesLink ? h('a', { class: 'quick-btn', href: '#/routes', id: 'qa-routes' }, icon('route', 24), t('qaRoutes')) : null,
     suggested ? h('a', { class: 'quick-btn', href: `#/r/${suggested.id}`, id: 'qa-suggested' }, icon('star', 24), `${t('qaSuggested')}: ${suggested.name}`) : null);
 }
 
@@ -99,7 +99,7 @@ export async function routesBody(box, filter = 'all', redraw) {
     shown.length ? h('div', { class: 'list' }, shown.map((r) => routeCard(r, rows))) : emptyState('no-routes', t('routesNone')));
 }
 export function renderRoutes() {
-  const box = h('div', { class: 'routesbox' }), el = h('section', { class: 'routes' }, h('h1', null, t('routesTitle')), quickActions(null), box);
+  const box = h('div', { class: 'routesbox' }), el = h('section', { class: 'routes' }, h('h1', null, t('routesTitle')), quickActions(null, { routesLink: false }), box);
   const draw = () => { box.alive = true; routesBody(box, box.dataset.filter || 'all', draw); };
   draw(); el.cleanup = () => { box.alive = false; }; return el;
 }

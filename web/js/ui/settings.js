@@ -1,4 +1,5 @@
 import { h, setChildren } from '../util.js';
+import { icon } from '../icons.js';
 import { art } from '../art.js';
 import { metricValue, metricPair, METRICS } from '../metrics.js';
 import { challengeTarget } from '../challenge.js';
@@ -62,11 +63,11 @@ export function renderSettings(focusId) {
   const num = (id, key, def, lo, hi, step = 1) => h('input', { id, type: 'number', inputMode: 'numeric', min: lo, max: hi, step, value: getNum(key, def, lo, hi), onchange: (e) => setPref(key, Math.min(hi, Math.max(lo, Number(e.target.value) || def))) });
   const smart = sanitizeSmart(getJson('smart', {})), saveSmart = (patch) => { setJson('smart', sanitizeSmart({ ...sanitizeSmart(getJson('smart', {})), ...patch })); checkReminders().catch(() => {}); syncNative(); };
   const ns = notifyState(), nbtn = h('button', { type: 'button', class: 'btn ghost', id: 'notify-btn', disabled: ns === 'granted' || ns === 'unsupported' || ns === 'denied', onclick: async (e) => { await askNotify(); redraw(); } }, ns === 'granted' ? t('remNotifyOn') : ns === 'denied' ? t('remNotifyOff') : t('remNotify'));
-  const el = h('section', { class: 'settings' }, h('h1', null, t('settings')),
+  const el = h('section', { class: 'settings' }, h('h1', null, t('settings')), h('a', { class: 'btn ghost', id: 'open-guide', href: '#/guide' }, icon('help', 20), t('guideOpen')),
     h('h2', null, t('look')),
     field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); syncNative(); redraw(); }), 's-lang'),
     field(t('theme'), select('s-theme', getPref('theme', 'auto'), [['auto', t('themeAuto')], ['light', t('themeLight')], ['dark', t('themeDark')]], (v) => { setPref('theme', v); applyLook(); }), 's-theme'),
-    field(t('look'), select('s-pack', getPref('pack', 'momentum'), PACKS.map(([v, k]) => [v, t(k)]), (v) => { setPref('pack', v); applyLook(); }), 's-pack'),
+    field(t('lookPack'), select('s-pack', getPref('pack', 'momentum'), PACKS.map(([v, k]) => [v, t(k)]), (v) => { setPref('pack', v); applyLook(); }), 's-pack'),
     h('h2', null, t('profile')),
     field(t('age'), num('s-age', 'age', 35, 5, 100), 's-age'), field(t('height'), num('s-height', 'height', 170, 100, 230), 's-height'), field(`${t('weight')} (${t('kg')})`, num('s-weight', 'weight', 70, 30, 250), 's-weight'),
     h('h2', null, t('wEffort')),

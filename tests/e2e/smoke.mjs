@@ -153,7 +153,8 @@ await step('backup: save to a file, wipe, restore (web file picker); hostile fil
 
 await step('dashboard offers walk and run and the essential widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 8); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 0, 'a new install shows no widgets yet'); assert.ok(await page.locator('.empty').count() >= 1); assert.equal(await page.textContent('h1'), 'Dashboard');
+  await seed(page, weeks(5)); await page.reload(); await page.waitForSelector('.wcard'); assert.equal(await page.locator('.wcard').count(), 8); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
@@ -216,7 +217,7 @@ await step('settings: look, pack and rhythm options are saved', async () => {
 });
 
 await step('dashboard: effort and steps widgets, drill-down, filters, customise (hide and reorder survive a reload)', async () => {
-  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.wcard'); await seed(page, weeks(5)); await page.reload(); await page.waitForSelector('.wcard');
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card'); await seed(page, weeks(5)); await page.reload(); await page.waitForSelector('.wcard');
   assert.match(await page.textContent('[data-widget=effort]'), /of \d+ min/); await shot(page, 'dashboard-en');
   await page.click('[data-widget=effort]'); await page.waitForSelector('.drill .chart'); assert.equal(await page.textContent('h1'), 'Weekly effort'); assert.match(await page.textContent('.drill'), /Guidance for your age/); await shot(page, 'drill-effort');
   await page.goto(base + '#/d/distance'); await page.waitForSelector('.drill .list .item'); const all = await page.locator('.drill .list .item').count(); assert.ok(all >= 10);

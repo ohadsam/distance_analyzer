@@ -198,3 +198,18 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 .cd-img { inline-size: min(60vmin, 320px); block-size: auto; animation: cd-in 1s ease-out both; } @keyframes cd-in { 0% { transform: scale(1.15); opacity: 0; } 35% { transform: scale(1); opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .cd-img { animation: none; } }
 .hints { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-block: 4px; } .hint-img { inline-size: min(46%, 220px); block-size: auto; }
 .tap .cap, .metric .cap { display: flex; align-items: center; gap: 6px; }
+/* tidy: plan session buttons, wide lists, long nav labels */
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; } .row-actions .btn { flex: 1 1 96px; justify-content: center; }
+.bn span { max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 900px) { .list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .list > .note, .list > .empty { grid-column: 1 / -1; } }
+/* user guide */
+.guide ol.topics { list-style: none; padding: 0; display: grid; gap: 8px; } .guide .num { display: grid; place-items: center; inline-size: 32px; block-size: 32px; border-radius: 50%; background: var(--primary); color: var(--on-primary); font-weight: 700; flex: none; }
+.guide .dots { display: flex; gap: 6px; flex-wrap: wrap; } .guide .dots i { inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--outline); opacity: .45; } .guide .dots i.seen { opacity: .8; background: var(--primary); } .guide .dots i.on { inline-size: 24px; border-radius: 5px; background: var(--primary); opacity: 1; }
+.gshot { display: block; inline-size: min(100%, 320px); block-size: auto; margin-inline: auto; border-radius: var(--radius); border: 1px solid var(--outline); } .gshot.gicon { display: grid; place-items: center; block-size: 160px; color: var(--primary); background: var(--surface); }
+.gtext { font-size: 1.05rem; } .gnav { display: flex; gap: 8px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-block-start: 12px; }
+@media (min-width: 900px) { .guide.step { display: grid; grid-template-columns: 340px 1fr; gap: 8px 32px; align-items: start; } .guide.step > .gshot { grid-row: 1 / span 6; grid-column: 1; } .guide.step > :not(.gshot) { grid-column: 2; } }
+/* live map: legend, hint, grid and scale */
+.maplegend { position: absolute; inset-block-start: 6px; inset-inline-start: 6px; display: flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 12px; background: color-mix(in srgb, var(--surface) 88%, transparent); font-size: .78rem; font-weight: 600; } .maplegend[hidden], .maphint[hidden] { display: none; }
+.ld { inline-size: 10px; block-size: 10px; border-radius: 50%; display: inline-block; } .ld.start { background: var(--walk); } .ld.me { background: var(--run); margin-inline-start: 8px; }
+.maphint { position: absolute; inset: auto 0 12px 0; text-align: center; color: var(--muted); font-size: .85rem; pointer-events: none; padding-inline: 16px; }
+.livemap .gridline { stroke: var(--outline); opacity: .18; stroke-width: 1; } .livemap .scale { fill: none; stroke: var(--muted); stroke-width: 1.5; } .livemap .scale-t { fill: var(--muted); font-size: 10px; }

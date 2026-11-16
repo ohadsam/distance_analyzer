@@ -41,6 +41,7 @@ Root: `README.md` product page · `CLAUDE.md` pointer to this file · `package.j
 - `geo.js` haversine + track projection · `workout.js` workout model (fix filtering, distance, pace, splits, kcal, sanitisers) · `stats.js` filters, buckets, streaks, bests, weather buckets
 - `effort.js` effort bar and deviation check · `steps.js` step estimation and quality · `reminders.js` reminder/nudge decisions · `alerts.js` inbox model + persistence · `search.js` normalisation and ranking
 - `plan.js` pure training-plan engine (generate, match, catch-up, adapt, progress, sanitise)
+- `facts.js` answers about your data for search (longest, fastest, totals, week, month, streak, records, challenge) · `actions.js` everything the app can do, as search items · `guide.js` the guide's steps · `strings08.js` guide, search-catalogue and search-page strings · `ui/guide.js` topic list + interactive tour
 - `shareCard.js` share a card canvas (Android sheet / browser sheet / download)
 - `gpx.js` a workout as a GPX 1.1 file · `daypart.js` part of the day + today so far · `metrics.js` the numbers the workout screen can show (pair validation)
 - `challenge.js` weekly challenge status/weeks/streak, weekly summary, next Sunday time (pure)

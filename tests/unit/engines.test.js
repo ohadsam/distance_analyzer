@@ -214,3 +214,22 @@ test('recordFlags (one pass) gives the same answer as brokenRecords applied to e
   const n = (g.match(/<trkpt /g) || []).length; assert.ok(n <= 50001 && n > 30000, String(n)); assert.ok(g.includes('lat="32.119999"') || g.includes('lat="32.120000"') || g.includes('lat="32.119999'), 'the end of the track is kept');
   const w = { kind: 'run', startedAt: new Date(2026, 10, 15, 0, 30).getTime() }; assert.equal(gpxFileName(w), 'stepup-run-2026-11-15.gpx');
 });
+
+import { buildFacts } from '../../web/js/facts.js';
+import { ACTIONS, actionItems } from '../../web/js/actions.js';
+import { GUIDE, stepKeys } from '../../web/js/guide.js';
+import { STR } from '../../web/js/i18n.js';
+test('search catalogue: every action and guide step has both languages, actions and facts are found by the words people use', () => {
+  for (const [, key] of ACTIONS) { assert.ok(STR.en[key] && STR.he[key], key); }
+  for (const g of GUIDE) for (const k of stepKeys(g.id)) assert.ok(STR.en[k] && STR.he[k], k);
+  const both = (k) => `${STR.en[k]} ${STR.he[k]}`, t = (k) => STR.en[k] || k, now = new Date(2026, 10, 15, 12).getTime();
+  const w = (d, km, min, kind = 'run') => ({ kind, startedAt: new Date(2026, 10, d, 8).getTime(), distanceM: km * 1000, movingMs: min * 60000, splits: [{ km: 1, atMs: min * 60000 / km }] });
+  const rows = [w(2, 5, 30), w(9, 12, 66), w(12, 3, 20, 'walk'), w(14, 8, 40)];
+  const env = { t, both, fmtKm: (m) => `${(m / 1000).toFixed(2)} km`, fmtDate: () => 'date', fmtPaceUnit: (s) => `${Math.round(s)} s/km`, fmtClock: (ms) => `${Math.round(ms / 60000)} min`, lang: 'en', challengeN: '3' };
+  const facts = buildFacts(rows, now, env); assert.ok(facts.length >= 8); assert.ok(facts.every((f) => f.type === 'fact' && f.href.startsWith('#/')));
+  const idx = buildIndex([...actionItems(t, both), ...facts]);
+  assert.equal(search(idx, 'longest run')[0].href, `#/w/${rows[1].startedAt}`); assert.match(search(idx, 'longest run')[0].title, /12\.00 km/);
+  assert.equal(search(idx, 'backup')[0].href, '#/settings/s-backup'); assert.equal(search(idx, 'גיבוי')[0].href, '#/settings/s-backup'); assert.equal(search(idx, 'gpx')[0].href, '#/history');
+  assert.ok(search(idx, 'הריצה הארוכה').some((r) => r.id === 'fact:longest-run'), 'Hebrew words find the facts too'); assert.ok(search(idx, 'start run').some((r) => r.id === 'act:start-run'));
+  assert.deepEqual(buildFacts([], now, env), []);
+});

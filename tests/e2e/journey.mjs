@@ -6,7 +6,7 @@ import axe from 'axe-core';
 import { mkdirSync, writeFileSync, readdirSync } from 'node:fs';
 import { serve } from '../../scripts/serve.mjs';
 
-const out = process.argv[2] || '/tmp/journey'; mkdirSync(out, { recursive: true });
+const out = process.argv[2] || '/tmp/journey'; mkdirSync(out, { recursive: true }); const SHEETS_ONLY = process.argv.includes('--sheets'); // --sheets: only rebuild the contact sheets from the screenshots already in <out-dir>
 const server = await serve('web', 0), base = `http://localhost:${server.address().port}/`, browser = await chromium.launch();
 const findings = [], shotsList = []; let n = 0, curLang = 'he'; const LANGS = ['he', 'en']; // Hebrew (the default) first, then English
 
@@ -53,6 +53,7 @@ async function seed(page, rows) {
 }
 const HIST = [{ daysAgo: 30, hour: 7, pace: 380 }, { daysAgo: 26, hour: 18, pace: 370, kind: 'walk' }, { daysAgo: 23, hour: 7, pace: 365 }, { daysAgo: 19, hour: 7, pace: 350, weather: { tempC: 12, cond: 'clear' } }, { daysAgo: 16, hour: 18, pace: 360, kind: 'walk' }, { daysAgo: 12, hour: 7, pace: 345 }, { daysAgo: 9, hour: 7, pace: 340, path: 'other', weather: { tempC: 27, cond: 'clear' } }, { daysAgo: 6, hour: 18, pace: 335, kind: 'walk' }, { daysAgo: 4, hour: 7, pace: 330, weather: { tempC: 18, cond: 'rain' } }, { daysAgo: 2, hour: 7, pace: 322 }, { daysAgo: 1, hour: 18, pace: 355, kind: 'walk' }, { daysAgo: 0, hour: 6, pace: 318 }];
 
+if (!SHEETS_ONLY) {
 // ---------- A: first run (Hebrew, a brand-new person) ----------
 async function flowA(lang) { curLang = lang; const { ctx, page, errors } = await ctxPage({ lang });
   await page.goto(base); await page.waitForSelector('#welcome'); await shot(page, 'A', 'first-launch');
@@ -104,13 +105,16 @@ for (const lang of LANGS) {
   await flowD(lang, 'dark', { scheme: 'dark' }); await flowD(lang, '320px', { width: 320 }); await flowD(lang, 'wide', { width: 1100, height: 800 });
 }
 
+}
+
 // ---------- report + contact sheets ----------
-writeFileSync(`${out}/findings.json`, JSON.stringify(findings, null, 1));
+if (!SHEETS_ONLY) writeFileSync(`${out}/findings.json`, JSON.stringify(findings, null, 1)); else for (const f of readdirSync(out).filter((x) => /^[A-D]-(he|en)-\d+-.*\.png$/.test(x) && !/full/.test(x)).sort((a, b) => Number(a.split('-')[2]) - Number(b.split('-')[2]) || a.localeCompare(b))) shotsList.push({ flow: f[0], file: f, label: f });
 let bad = 0; for (const f of findings) { if (f.issues.length) { bad++; console.log(`✗ ${f.name}${f.choices != null ? ` [${f.choices} choices]` : ''}: ${f.issues.join(' | ')}`); } }
 console.log(`${findings.length} screens audited, ${bad} with findings`);
-const files = shotsList.filter((s) => !/full/.test(s.label)); const sheet = await (await browser.newContext({ viewport: { width: 1700, height: 900 } })).newPage();
+const files = shotsList.filter((x) => !/full/.test(x.label)); const sheet = await (await browser.newContext({ viewport: { width: 1700, height: 900 } })).newPage();
 for (let i = 0, k = 1; i < files.length; i += 4, k++) {
-  const group = files.slice(i, i + 4); const html = `<body style="margin:0;background:#888;display:flex;gap:10px;padding:10px;align-items:flex-start">${group.map((g) => `<figure style="margin:0;font:600 14px sans-serif;color:#fff"><img src="file://${out}/${g.file}" style="height:820px;display:block"><figcaption>${g.file.replace('.png', '')}</figcaption></figure>`).join('')}</body>`;
-  await sheet.setContent(html); await sheet.waitForTimeout(300); await sheet.screenshot({ path: `${out}/sheet-${String(k).padStart(2, '0')}.png`, fullPage: true });
+  const group = files.slice(i, i + 4);
+  writeFileSync(`${out}/sheet.html`, `<body style="margin:0;background:#888;display:flex;gap:10px;padding:10px;align-items:flex-start">${group.map((g) => `<figure style="margin:0;font:600 14px sans-serif;color:#fff"><img src="${g.file}" style="height:820px;display:block"><figcaption>${g.file.replace('.png', '')}</figcaption></figure>`).join('')}</body>`);
+  await sheet.goto(`file://${out}/sheet.html`); await sheet.waitForLoadState('load'); await sheet.screenshot({ path: `${out}/sheet-${String(k).padStart(2, '0')}.png`, fullPage: true });
 }
 await browser.close(); server.close();

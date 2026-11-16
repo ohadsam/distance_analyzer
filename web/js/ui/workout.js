@@ -204,7 +204,7 @@ export function renderWorkout(kind, go, routeId) {
   const paintGps = () => {
     gpsChip.dataset.gps = gps;
     const label = gps === 'good' ? t('gpsGood') : gps === 'weak' ? t('gpsWeak') : gps === 'denied' ? t('gpsDenied') : gps === 'missing' ? t('gpsMissing') : t('gpsSearching');
-    setChildren(gpsChip, icon('gps', 18), label); gpsCard.dataset.gps = gps; setChildren(gpsCard, icon('gps', 40), h('b', null, label));
+    setChildren(gpsChip, icon('gps', 18), label); gpsCard.dataset.gps = gps; setChildren(gpsCard, icon('gps', 40), h('b', null, label), phase === 'ready' && (gps === 'good' || gps === 'searching') ? h('small', { class: 'note' }, t('wkReadyHint')) : null);
   };
   function paint() {
     const n = Date.now();
