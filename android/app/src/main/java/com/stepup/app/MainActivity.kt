@@ -71,13 +71,15 @@ class MainActivity : ComponentActivity() {
     // Hands-free: while the workout screen is up the volume keys belong to the page (down = pause / resume, up = say the numbers).
     @Volatile private var keysOn = false
     fun setHandsFree(on: Boolean) { keysOn = on }
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (keysOn && (event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || event.keyCode == KeyEvent.KEYCODE_VOLUME_UP)) {
-            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) deliver(JSONObject().put("type", "key").put("key", if (event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) "volume-down" else "volume-up"))
+    private fun isVolume(code: Int) = code == KeyEvent.KEYCODE_VOLUME_DOWN || code == KeyEvent.KEYCODE_VOLUME_UP
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        if (keysOn && isVolume(keyCode)) {
+            if (event.repeatCount == 0) deliver(JSONObject().put("type", "key").put("key", if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) "volume-down" else "volume-up"))
             return true
         }
-        return super.dispatchKeyEvent(event)
+        return super.onKeyDown(keyCode, event)
     }
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean = if (keysOn && isVolume(keyCode)) true else super.onKeyUp(keyCode, event)
 
     fun startBackupSave(name: String, json: String) = runOnUiThread { pendingBackup = json; saveBackupFile.launch(BackupMath.safeName(name)) }
     fun startBackupPick() = runOnUiThread { pickBackupFile.launch(arrayOf("application/json", "text/plain")) }
