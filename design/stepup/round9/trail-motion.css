@@ -1,0 +1,17 @@
+@keyframes trail-arm-a{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(12deg)}}
+@keyframes trail-arm-b{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-12deg)}}
+@keyframes trail-leg-a{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-11deg)}}
+@keyframes trail-leg-b{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(11deg)}}
+@keyframes trail-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+@keyframes trail-ribbon{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(7deg)}}
+@keyframes trail-streak{0%,100%{opacity:.15}50%{opacity:.75}}
+.trail-athlete-v3.anim-on .m-arm-a{transform-box:view-box;transform-origin:77px 81px;animation:trail-arm-a var(--cycle,1200ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on .m-arm-b{transform-box:view-box;transform-origin:123px 81px;animation:trail-arm-b var(--cycle,1200ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on .m-leg-a{transform-box:view-box;transform-origin:89px 124px;animation:trail-leg-a var(--cycle,1200ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on .m-leg-b{transform-box:view-box;transform-origin:111px 124px;animation:trail-leg-b var(--cycle,1200ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on .m-torso,.trail-athlete-v3.anim-on .m-head{animation:trail-bob var(--cycle,1200ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on .m-ribbon{transform-box:view-box;transform-origin:123px 78px;animation:trail-ribbon var(--cycle,1200ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on .m-streaks{animation:trail-streak var(--cycle,700ms) ease-in-out infinite}
+.trail-athlete-v3.anim-on[data-pose="run"]{--cycle:700ms}
+@media(prefers-reduced-motion:reduce){.trail-athlete-v3.anim-on *{animation:none!important;transition:none!important}}
+.calm .trail-athlete-v3.anim-on *{animation:none!important;transition:none!important}
