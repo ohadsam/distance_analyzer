@@ -188,7 +188,7 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 /* wide screens (tablets, desktop): more room, two columns */
 @media (min-width: 900px) {
   main { max-inline-size: 1000px; } .wgrid { grid-template-columns: repeat(3, 1fr); } .starts, .quick { max-inline-size: 760px; }
-  .workout { max-inline-size: 1100px; } .workout .wk { display: grid; grid-template-columns: 1.4fr 1fr; grid-auto-rows: min-content; gap: 12px 24px; align-content: start; }
-  .workout .wk > .mapbox { grid-column: 1; grid-row: 1 / span 5; min-block-size: 60vh; } .workout .wk > :not(.mapbox) { grid-column: 2; }
+  .workout { max-inline-size: 1100px; } .workout:not([data-phase="done"]) .wk { display: grid; grid-template-columns: 1.4fr 1fr; grid-auto-rows: min-content; gap: 12px 24px; align-content: start; }
+  .workout:not([data-phase="done"]) .wk > .mapbox { grid-column: 1; grid-row: 1 / span 5; min-block-size: 60vh; } .workout:not([data-phase="done"]) .wk > :not(.mapbox) { grid-column: 2; }
   .bottomnav { justify-content: center; } .bn { max-inline-size: 180px; }
 }

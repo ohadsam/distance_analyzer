@@ -22,9 +22,10 @@ export function renderHistory() {
     setChildren(list, shown.length ? shown.map((r) => workoutRow(r, flags.get(r.startedAt) || [])) : rows.length ? h('p', { class: 'note' }, t('drillNone')) : emptyState('no-workouts', t('noWorkouts')));
     chips();
   };
-  const chip = (key, label, on, fn) => h('button', { type: 'button', class: 'chip', 'data-sort': key, 'aria-pressed': String(on), onclick: fn }, label);
-  const bar = h('div', { class: 'chips', role: 'group', 'aria-label': t('history') });
-  const chips = () => setChildren(bar, [['new', 'histNewest'], ['long', 'histLongest'], ['fast', 'histFastest']].map(([k, key]) => chip(k, t(key), state.sort === k, () => { state.sort = k; draw(); })), chip('rec', t('histRecords'), state.only, () => { state.only = !state.only; draw(); }));
+  const chipEls = [['new', 'histNewest'], ['long', 'histLongest'], ['fast', 'histFastest']].map(([k, key]) => h('button', { type: 'button', class: 'chip', 'data-sort': k, onclick: () => { state.sort = k; draw(); } }, t(key)));
+  chipEls.push(h('button', { type: 'button', class: 'chip', 'data-sort': 'rec', onclick: () => { state.only = !state.only; draw(); } }, t('histRecords')));
+  const bar = h('div', { class: 'chips', role: 'group', 'aria-label': t('history') }, chipEls);
+  const chips = () => { for (const c of chipEls) c.setAttribute('aria-pressed', String(c.dataset.sort === 'rec' ? state.only : state.sort === c.dataset.sort)); }; // toggled in place: the focused chip stays
   const SR = globalThis.SpeechRecognition || globalThis.webkitSpeechRecognition;
   const input = h('input', { type: 'search', id: 'hist-q', maxLength: 40, 'aria-label': t('filterText'), placeholder: t('filterText'), oninput: (e) => { state.q = e.target.value; draw(); } });
   const mic = SR ? h('button', { type: 'button', class: 'btn ghost', id: 'hist-voice', onclick: () => { try { const r = new SR(); r.lang = getLang() === 'he' ? 'he-IL' : 'en-US'; r.onresult = (e) => { input.value = e.results[0][0].transcript.slice(0, 40); state.q = input.value; draw(); }; r.start(); } catch { /* not allowed */ } } }, t('histVoice')) : null;

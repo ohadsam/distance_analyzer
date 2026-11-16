@@ -57,10 +57,16 @@ class MainActivity : ComponentActivity() {
     private var pendingGpx = ""
     private val saveGpxFile = registerForActivityResult(ActivityResultContracts.CreateDocument("application/gpx+xml")) { uri ->
         val data = pendingGpx; pendingGpx = ""
-        val ok = uri != null && data.isNotEmpty() && runCatching { contentResolver.openOutputStream(uri)!!.use { it.write(data.toByteArray(Charsets.UTF_8)) } }.isSuccess
-        deliver(JSONObject().put("type", "gpx-saved").put("ok", ok))
+        if (uri == null || data.isEmpty()) deliver(JSONObject().put("type", "gpx-saved").put("ok", false))
+        else Thread { // the write can be slow (a cloud-backed document): never on the UI thread
+            val ok = runCatching { contentResolver.openOutputStream(uri)!!.use { it.write(data.toByteArray(Charsets.UTF_8)) } }.isSuccess
+            deliver(JSONObject().put("type", "gpx-saved").put("ok", ok))
+        }.start()
     }
-    fun startGpxSave(name: String, text: String) = runOnUiThread { pendingGpx = text; saveGpxFile.launch(BackupMath.safeName(name)) }
+    fun startGpxSave(name: String, text: String) = runOnUiThread {
+        if (pendingGpx.isNotEmpty()) { deliver(JSONObject().put("type", "gpx-saved").put("ok", false)); return@runOnUiThread } // one save dialog at a time
+        pendingGpx = text; saveGpxFile.launch(BackupMath.safeName(name))
+    }
 
     // Hands-free: while the workout screen is up the volume keys belong to the page (down = pause / resume, up = say the numbers).
     @Volatile private var keysOn = false
@@ -175,6 +181,8 @@ class MainActivity : ComponentActivity() {
                 return true
             }
 
+            override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) { keysOn = false } // a reloaded page starts with the volume keys released
+
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean { recreate(); return true }
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -188,7 +196,7 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readHref(intent); if (pendingHref.isNotEmpty()) deliver(JSONObject().put("type", "href")) } // the app is already in front: tell the page now
     override fun onResume() { super.onResume(); Voice.foreground = true; web.onResume() }
-    override fun onPause() { Voice.foreground = false; web.onPause(); super.onPause() }
+    override fun onPause() { keysOn = false; Voice.foreground = false; web.onPause(); super.onPause() }
     override fun onDestroy() { web.destroy(); super.onDestroy() }
 
     /** Keeps the screen on during a workout (the web Wake Lock API is not reliable in every WebView). */

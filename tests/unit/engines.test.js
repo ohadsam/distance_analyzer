@@ -203,3 +203,14 @@ test('record flags: each workout against what came before', () => {
   const f = recordFlags([w(3, 5, 30), w(5, 4, 30), w(8, 6, 33), w(10, 3, 20)]);
   assert.equal(f.has(Date.UTC(2026, 10, 3)), false); assert.deepEqual(f.get(Date.UTC(2026, 10, 8)), ['distance', 'pace', 'km']); assert.equal(f.has(Date.UTC(2026, 10, 5)), false, 'shorter and slower'); assert.equal(f.has(Date.UTC(2026, 10, 10)), false, 'shorter and slower than the best');
 });
+
+import { brokenRecords } from '../../web/js/records.js';
+test('recordFlags (one pass) gives the same answer as brokenRecords applied to each workout in turn; GPX thins long tracks and uses the local date', () => {
+  let seed = 7; const rnd = () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; };
+  const rows = Array.from({ length: 120 }, (_, i) => { const km = 0.5 + rnd() * 10, min = km * (4.5 + rnd() * 3), n = Math.floor(km); return { kind: rnd() < 0.6 ? 'run' : 'walk', startedAt: 1_700_000_000_000 + i * 86400000, distanceM: km * 1000, movingMs: min * 60000, splits: Array.from({ length: n }, (_, j) => ({ km: j + 1, atMs: (j + 1) * (min * 60000 / km) * (0.9 + rnd() * 0.2) })) }; });
+  const asc = [...rows].sort((a, b) => a.startedAt - b.startedAt), slow = new Map(); asc.forEach((w, i) => { const r = brokenRecords(asc.slice(0, i), w); if (r.length) slow.set(w.startedAt, r.map((x) => x.id)); });
+  assert.deepEqual([...recordFlags(rows)].sort((a, b) => a[0] - b[0]), [...slow].sort((a, b) => a[0] - b[0])); assert.ok(slow.size > 3, 'the data has records');
+  const pts = Array.from({ length: 120000 }, (_, i) => [32 + i * 1e-6, 34.8, 1_700_000_000_000 + i * 1000]), g = toGpx({ kind: 'walk', startedAt: 1, points: pts });
+  const n = (g.match(/<trkpt /g) || []).length; assert.ok(n <= 50001 && n > 30000, String(n)); assert.ok(g.includes('lat="32.119999"') || g.includes('lat="32.120000"') || g.includes('lat="32.119999'), 'the end of the track is kept');
+  const w = { kind: 'run', startedAt: new Date(2026, 10, 15, 0, 30).getTime() }; assert.equal(gpxFileName(w), 'stepup-run-2026-11-15.gpx');
+});

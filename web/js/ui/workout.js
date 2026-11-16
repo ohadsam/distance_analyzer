@@ -41,7 +41,7 @@ export function renderWorkout(kind, go, routeId) {
   const vDist = val('v-dist'), vA = val('v-a'), vB = val('v-b');
   const metric = (label, v, cls = '') => h('div', { class: `metric ${cls}` }, h('div', { class: 'cap' }, label), v);
   // the two numbers next to the distance are the person's choice (Settings); one tap on a card shows the next number
-  const pair = () => metricPair(getPref('wkA', DEFAULT_METRICS[0]), getPref('wkB', DEFAULT_METRICS[1]));
+  const pair = () => metricPair(getPref('wkA', getPref('speedUnit', 'pace') === 'kmh' ? 'speed' : DEFAULT_METRICS[0]), getPref('wkB', DEFAULT_METRICS[1])); // (an older "km/h" choice carries over)
   const cycle = (slot) => { const [a, b] = pair(), cur = slot === 0 ? a : b, other = slot === 0 ? b : a; let k = (METRICS.indexOf(cur) + 1) % METRICS.length; if (METRICS[k] === other) k = (k + 1) % METRICS.length; setPref(slot === 0 ? 'wkA' : 'wkB', METRICS[k]); paint(); };
   const capA = h('div', { class: 'cap' }), capB = h('div', { class: 'cap' });
   const cardA = h('button', { type: 'button', class: 'metric tap', id: 'wk-a', onclick: () => cycle(0) }, capA, vA), cardB = h('button', { type: 'button', class: 'metric tap', id: 'wk-b', onclick: () => cycle(1) }, capB, vB);
@@ -67,7 +67,7 @@ export function renderWorkout(kind, go, routeId) {
     h('button', { type: 'button', class: 'btn danger', onclick: () => end(false) }, t('discard')));
   const lockLayer = h('div', { class: 'lock', hidden: true }, h('div', { class: 'lock-msg' }, icon('lock', 40), h('p', null, t('locked'))));
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
-  const body = h('div', { class: 'wk' }), cdEl = h('div', { class: 'countdown', hidden: true, role: 'status', onclick: () => { clearTimeout(cdTimer); cdEl.hidden = true; } });
+  const body = h('div', { class: 'wk' }), cdEl = h('div', { class: 'countdown', hidden: true, role: 'status' });
   // Live map (no tiles) and, when following a saved route, the route line, its name and a "ghost" of the best earlier attempt.
   const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), mapBox = h('div', { class: 'mapbox' }, stopEl, lm.el, followEl, ghostEl);
   let follow = null, ghost = null, ghostSide = ''; // follow = { route, best }; ghost = (moving ms) -> metres of the best attempt
@@ -143,12 +143,15 @@ export function renderWorkout(kind, go, routeId) {
   // optional 3-2-1 (or 5-4-3-2-1) before the start; a tap on the number cancels it
   let cdTimer = 0;
   function startCountdown(n) {
-    cdEl.hidden = false; let left = n;
+    if (cdTimer || !cdEl.hidden) return; // one countdown at a time
+    cdEl.hidden = false; mainBtn.disabled = true; let left = n;
+    const stop = () => { clearTimeout(cdTimer); cdTimer = 0; cdEl.hidden = true; mainBtn.disabled = false; };
+    cdEl.onclick = stop;
     const tick = () => { cdEl.textContent = left > 0 ? String(left) : t('wkGo'); sr.textContent = cdEl.textContent; if (getPref('voice', '0') === '1') speak(cdEl.textContent, getLang());
-      if (left <= 0) { cdEl.hidden = true; onMain(true); return; } left--; cdTimer = setTimeout(tick, 1000); };
+      if (left <= 0) { cdTimer = setTimeout(() => { stop(); onMain(true); }, 600); return; } left--; cdTimer = setTimeout(tick, 1000); };
     tick();
   }
-  function announceNow() { if (!w) return; const text = t('announceNow', { km: (w.distanceM / 1000).toFixed(2), min: Math.floor(elapsedMs(w, Date.now()) / 60000) }); cueQueue.push({ text, key: '' }); pumpCues(); speak(text, getLang()); }
+  function announceNow() { if (!w) return; const text = t('announceNow', { km: (w.distanceM / 1000).toFixed(2), min: Math.floor(elapsedMs(w, Date.now()) / 60000) }); cueQueue.length = 0; clearTimeout(cueTimer); cueEl.hidden = true; cueQueue.push({ text, key: '' }); pumpCues(); /* shown at once, spoken when the voice is on (say() is in pumpCues) */ }
   function onMain(instant = false) {
     const n = Date.now();
     if (phase === 'ready' && !instant && Number(getPref('countdown', '0')) > 0) return startCountdown(Number(getPref('countdown', '0')));
@@ -191,7 +194,7 @@ export function renderWorkout(kind, go, routeId) {
 
   // ---------- lock: press and hold to unlock, so a sweaty hand or a pocket cannot stop the workout ----------
   let holdT = 0;
-  const setLocked = (on) => { lockLayer.hidden = !on; el.classList.toggle('is-locked', on); if (on) holdBtn.focus(); else mainBtn.focus(); };
+  const setLocked = (on) => { lockLayer.hidden = !on; syncKeys(); el.classList.toggle('is-locked', on); if (on) holdBtn.focus(); else mainBtn.focus(); };
   const hold = () => { clearTimeout(holdT); holdT = setTimeout(() => setLocked(false), HOLD_MS); holdBtn.classList.add('holding'); };
   const release = () => { clearTimeout(holdT); holdBtn.classList.remove('holding'); };
   holdBtn.addEventListener('pointerdown', hold); for (const ev of ['pointerup', 'pointerleave', 'pointercancel', 'blur']) holdBtn.addEventListener(ev, release);
@@ -208,7 +211,7 @@ export function renderWorkout(kind, go, routeId) {
     vDist.textContent = w ? (w.distanceM / 1000).toFixed(2) : '0.00';
     const ctx = { now: n, weightKg: getNum('weight', 70, 30, 250), bpm: Number(rhythm.el.dataset.bpm) || 0 }, [a, b] = pair();
     for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; cap.textContent = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); }
-    el.dataset.phase = phase; paintBody();
+    el.dataset.phase = phase; paintBody(); syncKeys();
   }
   let bodyPhase = '';
   function paintBody() { // rebuild the button area only when the phase changes
@@ -233,15 +236,17 @@ export function renderWorkout(kind, go, routeId) {
   // ---------- lifecycle ----------
   // hands-free: a double tap on the numbers or the map pauses / resumes (buttons, inputs and the lock screen are never affected); the volume keys do the same on Android
   const handsFreeOn = () => getPref('handsFree', '1') !== '0';
+  let keysSent = null; /** The volume keys are ours only while a workout is running or paused, unlocked, with the screen in front (never on the ready, confirm and summary screens or under the lock). */
+  const syncKeys = () => { const want = handsFreeOn() && (phase === 'running' || phase === 'paused') && lockLayer.hidden && !document.hidden; if (want !== keysSent) { keysSent = want; native.handsFree(want); } };
   body.addEventListener('dblclick', (e) => { if (!handsFreeOn() || e.target.closest('button, a, input, select')) return; if (phase === 'running' || phase === 'paused') onMain(); });
   const onKey = (e) => { const d = e.detail; if (d?.type !== 'key' || !handsFreeOn() || lockLayer.hidden === false) return; if (d.key === 'volume-down' && (phase === 'running' || phase === 'paused')) onMain(); else if (d.key === 'volume-up') announceNow(); };
-  addEventListener('stepup-native', onKey); native.handsFree(handsFreeOn());
+  addEventListener('stepup-native', onKey); syncKeys();
   applySun(); startGps(); paintGps(); paint();
   let ticks = 0;
   paintMap();
   if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(true); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
   tickId = setInterval(() => { drainNative(); ++ticks; if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); checkStopped(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
-  const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
+  const onHide = () => { keysSent = null; syncKeys(); if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { delete document.body.dataset.sun; clearTimeout(cdTimer); removeEventListener('stepup-native', onKey); native.handsFree(false); clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };
   return el;

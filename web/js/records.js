@@ -16,9 +16,20 @@ export function brokenRecords(prior, w) {
   return out;
 }
 
-/** Which workouts were a record when they were done: Map(startedAt -> ['distance' | 'pace' | 'km', ...]) (oldest first, each against what came before). */
+/** Which workouts were a record when they were done: Map(startedAt -> ['distance' | 'pace' | 'km', ...]). One pass over the rows (oldest first) with running bests per kind: the same rules as brokenRecords. */
 export function recordFlags(rows) {
-  const asc = [...rows].sort((a, b) => a.startedAt - b.startedAt), out = new Map();
-  for (let i = 0; i < asc.length; i++) { const r = brokenRecords(asc.slice(0, i), asc[i]); if (r.length) out.set(asc[i].startedAt, r.map((x) => x.id)); }
+  const asc = [...rows].sort((a, b) => a.startedAt - b.startedAt), out = new Map(), agg = {};
+  for (const w of asc) {
+    const a = agg[w.kind] ||= { n: 0, longest: 0, bestKm: 0, bestPace: Infinity }, km = kmTimes(w), mine = paceSec(w), flags = [];
+    if (a.n && w.distanceM >= 1000) {
+      if (a.longest && w.distanceM > a.longest + 20) flags.push('distance');
+      if (a.bestPace < Infinity && mine > 0 && mine < a.bestPace - 2) flags.push('pace');
+      if (km.length && a.bestKm && Math.min(...km) < a.bestKm - 2000) flags.push('km');
+    }
+    if (flags.length) out.set(w.startedAt, flags);
+    a.n++;
+    if (w.distanceM >= 200) { a.longest = Math.max(a.longest, w.distanceM); for (const ms of km) if (!a.bestKm || ms < a.bestKm) a.bestKm = ms; }
+    if (w.distanceM >= 1000 && mine > 0) a.bestPace = Math.min(a.bestPace, mine);
+  }
   return out;
 }
