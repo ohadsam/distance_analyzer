@@ -238,7 +238,7 @@ await step('global search: actions, data facts and guide topics are found; the g
 });
 await step('live map explains itself: hint before the first fix, legend and scale once there is a path', async () => {
   const { page, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
-  for (let i = 1; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.0002, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  for (let i = 1; i <= 6; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
   await page.waitForSelector('.maplegend:not([hidden])'); assert.ok(await page.locator('.livemap .scale-t').count() >= 1, 'scale bar');
 });
 await step('weather: add it to a workout, the weather widget and filter use it', async () => {
