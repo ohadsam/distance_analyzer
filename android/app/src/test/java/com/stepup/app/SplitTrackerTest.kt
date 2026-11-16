@@ -39,7 +39,7 @@ class SplitTrackerTest {
     @Test fun configIsValidatedAndBounded() {
         assertNull(VoiceConfig.parse("nope"))
         val c = VoiceConfig.parse("""{"on":true,"lang":"xx","tpl":"a{n}\u0007b${"c".repeat(300)}","dist":12.5,"moving":-5}""")!!
-        assertEquals("en", c.lang); assertTrue(c.on); assertEquals(120, c.template.length); assertEquals(' ', c.template[2 + 1]); assertEquals(12.5, c.distM, 0.0001)
+        assertEquals("en", c.lang); assertTrue(c.on); assertEquals(120, c.template.length); assertEquals(' ', c.template[4]); assertEquals(12.5, c.distM, 0.0001)
         assertEquals("he", VoiceConfig.parse("""{"lang":"he"}""")!!.lang)
         assertEquals(false, VoiceConfig.parse("{}")!!.on); assertEquals(0.0, VoiceConfig.parse("{}")!!.distM, 0.0)
         val tr = SplitTracker(); tr.reset(-5.0, -3L); assertEquals(0.0, tr.distM, 0.0); assertEquals(0L, tr.movingMs)

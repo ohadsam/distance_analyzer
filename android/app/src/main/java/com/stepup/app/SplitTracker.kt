@@ -20,7 +20,9 @@ class SplitTracker {
         if (acc > 35f) return emptyList()
         val out = ArrayList<Split>()
         if (!lat.isNaN() && tMs > t) {
-            val dt = tMs - t, d = haversine(lat, lon, la, lo), v = d / (dt / 1000.0)
+            val dt = tMs - t
+            val d = haversine(lat, lon, la, lo)
+            val v = d / (dt / 1000.0)
             if (v <= 12.0 && v >= 0.5) {
                 val before = distM
                 distM += d; movingMs += dt
