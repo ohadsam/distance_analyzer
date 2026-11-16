@@ -144,7 +144,7 @@ function welcome(c, redraw) {
   if (getPref('welcomed', '') || c.all.length) return null;
   const done = () => { setPref('welcomed', '1'); redraw(); };
   const age = h('input', { id: 'welcome-age', type: 'number', inputMode: 'numeric', min: 5, max: 100, value: getPref('age', '') || '', placeholder: '35' });
-  return h('div', { class: 'card welcome', id: 'welcome' }, art('onboarding', 'welcome'), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')), h('p', { class: 'note' }, t('welcomePerms')), h('a', { class: 'link', href: '#/guide' }, t('guideStart')),
+  return h('div', { class: 'card welcome', id: 'welcome' }, figure('trail-wave', 96), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')), h('p', { class: 'note' }, t('welcomePerms')), h('a', { class: 'link', href: '#/guide' }, t('guideStart')),
     h('label', { for: 'welcome-age' }, t('age')), age,
     h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'welcome-ok', onclick: () => { const a = Number(age.value); if (a >= 5 && a <= 100) setPref('age', Math.round(a)); done(); } }, t('welcomeOk')), h('button', { type: 'button', class: 'btn ghost', onclick: done }, t('welcomeSkip'))));
 }
@@ -155,7 +155,7 @@ export function renderDashboard() {
   async function draw() {
     const mine = ++seq, c = await loadContext(); if (el.alive === false || mine !== seq) return; // only the newest draw may paint (fast taps start several)
     const resume = active.load(); // read on every draw: a discard must show at once
-    const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!active.load()) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, figure(`${kind}-96`, 64), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
+    const startLink = (kind) => h('a', { class: `start-card ${kind}`, href: `#/workout/${kind}`, onclick: (e) => { if (!active.load()) return; if (confirm(t('replaceAsk'))) active.clear(); else e.preventDefault(); } }, figure(`trail-${kind}`, 64), h('b', null, t(kind === 'walk' ? 'startWalk' : 'startRun')));
     if (!getPref('dash', '') && !getPref('welcomed', '') && !c.all.length) setJson('dash', { order: [...WIDGETS], hidden: [...DEFAULT_HIDDEN] });
     const layout = loadLayout();
     const change = (fn) => { const L = loadLayout(); fn(L); setJson('dash', L); draw(); }; // always from the saved layout, so a fast second tap never works on a stale copy

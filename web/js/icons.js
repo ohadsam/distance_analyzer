@@ -22,13 +22,14 @@ export function icon(name, size = 24) {
 }
 
 /**
- * A character (walk / run on a round plate) or a gauge (gauge-speed / gauge-pace), drawn inline so the motion CSS can move its m-* parts.
+ * Trail, the companion character (trail-idle / walk / run / cheer / rest / wave / focus / finish) or a gauge (gauge-speed / gauge-pace), drawn inline so the motion CSS can move its m-* parts.
  * The light or dark art follows the current look (refreshFigures re-draws them when it changes). `animate` adds the .anim-on hook.
  */
 export function figure(name, size = 96, { animate = true } = {}) {
   const svg = document.createElementNS(NS, 'svg');
   svg.setAttribute('width', size); svg.setAttribute('height', size); svg.setAttribute('aria-hidden', 'true'); svg.setAttribute('focusable', 'false');
-  svg.dataset.fig = name; svg.setAttribute('class', `figure ${name.startsWith('gauge') ? 'gauge' : `character-${name.split('-')[0]}`}${animate ? ' anim-on' : ''}`);
+  svg.dataset.fig = name; svg.setAttribute('class', `figure ${name.startsWith('gauge') ? 'gauge' : 'trail-companion'}${animate ? ' anim-on' : ''}`);
+  if (name.startsWith('trail-')) svg.dataset.pose = name.slice(6); // the motion CSS picks the animation by pose
   paintFigure(svg); return svg;
 }
 function paintFigure(svg) {

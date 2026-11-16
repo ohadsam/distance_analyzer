@@ -8,7 +8,7 @@ import { speak } from '../voice.js';
 import { badgeFor, art } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
-import { icon, setNeedle } from '../icons.js';
+import { icon, figure, setNeedle } from '../icons.js';
 import { stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
 import { active, saveWorkout, getNum, getPref, setPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
@@ -227,7 +227,7 @@ export function renderWorkout(kind, go, routeId) {
   function summary() {
     const n = w.endedAt, mins = elapsedMs(w, n);
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
-    return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackPicture(w.points),
+    return h('div', { class: 'summary' }, figure('trail-finish', 96), h('h2', null, t('summary')), trackPicture(w.points),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
       workoutShareBox(w), recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
