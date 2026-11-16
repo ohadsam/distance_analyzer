@@ -3,9 +3,12 @@ import { bucketize, weekStart, DAY } from './stats.js';
 
 export const CHALLENGE_CHOICES = [0, 2, 3, 4, 5]; // 0 = off
 
+/** Any stored value -> a valid target (0 = off). */
+export const challengeTarget = (v) => (CHALLENGE_CHOICES.includes(Number(v)) ? Number(v) : 0);
+
 /** { target, done, left, complete } for the week of `now`. */
 export function challengeStatus(rows, now, target) {
-  const t = CHALLENGE_CHOICES.includes(target) ? target : 0;
+  const t = challengeTarget(target);
   const done = rows.filter((w) => weekStart(w.startedAt) === weekStart(now)).length;
   return { target: t, done, left: Math.max(0, t - done), complete: t > 0 && done >= t };
 }

@@ -4,9 +4,9 @@ import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { native } from '../native.js';
 import { fmtKm, fmtPaceUnit, fmtClock, fmtDate } from '../format.js';
+import { isDark } from '../art.js';
 import { renderCard, squarePhoto, seeded, CONFETTI, CARD_STYLES } from '../podiumCard.js';
 
-const isDark = () => { const th = document.documentElement.dataset.theme; return th === 'dark' || (th !== 'light' && !!matchMedia?.('(prefers-color-scheme: dark)').matches); };
 const TITLE = { distance: 'rcdDistance', pace: 'rcdPace', km: 'rcdKm' };
 const valueText = (r) => (r.id === 'distance' ? fmtKm(r.value) : r.id === 'pace' ? fmtPaceUnit(r.value) : fmtClock(r.value));
 const prevText = (r) => t('rcdBefore', { v: r.id === 'distance' ? fmtKm(r.prev) : r.id === 'pace' ? fmtPaceUnit(r.prev) : fmtClock(r.prev) });

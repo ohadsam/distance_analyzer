@@ -32,11 +32,16 @@ class SplitTrackerTest {
         val s = walk(tr, 100)
         assertNotNull(s.firstOrNull()); assertEquals(2, s[0].km); assertTrue(s[0].atMs > 600_000L)
     }
-    @Test fun templateAndConfigAreSafe() {
+    @Test fun templateIsFilled() {
         assertEquals("Kilometre 3: 5 minutes 12 seconds", SplitText.fill("Kilometre {n}: {min} minutes {sec} seconds", 3, 312_000L))
-        val c = VoiceConfig.parse("""{"on":true,"lang":"xx","tpl":"a{n}\n","dist":NaN,"moving":-5}""")
-        assertNull(VoiceConfig.parse("nope")); assertEquals("en", VoiceConfig.parse("""{"lang":"he"}""")!!.lang.let { "en" })
+        assertEquals("קילומטר 10: 0 דקות ו-59 שניות", SplitText.fill("קילומטר {n}: {min} דקות ו-{sec} שניות", 10, 59_999L))
+    }
+    @Test fun configIsValidatedAndBounded() {
+        assertNull(VoiceConfig.parse("nope"))
+        val c = VoiceConfig.parse("""{"on":true,"lang":"xx","tpl":"a{n}\u0007b${"c".repeat(300)}","dist":12.5,"moving":-5}""")!!
+        assertEquals("en", c.lang); assertTrue(c.on); assertEquals(120, c.template.length); assertEquals(' ', c.template[2 + 1]); assertEquals(12.5, c.distM, 0.0001)
         assertEquals("he", VoiceConfig.parse("""{"lang":"he"}""")!!.lang)
-        assertTrue(c == null || (c.lang == "en" && c.distM == 0.0))
+        assertEquals(false, VoiceConfig.parse("{}")!!.on); assertEquals(0.0, VoiceConfig.parse("{}")!!.distM, 0.0)
+        val tr = SplitTracker(); tr.reset(-5.0, -3L); assertEquals(0.0, tr.distM, 0.0); assertEquals(0L, tr.movingMs)
     }
 }

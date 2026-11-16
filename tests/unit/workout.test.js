@@ -63,3 +63,9 @@ test('stoppedFor: barely moved over ~30 s with a fresh fix -> offer a pause; mov
   assert.equal(stoppedFor(mk([[32, 34.8, T], [32.0005, 34.8, T + 15000], [32.001, 34.8, T + 31000]]), T + 32000), false, 'moving at walking pace');
   assert.equal(stoppedFor(mk(still, { pausedAt: T }), T + 33000), false); assert.equal(stoppedFor(mk([]), T), false);
 });
+
+import { readFileSync } from 'node:fs';
+test('the Android kilometre counter uses the same limits as the page (so spoken and shown splits agree)', () => {
+  const kt = readFileSync('android/app/src/main/java/com/stepup/app/SplitTracker.kt', 'utf8');
+  assert.ok(kt.includes(`acc > ${LIMITS.maxAccuracyM}f`), 'accuracy limit'); assert.ok(kt.includes(`v <= ${LIMITS.maxSpeedMps}.0`), 'speed limit'); assert.ok(kt.includes(`v >= ${LIMITS.movingMps}`), 'moving limit');
+});

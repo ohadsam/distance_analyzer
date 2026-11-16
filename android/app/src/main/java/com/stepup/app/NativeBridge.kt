@@ -50,7 +50,7 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun takeBackup(): String = activity.takeBackup()
 
     /** Kilometre times spoken by the background service while the screen is off: { on, lang, tpl, dist, moving } (validated in VoiceConfig). */
-    @JavascriptInterface fun setVoice(json: String) { if (BridgeLimits.within(json, 600)) Voice.config(json) }
+    @JavascriptInterface fun setVoice(json: String) { if (BridgeLimits.within(json, 600)) Voice.config(ctx, json) }
 
     // ---- victory photo and record card ----
     @JavascriptInterface fun takePhoto(): Boolean { activity.startPhoto(); return true }

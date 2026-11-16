@@ -1,4 +1,5 @@
 import { h, setChildren } from '../util.js';
+import { challengeTarget } from '../challenge.js';
 import { refreshArt } from '../art.js';
 import { t, setLang } from '../i18n.js';
 import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
@@ -87,7 +88,7 @@ export function renderSettings(focusId) {
     nbtn, h('p', { class: 'note' }, t('remNote')),
     native.available ? backgroundBlock() : null,
     h('h2', null, t('setCues')), check('s-cues', t('setCues'), getPref('cues', '1') !== '0', (on) => setPref('cues', on ? '1' : '0')), h('p', { class: 'note' }, t('setCuesHint')),
-    field(t('chSet'), select('s-challenge', String(getNum('challengeN', 3, 0, 7)), [['0', t('chOffOpt')], ...[2, 3, 4, 5].map((n) => [String(n), t('chN', { n })])], (v) => { setPref('challengeN', v); }), 's-challenge'), h('p', { class: 'note' }, t('chSetHint')),
+    field(t('chSet'), select('s-challenge', String(challengeTarget(getPref('challengeN', '3'))), [['0', t('chOffOpt')], ...[2, 3, 4, 5].map((n) => [String(n), t('chN', { n })])], (v) => { setPref('challengeN', v); }), 's-challenge'), h('p', { class: 'note' }, t('chSetHint')),
     check('s-weekly', t('setWeekly'), getPref('weeklyNotify', '0') === '1', (on) => { setPref('weeklyNotify', on ? '1' : '0'); syncNative(); }), h('p', { class: 'note' }, t('setWeeklyHint')),
     check('s-stophint', t('setStopHint'), getPref('stopHint', '1') !== '0', (on) => setPref('stopHint', on ? '1' : '0')),
     check('s-sun', t('setSun'), getPref('sun', '0') === '1', (on) => { setPref('sun', on ? '1' : '0'); }),

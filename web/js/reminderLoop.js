@@ -27,7 +27,7 @@ async function runChecks(now, prevCheck) {
   const list = sanitizeReminders(getJson('rems', [])), smart = sanitizeSmart(getJson('smart', {}));
   for (const r of dueReminders(list, prevCheck, now)) pushAlert({ id: `rem-${r.id}-${dayStart(now)}-${r.time}`, kind: 'reminder', title: r.kind === 'walk' ? 'rem_walk' : 'rem_move', lines: [r.kind === 'walk' ? 'rem_walk_body' : 'rem_move_body'], href: '#/workout/walk' });
   if (!native.available) for (const e of planReminders(prevCheck)) if (e.at <= now) pushAlert({ id: e.id, kind: 'reminder', title: 'planRemindTitle', lines: ['planRemindBody'], params: { what: t(`ty${e.meta.type[0].toUpperCase()}${e.meta.type.slice(1)}`), min: e.meta.min }, href: '#/plan' }); // in the browser: while the page is open (Android has the notification already)
-  await weeklyPart(now);
+  try { await weeklyPart(now); } catch { /* the weekly card is a bonus: the other checks still run */ }
   await smartPart(smart, now);
   await recoPart(now);
 }
@@ -39,7 +39,7 @@ async function weeklyPart(now) {
   const day = dayStart(now), sent = getJson('weeklySent', 0); if (sent === day) return;
   const s = weeklySummary(await listWorkouts({ points: false }), now);
   setJson('weeklySent', day);
-  pushAlert({ id: `weekly-${day}`, kind: 'reminder', title: 'weeklyTitle', lines: [s.n ? 'weeklyBody' : 'weeklyBodyNone'], params: { n: s.n, km: s.km, min: s.minutes }, href: '#/d/effort' });
+  pushAlert({ id: `weekly-${day}`, kind: 'reminder', title: 'weeklyTitle', lines: [s.n ? 'weeklyBody' : 'weeklyBodyNone'], params: { n: s.n, km: s.km, min: s.minutes }, href: '#/d/effort' }, { system: !native.available }); // on Android the scheduled notification already told them
 }
 
 async function smartPart(smart, now) {

@@ -1,7 +1,7 @@
 // Illustrations from the design kit (web/art/*): empty states, weather banners and the live-indication badges. Decorative: always alt="".
 import { h } from './util.js';
 
-const isDark = () => { const th = document.documentElement.dataset.theme; return th === 'dark' || (th !== 'light' && !!globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches); };
+export const isDark = () => { const th = document.documentElement.dataset.theme; return th === 'dark' || (th !== 'light' && !!globalThis.matchMedia?.('(prefers-color-scheme: dark)').matches); };
 /** An <img> of web/art/<group>/<name>-<light|dark>.svg for the current look. */
 const src = (key) => `art/${key.split('/')[0]}/${key.split('/')[1]}-${isDark() ? 'dark' : 'light'}.svg`;
 export const art = (group, name, cls = 'art') => h('img', { class: cls, src: src(`${group}/${name}`), 'data-art': `${group}/${name}`, alt: '', draggable: false });
