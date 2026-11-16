@@ -1,11 +1,11 @@
 // Workout mode: one calm screen with big numbers and few buttons. Tracking (GPS) -> workout.js (pure); persistence -> store.js.
 import { workoutShareBox } from './workoutShare.js';
-import { metricValue, metricPair, METRICS, DEFAULT_METRICS } from '../metrics.js';
+import { metricValue, metricPair, METRICS, DEFAULT_METRICS, METRIC_ICON } from '../metrics.js';
 import { brokenRecords } from '../records.js';
 import { celebrationCard } from './podium.js';
 import { trackPicture } from './maptiles.js';
 import { speak } from '../voice.js';
-import { badgeFor } from '../art.js';
+import { badgeFor, art } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
@@ -147,7 +147,7 @@ export function renderWorkout(kind, go, routeId) {
     cdEl.hidden = false; mainBtn.disabled = true; let left = n;
     const stop = () => { clearTimeout(cdTimer); cdTimer = 0; cdEl.hidden = true; mainBtn.disabled = false; };
     cdEl.onclick = stop;
-    const tick = () => { cdEl.textContent = left > 0 ? String(left) : t('wkGo'); sr.textContent = cdEl.textContent; if (getPref('voice', '0') === '1') speak(cdEl.textContent, getLang());
+    const tick = () => { const label = left > 0 ? String(left) : t('wkGo'); setChildren(cdEl, art('workout', `count-${left > 0 ? left : 'go'}`, 'cd-img'), h('span', { class: 'sr-only' }, label)); sr.textContent = label; if (getPref('voice', '0') === '1') speak(label, getLang());
       if (left <= 0) { cdTimer = setTimeout(() => { stop(); onMain(true); }, 600); return; } left--; cdTimer = setTimeout(tick, 1000); };
     tick();
   }
@@ -210,7 +210,7 @@ export function renderWorkout(kind, go, routeId) {
     const n = Date.now();
     vDist.textContent = w ? (w.distanceM / 1000).toFixed(2) : '0.00';
     const ctx = { now: n, weightKg: getNum('weight', 70, 30, 250), bpm: Number(rhythm.el.dataset.bpm) || 0 }, [a, b] = pair();
-    for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; cap.textContent = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); }
+    for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; const label = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); if (cap.dataset.m !== id + label) { cap.dataset.m = id + label; setChildren(cap, icon(METRIC_ICON[id] || 'pace', 16), label); } }
     el.dataset.phase = phase; paintBody(); syncKeys();
   }
   let bodyPhase = '';

@@ -56,3 +56,8 @@ test('backup files are untrusted: wrong format, huge or hostile content never ge
   const store = new Map([['da.age', '30'], ['da.loc', 'x'], ['da.active', '{}'], ['other', '1'], ['da.pack', 'ocean']]); const st = { get length() { return store.size; }, key: (i) => [...store.keys()][i], getItem: (k) => store.get(k) };
   assert.deepEqual(collectPrefs(st), { age: '30', pack: 'ocean' });
 });
+
+test('the workout kit pictures the app uses all exist in light and dark', () => {
+  const names = [...['morning', 'afternoon', 'evening', 'night'].map((n) => `banner-${n}`), ...['forest', 'sunrise', 'ocean'].map((n) => `card-${n}`), ...['1', '2', '3', '4', '5', 'go'].map((n) => `count-${n}`), ...['double-tap', 'volume-keys'].map((n) => `hint-${n}`)];
+  for (const n of names) for (const m of ['light', 'dark']) assert.ok(existsSync(`web/art/workout/${n}-${m}.svg`), `${n}-${m}`);
+});

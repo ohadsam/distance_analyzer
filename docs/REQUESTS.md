@@ -69,3 +69,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 52 | Voice from the background service; stop hint; sunlight mode; weekly challenge; Sunday summary; permissions explained | ✅ 0.15.0 (voice with the screen off unverified on a device) |
 | 53 | Use the celebration kit (podium layers, cards, badges) | ✅ 0.15.0 |
 | 54 | Implement all UI/UX suggestions: choose workout numbers, time-of-day home, hands-free, share workout picture, history sort/records/voice filter, GPX, countdown, wide layout | ✅ 0.16.0 (device checks pending; polished art requested in ROUND7 prompt) |
+| 55 | Use the round-7 workout visual kit | ✅ 0.17.0 |

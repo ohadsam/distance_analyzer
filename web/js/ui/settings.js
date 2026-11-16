@@ -1,4 +1,5 @@
 import { h, setChildren } from '../util.js';
+import { art } from '../art.js';
 import { metricValue, metricPair, METRICS } from '../metrics.js';
 import { challengeTarget } from '../challenge.js';
 import { refreshArt } from '../art.js';
@@ -96,6 +97,7 @@ export function renderSettings(focusId) {
     field(t('wkMetricA'), select('s-wka', metricPair(getPref('wkA', ''), getPref('wkB', ''))[0], METRICS.map((m) => [m, t(metricValue(m, null, { now: 0, bpm: 0 }).cap)]), (v) => { setPref('wkA', v); }), 's-wka'),
     field(t('wkMetricB'), select('s-wkb', metricPair(getPref('wkA', ''), getPref('wkB', ''))[1], METRICS.map((m) => [m, t(metricValue(m, null, { now: 0, bpm: 0 }).cap)]), (v) => { setPref('wkB', v); }), 's-wkb'), h('p', { class: 'note' }, t('wkMetricHint')),
     check('s-handsfree', t('setHandsFree'), getPref('handsFree', '1') !== '0', (on) => setPref('handsFree', on ? '1' : '0')),
+    h('div', { class: 'hints' }, art('workout', 'hint-double-tap', 'hint-img'), art('workout', 'hint-volume-keys', 'hint-img')),
     field(t('setCountdown'), select('s-countdown', getPref('countdown', '0'), [['0', t('cdOff')], ['3', t('cdN', { n: 3 })], ['5', t('cdN', { n: 5 })]], (v) => setPref('countdown', v)), 's-countdown'),
     check('s-tiles', t('setTiles'), getPref('mapTiles', '0') === '1', (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
     check('s-voice', t('setVoice'), getPref('voice', '0') === '1', (on) => setPref('voice', on ? '1' : '0')), h('p', { class: 'note' }, t('setVoiceHint')),

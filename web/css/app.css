@@ -192,3 +192,9 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
   .workout:not([data-phase="done"]) .wk > .mapbox { grid-column: 1; grid-row: 1 / span 5; min-block-size: 60vh; } .workout:not([data-phase="done"]) .wk > :not(.mapbox) { grid-column: 2; }
   .bottomnav { justify-content: center; } .bn { max-inline-size: 180px; }
 }
+/* workout kit: day banner, countdown numerals, hints */
+.daycard { position: relative; overflow: hidden; min-block-size: 110px; } .daybanner { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; object-fit: cover; object-position: right bottom; margin: 0; border-radius: 0; z-index: 0; } [dir="rtl"] .daybanner { transform: scaleX(-1); object-position: left bottom; }
+.daycard > :not(.daybanner) { position: relative; z-index: 1; max-inline-size: 48%; }
+.cd-img { inline-size: min(60vmin, 320px); block-size: auto; animation: cd-in 1s ease-out both; } @keyframes cd-in { 0% { transform: scale(1.15); opacity: 0; } 35% { transform: scale(1); opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .cd-img { animation: none; } }
+.hints { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-block: 4px; } .hint-img { inline-size: min(46%, 220px); block-size: auto; }
+.tap .cap, .metric .cap { display: flex; align-items: center; gap: 6px; }

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "animation": "countdown",
+  "propertyWhitelist": [
+    "transform",
+    "opacity"
+  ],
+  "keyframes": [
+    {
+      "offset": 0,
+      "scale": 1.15,
+      "opacity": 0
+    },
+    {
+      "offset": 0.7,
+      "scale": 1.045,
+      "opacity": 1
+    },
+    {
+      "offset": 1,
+      "scale": 1,
+      "opacity": 1
+    }
+  ],
+  "enter": {
+    "durationMs": 350,
+    "easing": "cubic-bezier(0.22,1,0.36,1)"
+  },
+  "hold": {
+    "durationMs": 500
+  },
+  "exit": {
+    "durationMs": 150,
+    "easing": "ease-out",
+    "opacityFrom": 1,
+    "opacityTo": 0
+  },
+  "totalPerNumberMs": 1000,
+  "loop": false,
+  "go": {
+    "sameTiming": true
+  },
+  "reducedMotion": {
+    "disableTransitions": true,
+    "scale": 1,
+    "opacity": 1,
+    "displayEachNumeralMs": 1000,
+    "goMarkStatic": true
+  },
+  "notes": [
+    "Single transition per numeral, no flashing or repeated pulses",
+    "All countdown symbols remain legible in static mode",
+    "App should announce countdown using accessible localized text or speech, not SVG labels"
+  ]
+}

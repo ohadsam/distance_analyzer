@@ -1,6 +1,7 @@
 // "Share a picture" and "Export GPX" for one finished workout (the summary and the history detail).
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
+import { icon } from '../icons.js';
 import { native } from '../native.js';
 import { fmtKm, fmtClock, fmtPaceUnit, fmtDate } from '../format.js';
 import { avgPaceSec } from '../workout.js';
@@ -27,5 +28,5 @@ export function workoutShareBox(w) {
     const a = h('a', { href: URL.createObjectURL(new Blob([text], { type: 'application/gpx+xml' })), download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000); say('gpxSaved');
     } catch { say('bkError'); } finally { busy = false; }
   }
-  return h('div', { class: 'wk-share' }, h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn ghost', id: 'share-workout', onclick: picture }, t('shareWorkout')), (w.points || []).length >= 2 ? h('button', { type: 'button', class: 'btn ghost', id: 'export-gpx', onclick: gpx }, t('exportGpx')) : null), msg);
+  return h('div', { class: 'wk-share' }, h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn ghost', id: 'share-workout', onclick: picture }, icon('sharepic', 22), t('shareWorkout')), (w.points || []).length >= 2 ? h('button', { type: 'button', class: 'btn ghost', id: 'export-gpx', onclick: gpx }, icon('exportfile', 22), t('exportGpx')) : null), msg);
 }

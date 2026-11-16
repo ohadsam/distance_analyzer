@@ -3,6 +3,8 @@ import { recentPaceSec, avgPaceSec, kcal, elapsedMs } from './workout.js';
 import { fmtPace, fmtClock } from './format.js';
 
 export const METRICS = ['pace', 'speed', 'time', 'avg', 'lastkm', 'kcal', 'cadence'];
+/** The picture beside each number's caption. */
+export const METRIC_ICON = { pace: 'pace', speed: 'speed', time: 'stopwatch', avg: 'avgpace', lastkm: 'lastkm', kcal: 'calories', cadence: 'cadence' };
 export const DEFAULT_METRICS = ['pace', 'time'];
 /** Any stored value -> a valid pair of metric ids. */
 export const metricPair = (a, b) => { const x = METRICS.includes(a) ? a : DEFAULT_METRICS[0]; let y = METRICS.includes(b) ? b : DEFAULT_METRICS[1]; if (y === x) y = METRICS.find((m) => m !== x); return [x, y]; };

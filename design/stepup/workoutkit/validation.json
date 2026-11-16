@@ -1,0 +1,35 @@
+{
+  "svgCount": 38,
+  "groupCounts": {
+    "banners": 8,
+    "cards": 6,
+    "icons": 8,
+    "countdown": 12,
+    "hints": 4
+  },
+  "maxSvgBytes": 1010,
+  "errors": [],
+  "textSafeContrast": {
+    "banners/morning-light.svg": 11.004,
+    "banners/afternoon-light.svg": 11.004,
+    "banners/evening-light.svg": 11.004,
+    "banners/night-light.svg": 11.004,
+    "banners/morning-dark.svg": 7.744,
+    "banners/afternoon-dark.svg": 7.744,
+    "banners/evening-dark.svg": 7.744,
+    "banners/night-dark.svg": 7.744,
+    "cards/forest-light.svg": 8.974,
+    "cards/sunrise-light.svg": 8.85,
+    "cards/ocean-light.svg": 8.875,
+    "cards/forest-dark.svg": 5.658,
+    "cards/sunrise-dark.svg": 5.71,
+    "cards/ocean-dark.svg": 5.645
+  },
+  "minTextSafeContrast": 5.645,
+  "notes": [
+    "The card plate is a subtle overlay, not a pixel-uniform 6\u20138% relative luminance change",
+    "Single-color currentColor icons are theme-neutral and not duplicated",
+    "Numerals are rendered with thick rounded vector strokes, rather than converted to closed filled outlines",
+    "No photo or route data is embedded"
+  ]
+}

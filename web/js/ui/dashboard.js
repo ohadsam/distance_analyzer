@@ -134,7 +134,7 @@ function filterBar(c, redraw) {
 function dayCard(c) {
   if (!c.all.length) return null;
   const part = dayPart(c.now), today = todaySummary(c.all, c.now), st = challengeStatus(c.all, c.now, challengeTarget(getPref('challengeN', '3')));
-  return h('div', { class: 'card daycard', 'data-part': part }, h('h2', null, t(`greet_${part}`)),
+  return h('div', { class: 'card daycard', 'data-part': part }, art('workout', `banner-${part}`, 'daybanner'), h('h2', null, t(`greet_${part}`)),
     leadsWithSummary(part, today) ? h('p', null, today.n ? t('todayLine', { n: today.n, km: today.km, min: today.minutes }) : t('todayNone')) : h('p', null, t(`hint_${part}`)),
     st.target ? h('p', { class: 'note' }, st.complete ? t('chDone') : t('chProgress', { done: st.done, target: st.target })) : null);
 }

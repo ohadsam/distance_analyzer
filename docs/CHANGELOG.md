@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.17.0
+- **The ChatGPT round-7 workout kit is integrated** (`design/stepup/workoutkit/`, files synced by `node scripts/sync-celebration.mjs` into `web/art/workout/`): **time-of-day banners** behind the home greeting (mirrored for Hebrew so the text sits on the quiet side), the kit's **workout card backgrounds** (forest / sunrise / ocean) with the route drawn on its quiet plate, **countdown numerals** (3-2-1-Go as pictures, the 1-second enter/hold/fade motion from the kit; still when motion is reduced), **hand-free hint pictures** (double tap, volume keys) in Settings, and eight new **icons** (cadence, last kilometre, calories, average pace, speed, stopwatch, export file, share picture): the workout screen's number cards and the share / export buttons carry them.
+- Verified: unit test (every picture exists in light and dark), e2e (day banner loads, countdown shows the kit numeral, number icons on the workout screen), axe, 320 px. Not verified on a phone: how the banner crops at other widths.
+
 ## 0.16.0
 - **Your numbers on the workout screen**: next to the big distance you pick two of **pace, speed, time, average pace, last kilometre, calories, steps per minute** (Settings, or just tap a card on the workout screen to show the next one).
 - **A home screen that fits the hour**: a calm card with a greeting; mornings and afternoons nudge you to move, evenings (or any time after you have exercised) show the day's workouts, km and minutes plus the weekly challenge. Not shown on a brand-new install.
