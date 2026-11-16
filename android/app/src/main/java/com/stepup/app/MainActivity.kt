@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.WindowManager
 import android.webkit.GeolocationPermissions
 import android.webkit.WebChromeClient
@@ -52,6 +53,26 @@ class MainActivity : ComponentActivity() {
             deliver(JSONObject().put("type", "backup-picked").put("ok", pickedBackup.isNotEmpty()).put("reason", reason))
         }.start()
     }
+    // A workout as a GPX file through the same kind of system dialog (the text comes from the page, bounded in the bridge).
+    private var pendingGpx = ""
+    private val saveGpxFile = registerForActivityResult(ActivityResultContracts.CreateDocument("application/gpx+xml")) { uri ->
+        val data = pendingGpx; pendingGpx = ""
+        val ok = uri != null && data.isNotEmpty() && runCatching { contentResolver.openOutputStream(uri)!!.use { it.write(data.toByteArray(Charsets.UTF_8)) } }.isSuccess
+        deliver(JSONObject().put("type", "gpx-saved").put("ok", ok))
+    }
+    fun startGpxSave(name: String, text: String) = runOnUiThread { pendingGpx = text; saveGpxFile.launch(BackupMath.safeName(name)) }
+
+    // Hands-free: while the workout screen is up the volume keys belong to the page (down = pause / resume, up = say the numbers).
+    @Volatile private var keysOn = false
+    fun setHandsFree(on: Boolean) { keysOn = on }
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (keysOn && (event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || event.keyCode == KeyEvent.KEYCODE_VOLUME_UP)) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) deliver(JSONObject().put("type", "key").put("key", if (event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) "volume-down" else "volume-up"))
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     fun startBackupSave(name: String, json: String) = runOnUiThread { pendingBackup = json; saveBackupFile.launch(BackupMath.safeName(name)) }
     fun startBackupPick() = runOnUiThread { pickBackupFile.launch(arrayOf("application/json", "text/plain")) }
     fun takeBackup(): String { val s = pickedBackup; pickedBackup = ""; return s }

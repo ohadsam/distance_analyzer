@@ -176,3 +176,30 @@ test('weekly challenge: progress, weeks met, streak that survives a running week
   const sun = nextSundayAt(now); assert.equal(new Date(sun).getDay(), 0); assert.equal(new Date(sun).getHours(), 18); assert.ok(sun > now && sun - now < 7 * 86400000);
   const onSunday = new Date(2026, 10, 15, 19, 0).getTime(); assert.ok(nextSundayAt(onSunday) > onSunday + 6 * 86400000, 'after the hour: next week');
 });
+
+import { toGpx, gpxFileName } from '../../web/js/gpx.js';
+import { dayPart, todaySummary, leadsWithSummary } from '../../web/js/daypart.js';
+import { metricPair, metricValue, METRICS } from '../../web/js/metrics.js';
+import { recordFlags } from '../../web/js/records.js';
+test('GPX: escapes, skips bad points, empty without a track, safe file name', () => {
+  const w = { kind: 'run', startedAt: Date.UTC(2026, 10, 15, 6), points: [[32.0001, 34.8, Date.UTC(2026, 10, 15, 6)], [999, 1, 5], [32.0002, 34.8001, Date.UTC(2026, 10, 15, 6, 0, 5)], ['x', 1]] };
+  const g = toGpx(w, 'A <b> & "c"'); assert.match(g, /^<\?xml/); assert.ok(g.includes('A &lt;b&gt; &amp; &quot;c&quot;')); assert.equal((g.match(/<trkpt /g) || []).length, 2); assert.ok(g.includes('<time>2026-11-15T06:00:05.000Z</time>')); assert.ok(g.includes('<type>running</type>'));
+  assert.equal(toGpx({ kind: 'walk', points: [[32, 34]] }), ''); assert.equal(toGpx(null), ''); assert.equal(gpxFileName(w), 'stepup-run-2026-11-15.gpx');
+});
+test('part of the day and today so far', () => {
+  const at = (h) => new Date(2026, 10, 15, h, 30).getTime();
+  assert.deepEqual([4, 5, 11, 12, 17, 18, 21, 22, 2].map((h) => dayPart(at(h))), ['night', 'morning', 'morning', 'afternoon', 'afternoon', 'evening', 'evening', 'night', 'night']);
+  const rows = [{ startedAt: at(7), distanceM: 5000, movingMs: 1800000 }, { startedAt: at(7) - 86400000, distanceM: 9000, movingMs: 3600000 }];
+  assert.deepEqual(todaySummary(rows, at(20)), { n: 1, km: 5, minutes: 30 }); assert.equal(leadsWithSummary('morning', { n: 0 }), false); assert.equal(leadsWithSummary('morning', { n: 1 }), true); assert.equal(leadsWithSummary('evening', { n: 0 }), true);
+});
+test('metrics: a valid pair always comes out, values for an empty and a running workout', () => {
+  assert.deepEqual(metricPair('speed', 'speed'), ['speed', 'pace']); assert.deepEqual(metricPair('x', undefined), ['pace', 'time']); assert.ok(METRICS.length >= 7);
+  for (const id of METRICS) { const v = metricValue(id, null, { now: Date.now(), bpm: 0 }); assert.equal(typeof v.text, 'string'); assert.ok(v.cap); }
+  const w = { kind: 'run', distanceM: 2500, movingMs: 800000, startedAt: 0, pausedMs: 0, pausedAt: 0, endedAt: 0, splits: [{ km: 1, atMs: 330000 }, { km: 2, atMs: 650000 }], recent: [] };
+  assert.equal(metricValue('lastkm', w, { now: 900000 }).text, '5:20'); assert.equal(metricValue('cadence', w, { now: 1, bpm: 167.4 }).text, '167');
+});
+test('record flags: each workout against what came before', () => {
+  const w = (day, km, min) => ({ kind: 'run', startedAt: Date.UTC(2026, 10, day), distanceM: km * 1000, movingMs: min * 60000, splits: Array.from({ length: km }, (_, i) => ({ km: i + 1, atMs: (i + 1) * (min * 60000 / km) })) });
+  const f = recordFlags([w(3, 5, 30), w(5, 4, 30), w(8, 6, 33), w(10, 3, 20)]);
+  assert.equal(f.has(Date.UTC(2026, 10, 3)), false); assert.deepEqual(f.get(Date.UTC(2026, 10, 8)), ['distance', 'pace', 'km']); assert.equal(f.has(Date.UTC(2026, 10, 5)), false, 'shorter and slower'); assert.equal(f.has(Date.UTC(2026, 10, 10)), false, 'shorter and slower than the best');
+});

@@ -5,6 +5,7 @@ import { t, getLang } from '../i18n.js';
 import { native } from '../native.js';
 import { fmtKm, fmtPaceUnit, fmtClock, fmtDate } from '../format.js';
 import { isDark } from '../art.js';
+import { shareCanvas } from '../shareCard.js';
 import { renderCard, squarePhoto, seeded, CONFETTI, CARD_STYLES } from '../podiumCard.js';
 
 const TITLE = { distance: 'rcdDistance', pace: 'rcdPace', km: 'rcdKm' };
@@ -34,16 +35,7 @@ export function celebrationCard(records, w) {
     const r = await native.takePhoto(); if (r?.ok) await got(native.takenPhoto()); else setChildren(msg, t('rcdPhotoCancel'));
   }
   function card() { return renderCard({ photo: photoCv, title: t(TITLE[rec.id]), value: valueText(rec), sub: `${fmtDate(w.startedAt, getLang())} · ${prevText(rec)}`, dark: isDark(), rtl: getLang() === 'he', trophy: rec.id === 'distance', style: CARD_STYLES[['distance', 'pace', 'km'].indexOf(rec.id)] || 'sunrise' }); }
-  async function share() {
-    try {
-      const cv = await card(); // encoded once: base64 for Android's share sheet, a blob for the browser
-      if (native.available) { const b64 = cv.toDataURL('image/png').split(',')[1]; return setChildren(msg, b64 && native.shareImage(b64) ? '' : t('rcdShareError')); }
-      const blob = await new Promise((res) => cv.toBlob(res, 'image/png')); if (!blob) return setChildren(msg, t('rcdShareError'));
-      const f = new File([blob], 'stepup-record.png', { type: 'image/png' });
-      try { if (navigator.canShare?.({ files: [f] })) { await navigator.share({ files: [f], title: 'StepUp' }); return; } } catch (e) { if (e?.name === 'AbortError') return; }
-      const a = h('a', { href: URL.createObjectURL(blob), download: 'stepup-record.png' }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-    } catch { setChildren(msg, t('rcdShareError')); }
-  }
+  async function share() { const err = await shareCanvas(await card(), 'stepup-record.png'); setChildren(msg, err ? t(err) : ''); }
   function ask() {
     setChildren(box, h('h2', null, t(TITLE[rec.id])), h('p', { class: 'big' }, valueText(rec)), h('p', { class: 'note' }, prevText(rec)), records.length > 1 ? h('p', { class: 'note' }, records.slice(1).map((r) => `${t(TITLE[r.id])}: ${valueText(r)}`).join(' · ')) : null,
       h('p', null, t('rcdAsk')), h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'rec-photo', onclick: take }, t('rcdTake')), h('button', { type: 'button', class: 'btn ghost', id: 'rec-nophoto', onclick: () => { photoUrl = ''; photoCv = null; scene(); } }, t('rcdNoPhoto'))), file, msg);

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.16.0
+- **Your numbers on the workout screen**: next to the big distance you pick two of **pace, speed, time, average pace, last kilometre, calories, steps per minute** (Settings, or just tap a card on the workout screen to show the next one).
+- **A home screen that fits the hour**: a calm card with a greeting; mornings and afternoons nudge you to move, evenings (or any time after you have exercised) show the day's workouts, km and minutes plus the weekly challenge. Not shown on a brand-new install.
+- **History**: sort by newest / longest / fastest, a **Records** filter, a text filter (and a speak button where the browser has speech recognition - it uses the browser's own speech service), and a gold **Record** tag on every workout that was a record when it was done.
+- **Share a picture of any workout** (summary and history detail): the route drawn on the kit's card with distance, time and average pace. **Export GPX** (the common format Strava, Garmin and others read): a file download on the web, Android's "save as" dialog in the app.
+- **Hands-free**: a double tap on the numbers or the map pauses / resumes; on Android the volume keys do it too (down = pause / resume, up = says the distance and time). Settings can turn it off; the keys are released when the workout screen closes.
+- **Optional countdown** (Settings: off / 3 / 5 seconds) before the start; a tap cancels it. "Measure now" still starts at once.
+- **Wide screens**: on tablets and desktops the dashboard uses three columns and the workout screen puts the map beside the numbers.
+- ChatGPT prompt for the polished art of this round: `docs/prompts/ROUND7_PROMPT.md` (time-of-day banners, workout card backgrounds, number icons, countdown numerals, hand-free hints); this version draws simple ones in code.
+- Verified: unit tests (GPX, part of the day, metrics, record flags), e2e (history sort / records / search, GPX file and picture downloads, countdown, double tap, volume keys through the stand-in, day card, wide layout), axe, 320 px. Not verified on a phone: the volume keys, the GPX save dialog, the picture share, the speech button.
+
 ## 0.15.0
 - **A calmer workout screen**: the map is the hero; then **distance** (big), **pace or speed** (tap the card to switch, remembered) and time; **one big Pause/Resume button**, a smaller Finish, and three optional switches - **Metronome**, **Voice**, **Sunlight**. Before you start the screen shows only the GPS state, the map and the Start button. Important messages stay in one calm banner (records, "almost there", "it looks like you stopped").
 - **Sunlight mode**: black-on-white, thick borders, heavy digits for bright sun (switch on the screen or in Settings; it ends with the workout screen).

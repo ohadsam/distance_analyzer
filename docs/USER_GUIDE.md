@@ -26,6 +26,9 @@ Settings → Reminders: add reminders for a walk or a movement break at set time
 ## Training plan
 Open **Training plan** from the dashboard widget (or search). Choose your goal, level, how many sessions a week, for how many weeks, and which kinds of workouts you want. The plan starts on Sunday and grows gently: about 10 % more a week at most, a lighter week every fourth week, and an easier last week. Each session shows its length and what to do (for example "10 × (1:00 run + 2:00 walk)"). Tap **Start** to measure it at once, **Mark done** for movement exercises, or **Skip**. A workout you do on the planned day completes the session by itself. If you miss a session, StepUp offers to move it to a free day soon or to skip it, and makes the next week a little lighter after a week with misses. You can get a reminder on the day of each session (Settings → Training plan). General guidance, not medical advice.
 
+## More on the workout screen
+Settings -> pick the two numbers beside the distance (or tap a number on the screen to change it). A double tap pauses and resumes; on Android the volume keys do too (down = pause, up = say the numbers). A countdown before the start is optional. History: sort, filter by records or text, export a workout as GPX or share a picture of it.
+
 ## The workout screen
 The map takes the most room. Under it: distance, pace (tap to switch to speed) and time. **Metronome**, **Voice** and **Sunlight** are switches; the big button pauses and resumes; **Finish** asks before saving. If you stop moving for about 30 seconds, the app offers to pause.
 

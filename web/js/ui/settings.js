@@ -1,4 +1,5 @@
 import { h, setChildren } from '../util.js';
+import { metricValue, metricPair, METRICS } from '../metrics.js';
 import { challengeTarget } from '../challenge.js';
 import { refreshArt } from '../art.js';
 import { t, setLang } from '../i18n.js';
@@ -92,6 +93,10 @@ export function renderSettings(focusId) {
     check('s-weekly', t('setWeekly'), getPref('weeklyNotify', '0') === '1', (on) => { setPref('weeklyNotify', on ? '1' : '0'); syncNative(); }), h('p', { class: 'note' }, t('setWeeklyHint')),
     check('s-stophint', t('setStopHint'), getPref('stopHint', '1') !== '0', (on) => setPref('stopHint', on ? '1' : '0')),
     check('s-sun', t('setSun'), getPref('sun', '0') === '1', (on) => { setPref('sun', on ? '1' : '0'); }),
+    field(t('wkMetricA'), select('s-wka', metricPair(getPref('wkA', ''), getPref('wkB', ''))[0], METRICS.map((m) => [m, t(metricValue(m, null, { now: 0, bpm: 0 }).cap)]), (v) => { setPref('wkA', v); }), 's-wka'),
+    field(t('wkMetricB'), select('s-wkb', metricPair(getPref('wkA', ''), getPref('wkB', ''))[1], METRICS.map((m) => [m, t(metricValue(m, null, { now: 0, bpm: 0 }).cap)]), (v) => { setPref('wkB', v); }), 's-wkb'), h('p', { class: 'note' }, t('wkMetricHint')),
+    check('s-handsfree', t('setHandsFree'), getPref('handsFree', '1') !== '0', (on) => setPref('handsFree', on ? '1' : '0')),
+    field(t('setCountdown'), select('s-countdown', getPref('countdown', '0'), [['0', t('cdOff')], ['3', t('cdN', { n: 3 })], ['5', t('cdN', { n: 5 })]], (v) => setPref('countdown', v)), 's-countdown'),
     check('s-tiles', t('setTiles'), getPref('mapTiles', '0') === '1', (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
     check('s-voice', t('setVoice'), getPref('voice', '0') === '1', (on) => setPref('voice', on ? '1' : '0')), h('p', { class: 'note' }, t('setVoiceHint')),
     check('s-cue-vibrate', t('setCueVibrate'), getPref('cueVibrate', '1') !== '0', (on) => setPref('cueVibrate', on ? '1' : '0')),

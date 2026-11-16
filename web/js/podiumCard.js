@@ -48,6 +48,32 @@ export async function renderCard({ photo = null, title, value, sub = '', brand =
   return canvas;
 }
 
+/**
+ * The picture of a finished workout (1080 x 1350): title, the route drawn on the kit's card background, and three numbers.
+ * opts: { title, sub, points: [[lat, lon]], stats: [{ value, label }], dark, rtl, style, brand }.
+ */
+export async function renderWorkoutCard({ title, sub = '', points = [], stats = [], dark = false, rtl = false, style = 'forest', brand = 'StepUp' } = {}, canvas = document.createElement('canvas')) {
+  const mode = dark ? 'dark' : 'light', c = TEXT[mode]; canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d'); ctx.direction = rtl ? 'rtl' : 'ltr'; ctx.textAlign = 'center';
+  try { ctx.drawImage(await loadArt(style, mode, [W, H]), 0, 0, W, H); } catch { ctx.fillStyle = dark ? '#111820' : '#F5F8FA'; ctx.fillRect(0, 0, W, H); }
+  ctx.fillStyle = c.text; fit(ctx, title, 960, 92); ctx.fillText(title, W / 2, 150);
+  if (sub) { ctx.fillStyle = c.muted; fit(ctx, sub, 960, 46, 500); ctx.fillText(sub, W / 2, 225); }
+  // the route, fitted into a box (equirectangular, aspect kept)
+  const pts = points.filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1])), step = Math.max(1, Math.ceil(pts.length / 400)), use = pts.filter((_, i) => i % step === 0 || i === pts.length - 1);
+  if (use.length > 1) {
+    const lat0 = use.reduce((s, p) => s + p[0], 0) / use.length * Math.PI / 180, kx = Math.cos(lat0), xs = use.map((p) => p[1] * kx), ys = use.map((p) => -p[0]);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys), span = Math.max(maxX - minX, maxY - minY, 1e-9), bw = 760, bh = 560, scale = Math.min(bw, bh) / span;
+    const ox = (W - (maxX - minX) * scale) / 2, oy = 300 + (bh - (maxY - minY) * scale) / 2, xy = use.map((p, i) => [ox + (xs[i] - minX) * scale, oy + (ys[i] - minY) * scale]);
+    ctx.lineJoin = ctx.lineCap = 'round'; ctx.lineWidth = 18; ctx.strokeStyle = dark ? '#111820' : '#FFFFFF'; ctx.beginPath(); xy.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); // a light outline keeps the line readable on the hills
+    ctx.lineWidth = 10; ctx.strokeStyle = c.primary; ctx.beginPath(); xy.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+    for (const [p, col] of [[xy[0], '#145AA0'], [xy[xy.length - 1], '#A13F20']]) { ctx.fillStyle = col; ctx.beginPath(); ctx.arc(p[0], p[1], 20, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = dark ? '#111820' : '#FFFFFF'; ctx.stroke(); }
+  }
+  const n = Math.max(1, Math.min(3, stats.length)), colW = 920 / n;
+  stats.slice(0, 3).forEach((s, i) => { const x = 80 + colW * (i + 0.5); ctx.fillStyle = c.primary; fit(ctx, s.value, colW - 20, 84); ctx.fillText(s.value, x, 1150); ctx.fillStyle = c.muted; fit(ctx, s.label, colW - 20, 36, 500); ctx.fillText(s.label, x, 1200); });
+  ctx.fillStyle = c.muted; ctx.font = '600 40px system-ui, sans-serif'; ctx.fillText(brand, W / 2, 1320);
+  return canvas;
+}
+
 /** A square, centre-cropped, downscaled copy of a photo (File/Blob or data URL) - phone photos are huge and the card needs 360 px. (createImageBitmap: a blob: URL would be refused by the page's CSP.) */
 export async function squarePhoto(src, size = 640) {
   const img = typeof src === 'string' ? await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }) : await createImageBitmap(src);

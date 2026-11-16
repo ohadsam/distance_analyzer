@@ -39,6 +39,10 @@ export const native = {
   shareImage: (b64) => call('shareImage', String(b64)) === true,
   /** Spoken kilometre times from the background service while the screen is off: { on, lang, tpl, dist, moving }. */
   setVoice: (o) => call('setVoice', JSON.stringify(o)),
+  /** A GPX file through Android's "save as" dialog; resolves { ok } when it closes. */
+  saveGpx: (text, name) => (call('saveGpx', text, name) === true ? nativeOnce('gpx-saved') : Promise.resolve({ ok: false, refused: true })),
+  /** While the workout screen is up, the volume keys are ours (volume-down = pause / resume, volume-up = say the numbers). */
+  handsFree: (on) => call('handsFree', !!on),
   /** Keeps the screen on during a workout. */
   keepAwake: (on) => call('keepAwake', !!on),
   /** Android's share sheet with a plain text; true only when the bridge accepted it. */

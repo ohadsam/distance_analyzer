@@ -1,4 +1,6 @@
 // Workout mode: one calm screen with big numbers and few buttons. Tracking (GPS) -> workout.js (pure); persistence -> store.js.
+import { workoutShareBox } from './workoutShare.js';
+import { metricValue, metricPair, METRICS, DEFAULT_METRICS } from '../metrics.js';
 import { brokenRecords } from '../records.js';
 import { celebrationCard } from './podium.js';
 import { trackPicture } from './maptiles.js';
@@ -36,11 +38,13 @@ export function renderWorkout(kind, go, routeId) {
 
   const rhythm = createRhythm({ onChange: (on) => { metroBtn.setAttribute('aria-pressed', String(on)); metroBtn.classList.toggle('on', on); } });
   const val = (cls) => h('div', { class: `val ${cls}` }, '–');
-  const vTime = val('v-time'), vDist = val('v-dist'), vPace = val('v-pace');
+  const vDist = val('v-dist'), vA = val('v-a'), vB = val('v-b');
   const metric = (label, v, cls = '') => h('div', { class: `metric ${cls}` }, h('div', { class: 'cap' }, label), v);
-  // pace or speed: one tap on the card switches (remembered)
-  const speedMode = () => (getPref('speedUnit', 'pace') === 'kmh' ? 'kmh' : 'pace');
-  const capPace = h('div', { class: 'cap' }), paceCard = h('button', { type: 'button', class: 'metric tap', id: 'wk-unit', onclick: () => { setPref('speedUnit', speedMode() === 'kmh' ? 'pace' : 'kmh'); paint(); } }, capPace, vPace);
+  // the two numbers next to the distance are the person's choice (Settings); one tap on a card shows the next number
+  const pair = () => metricPair(getPref('wkA', DEFAULT_METRICS[0]), getPref('wkB', DEFAULT_METRICS[1]));
+  const cycle = (slot) => { const [a, b] = pair(), cur = slot === 0 ? a : b, other = slot === 0 ? b : a; let k = (METRICS.indexOf(cur) + 1) % METRICS.length; if (METRICS[k] === other) k = (k + 1) % METRICS.length; setPref(slot === 0 ? 'wkA' : 'wkB', METRICS[k]); paint(); };
+  const capA = h('div', { class: 'cap' }), capB = h('div', { class: 'cap' });
+  const cardA = h('button', { type: 'button', class: 'metric tap', id: 'wk-a', onclick: () => cycle(0) }, capA, vA), cardB = h('button', { type: 'button', class: 'metric tap', id: 'wk-b', onclick: () => cycle(1) }, capB, vB);
   const voiceBtn = h('button', { type: 'button', class: 'tool', id: 'wk-voice', 'aria-pressed': String(getPref('voice', '0') === '1'), onclick: () => { const on = getPref('voice', '0') !== '1'; setPref('voice', on ? '1' : '0'); voiceBtn.setAttribute('aria-pressed', String(on)); if (on) say(t('wkVoiceOn')); syncVoice(); } }, icon('volume', 22), t('wkVoice'));
   const gpsCard = h('div', { class: 'gps-card', role: 'status' });
   const sunBtn = h('button', { type: 'button', class: 'tool', id: 'wk-sun', 'aria-pressed': String(getPref('sun', '0') === '1'), onclick: () => { const on = getPref('sun', '0') !== '1'; setPref('sun', on ? '1' : '0'); sunBtn.setAttribute('aria-pressed', String(on)); applySun(); } }, icon('sun', 22), t('wkSun'));
@@ -53,7 +57,7 @@ export function renderWorkout(kind, go, routeId) {
   const checkStopped = () => { const stopped = phase === 'running' && w && getPref('stopHint', '1') !== '0' && Date.now() > stopCool && stoppedFor(w, Date.now()); if (stopped && stopEl.hidden) { stopEl.hidden = false; sr.textContent = t('stopHint'); } else if (!stopped && !stopEl.hidden) stopEl.hidden = true; };
   const gpsChip = h('div', { class: 'chip', 'data-gps': 'searching', role: 'status' });
   const lockBtn = h('button', { type: 'button', class: 'round', 'aria-label': t('lock'), onclick: () => setLocked(true) }, icon('lock'));
-  const mainBtn = h('button', { type: 'button', class: 'big-btn', onclick: onMain });
+  const mainBtn = h('button', { type: 'button', class: 'big-btn', onclick: () => onMain() });
   const finishBtn = h('button', { type: 'button', class: 'btn ghost', onclick: askFinish }, icon('flag'), t('finish'));
   const metroBtn = h('button', { type: 'button', class: 'tool', id: 'wk-metro', 'aria-pressed': 'false', onclick: () => rhythm.toggle() }, icon('pace', 22), t('wkMetro'));
   const confirmBar = h('div', { class: 'confirm', role: 'group', 'aria-label': t('finishAsk') },
@@ -63,7 +67,7 @@ export function renderWorkout(kind, go, routeId) {
     h('button', { type: 'button', class: 'btn danger', onclick: () => end(false) }, t('discard')));
   const lockLayer = h('div', { class: 'lock', hidden: true }, h('div', { class: 'lock-msg' }, icon('lock', 40), h('p', null, t('locked'))));
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
-  const body = h('div', { class: 'wk' });
+  const body = h('div', { class: 'wk' }), cdEl = h('div', { class: 'countdown', hidden: true, role: 'status', onclick: () => { clearTimeout(cdTimer); cdEl.hidden = true; } });
   // Live map (no tiles) and, when following a saved route, the route line, its name and a "ghost" of the best earlier attempt.
   const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), mapBox = h('div', { class: 'mapbox' }, stopEl, lm.el, followEl, ghostEl);
   let follow = null, ghost = null, ghostSide = ''; // follow = { route, best }; ghost = (moving ms) -> metres of the best attempt
@@ -103,7 +107,7 @@ export function renderWorkout(kind, go, routeId) {
     if (side !== ghostSide) { ghostSide = side; sr.textContent = ghostEl.textContent; } // announced when the side changes, not every second
   }
 
-  const el = h('section', { class: 'workout', 'data-phase': phase }, h('div', { class: 'wk-top' }, h('h1', { class: 'sr-only' }, t(kind)), gpsChip, h('span', { class: 'grow' }), lockBtn), body, lockLayer);
+  const el = h('section', { class: 'workout', 'data-phase': phase }, h('div', { class: 'wk-top' }, h('h1', { class: 'sr-only' }, t(kind)), gpsChip, h('span', { class: 'grow' }), lockBtn), body, cdEl, lockLayer);
 
   // ---------- tracking ----------
   // One door for GPS fixes, from the page's own watch AND from the Android background service (a duplicate fix is rejected by addFix: same or older time).
@@ -136,8 +140,18 @@ export function renderWorkout(kind, go, routeId) {
   const keepAwake = async (on) => { native.keepAwake(on); try { if (on) wake = await navigator.wakeLock?.request('screen'); else { await wake?.release(); wake = null; } } catch { /* not supported: the screen may sleep */ } };
   const persist = () => { if (w && phase !== 'ready' && phase !== 'done') active.save(w); };
 
-  function onMain() {
+  // optional 3-2-1 (or 5-4-3-2-1) before the start; a tap on the number cancels it
+  let cdTimer = 0;
+  function startCountdown(n) {
+    cdEl.hidden = false; let left = n;
+    const tick = () => { cdEl.textContent = left > 0 ? String(left) : t('wkGo'); sr.textContent = cdEl.textContent; if (getPref('voice', '0') === '1') speak(cdEl.textContent, getLang());
+      if (left <= 0) { cdEl.hidden = true; onMain(true); return; } left--; cdTimer = setTimeout(tick, 1000); };
+    tick();
+  }
+  function announceNow() { if (!w) return; const text = t('announceNow', { km: (w.distanceM / 1000).toFixed(2), min: Math.floor(elapsedMs(w, Date.now()) / 60000) }); cueQueue.push({ text, key: '' }); pumpCues(); speak(text, getLang()); }
+  function onMain(instant = false) {
     const n = Date.now();
+    if (phase === 'ready' && !instant && Number(getPref('countdown', '0')) > 0) return startCountdown(Number(getPref('countdown', '0')));
     if (phase === 'ready') { w = newWorkout(kind, n); fired = new Set(); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
     else if (phase === 'running') { drainNative(); pause(w, n); phase = 'paused'; rhythm.setRunning(false); trackOff(); persist(); }
     else if (phase === 'paused') { native.trackDrain(); resume(w, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
@@ -191,10 +205,9 @@ export function renderWorkout(kind, go, routeId) {
   };
   function paint() {
     const n = Date.now();
-    vTime.textContent = fmtClock(w ? elapsedMs(w, n) : 0);
     vDist.textContent = w ? (w.distanceM / 1000).toFixed(2) : '0.00';
-    const ps = w ? recentPaceSec(w) : 0, kmh = speedMode() === 'kmh';
-    vPace.textContent = kmh ? (ps > 0 ? (3600 / ps).toFixed(1) : '–') : fmtPace(ps); capPace.textContent = kmh ? t('wkSpeed') : `${t('pace')} (${t('perKm')})`;
+    const ctx = { now: n, weightKg: getNum('weight', 70, 30, 250), bpm: Number(rhythm.el.dataset.bpm) || 0 }, [a, b] = pair();
+    for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; cap.textContent = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); }
     el.dataset.phase = phase; paintBody();
   }
   let bodyPhase = '';
@@ -203,7 +216,7 @@ export function renderWorkout(kind, go, routeId) {
     if (phase === 'done') return setChildren(body, summary());
     const main = phase === 'ready' ? [icon('play', 36), t('start')] : phase === 'running' ? [icon('pause', 36), t('pause')] : [icon('play', 36), t('resume')];
     setChildren(mainBtn, main); mainBtn.classList.toggle('is-pause', phase === 'running');
-    const stats = h('div', { class: 'wk-stats' }, h('div', { class: 'metric hero' }, h('div', { class: 'cap' }, `${t('distance')} (${t('km')})`), vDist), h('div', { class: 'wk-two' }, paceCard, metric(t('time'), vTime)));
+    const stats = h('div', { class: 'wk-stats' }, h('div', { class: 'metric hero' }, h('div', { class: 'cap' }, `${t('distance')} (${t('km')})`), vDist), h('div', { class: 'wk-two' }, cardA, cardB));
     setChildren(body, phase === 'ready' ? gpsCard : stats, mapBox, rhythm.el,
       phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn),
       phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn));
@@ -213,18 +226,23 @@ export function renderWorkout(kind, go, routeId) {
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     return h('div', { class: 'summary' }, h('h2', null, t('summary')), trackPicture(w.points),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
-      recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
+      workoutShareBox(w), recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 
   // ---------- lifecycle ----------
+  // hands-free: a double tap on the numbers or the map pauses / resumes (buttons, inputs and the lock screen are never affected); the volume keys do the same on Android
+  const handsFreeOn = () => getPref('handsFree', '1') !== '0';
+  body.addEventListener('dblclick', (e) => { if (!handsFreeOn() || e.target.closest('button, a, input, select')) return; if (phase === 'running' || phase === 'paused') onMain(); });
+  const onKey = (e) => { const d = e.detail; if (d?.type !== 'key' || !handsFreeOn() || lockLayer.hidden === false) return; if (d.key === 'volume-down' && (phase === 'running' || phase === 'paused')) onMain(); else if (d.key === 'volume-up') announceNow(); };
+  addEventListener('stepup-native', onKey); native.handsFree(handsFreeOn());
   applySun(); startGps(); paintGps(); paint();
   let ticks = 0;
   paintMap();
-  if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
+  if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(true); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
   tickId = setInterval(() => { drainNative(); ++ticks; if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); checkStopped(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
   const onHide = () => { if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
-  el.cleanup = () => { delete document.body.dataset.sun; clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };
+  el.cleanup = () => { delete document.body.dataset.sun; clearTimeout(cdTimer); removeEventListener('stepup-native', onKey); native.handsFree(false); clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };
   return el;
 }

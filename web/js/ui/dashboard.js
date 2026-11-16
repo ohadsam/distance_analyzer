@@ -7,6 +7,7 @@ import { icon } from '../icons.js';
 import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref, getNum } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
+import { dayPart, todaySummary, leadsWithSummary } from '../daypart.js';
 import { challengeStatus, challengeWeeks, challengeStreak, challengeTarget } from '../challenge.js';
 import { monthSeries, monthToDate, filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
@@ -129,6 +130,15 @@ function filterBar(c, redraw) {
     h('label', { class: 'fsel grow' }, h('span', { class: 'cap' }, t('filterText')), h('input', { type: 'search', value: f.text, maxLength: 40, onchange: (e) => upd('text', e.target.value.trim()) }))));
 }
 
+/** A calm line at the top: a greeting and a nudge in the morning and afternoon, the day's numbers in the evening (or once you have exercised today). Not for a brand-new install. */
+function dayCard(c) {
+  if (!c.all.length) return null;
+  const part = dayPart(c.now), today = todaySummary(c.all, c.now), st = challengeStatus(c.all, c.now, challengeTarget(getPref('challengeN', '3')));
+  return h('div', { class: 'card daycard', 'data-part': part }, h('h2', null, t(`greet_${part}`)),
+    leadsWithSummary(part, today) ? h('p', null, today.n ? t('todayLine', { n: today.n, km: today.km, min: today.minutes }) : t('todayNone')) : h('p', null, t(`hint_${part}`)),
+    st.target ? h('p', { class: 'note' }, st.complete ? t('chDone') : t('chProgress', { done: st.done, target: st.target })) : null);
+}
+
 // first run: one friendly card (age fits the effort bar to you); gone after one tap and never shown to people who already have workouts
 function welcome(c, redraw) {
   if (getPref('welcomed', '') || c.all.length) return null;
@@ -164,7 +174,7 @@ export function renderDashboard() {
       resume ? h('div', { class: 'card resume' }, icon(resume.kind, 28), h('span', { class: 'grow' }, h('b', null, t('resumeTitle')), h('small', null, fmtKm(resume.distanceM))), h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (confirm(t('discardAsk'))) { active.clear(); draw(); } } }, t('discard')), h('a', { class: 'btn', href: `#/workout/${resume.kind}` }, t('resumeBtn'))) : null,
       quickActions(suggest(c.routes, c.all)[0]?.route || null),
       h('div', { class: 'starts' }, startLink('walk'), startLink('run')),
-      welcome(c, draw),
+      welcome(c, draw), dayCard(c),
       filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),
       h('a', { class: 'link', href: '#/history' }, t('allWorkouts')));
   }

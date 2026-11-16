@@ -15,3 +15,10 @@ export function brokenRecords(prior, w) {
   const km = kmTimes(w); if (km.length && refs.bestKmMs && Math.min(...km) < refs.bestKmMs - 2000) out.push({ id: 'km', value: Math.min(...km), prev: refs.bestKmMs });
   return out;
 }
+
+/** Which workouts were a record when they were done: Map(startedAt -> ['distance' | 'pace' | 'km', ...]) (oldest first, each against what came before). */
+export function recordFlags(rows) {
+  const asc = [...rows].sort((a, b) => a.startedAt - b.startedAt), out = new Map();
+  for (let i = 0; i < asc.length; i++) { const r = brokenRecords(asc.slice(0, i), asc[i]); if (r.length) out.set(asc[i].startedAt, r.map((x) => x.id)); }
+  return out;
+}

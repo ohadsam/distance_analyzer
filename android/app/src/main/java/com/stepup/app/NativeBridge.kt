@@ -52,6 +52,12 @@ class NativeBridge(private val activity: MainActivity) {
     /** Kilometre times spoken by the background service while the screen is off: { on, lang, tpl, dist, moving } (validated in VoiceConfig). */
     @JavascriptInterface fun setVoice(json: String) { if (BridgeLimits.within(json, 600)) Voice.config(ctx, json) }
 
+    @JavascriptInterface fun saveGpx(text: String, name: String): Boolean {
+        if (text.isBlank() || !BridgeLimits.within(text, 8_000_000) || !BridgeLimits.within(name, 80)) return false
+        activity.startGpxSave(name, text); return true
+    }
+    @JavascriptInterface fun handsFree(on: Boolean) { activity.setHandsFree(on) }
+
     // ---- victory photo and record card ----
     @JavascriptInterface fun takePhoto(): Boolean { activity.startPhoto(); return true }
     @JavascriptInterface fun takenPhoto(): String = activity.takenPhoto()
