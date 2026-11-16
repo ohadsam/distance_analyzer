@@ -106,3 +106,8 @@ test('map helpers: lineLength and niceLength', () => {
   assert.equal(lineLength([]), 0); assert.ok(Math.abs(lineLength([S, bearingPoint(S, 0, 500), bearingPoint(bearingPoint(S, 0, 500), 90, 300)]) - 800) < 3);
   assert.equal(niceLength(130), 100); assert.equal(niceLength(270), 200); assert.equal(niceLength(700), 500); assert.equal(niceLength(0.5), 1);
 });
+import { unworld, world } from '../../web/js/mapView.js';
+test('unworld inverts world and wraps longitude past the antimeridian', () => {
+  for (const [la, lo] of [[32.08, 34.78], [-33.9, 151.2], [0, -179.5]]) { const [x, y] = world(la, lo), [a, b] = unworld(x, y); assert.ok(Math.abs(a - la) < 1e-6 && Math.abs(b - lo) < 1e-6, `${la},${lo} -> ${a},${b}`); }
+  assert.ok(Math.abs(unworld(1.05, 0.5)[1] - (-162)) < 1e-6); assert.ok(Math.abs(unworld(-0.05, 0.5)[1] - 162) < 1e-6);
+});
