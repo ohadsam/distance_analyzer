@@ -125,10 +125,11 @@ await step('about: update check (newer / latest / offline), newest APK link, sha
 await step('illustrations: empty states and the welcome card load the kit art (light and dark); no 404s', async () => {
   for (const scheme of ['light', 'dark']) {
     const { page, errors } = await newPage({ lang: 'en', scheme }); const bad = []; page.on('response', (r) => { if (r.status() >= 400) bad.push(r.url()); });
-    for (const [route, sel] of [['#/alerts', '.empty img'], ['#/routes', '.empty img'], ['#/history', '.empty img'], ['#/', '#welcome img']]) {
+    for (const [route, sel] of [['#/alerts', '.empty img'], ['#/routes', '.empty img'], ['#/history', '.empty img']]) {
       await page.goto(base + route); await page.waitForSelector(sel); await page.waitForFunction((s) => document.querySelector(s).complete && document.querySelector(s).naturalWidth > 0, sel);
       assert.match(await page.getAttribute(sel, 'src'), new RegExp(`-${scheme}\\.svg$`), `${route} ${scheme}`);
     }
+    await page.goto(base + '#/'); await page.waitForSelector('#welcome svg.trail-companion[data-pose="wave"]'); // the welcome card is Trail, drawn inline for the current look
     assert.deepEqual(bad, []); assert.deepEqual(errors, []);
   }
 });
