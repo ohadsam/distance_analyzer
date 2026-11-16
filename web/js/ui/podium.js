@@ -4,21 +4,23 @@ import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { native } from '../native.js';
 import { fmtKm, fmtPaceUnit, fmtClock, fmtDate } from '../format.js';
-import { renderCard, squarePhoto, seeded } from '../podiumCard.js';
+import { renderCard, squarePhoto, seeded, CONFETTI, CARD_STYLES } from '../podiumCard.js';
 
 const isDark = () => { const th = document.documentElement.dataset.theme; return th === 'dark' || (th !== 'light' && !!matchMedia?.('(prefers-color-scheme: dark)').matches); };
 const TITLE = { distance: 'rcdDistance', pace: 'rcdPace', km: 'rcdKm' };
 const valueText = (r) => (r.id === 'distance' ? fmtKm(r.value) : r.id === 'pace' ? fmtPaceUnit(r.value) : fmtClock(r.value));
 const prevText = (r) => t('rcdBefore', { v: r.id === 'distance' ? fmtKm(r.prev) : r.id === 'pace' ? fmtPaceUnit(r.prev) : fmtClock(r.prev) });
 
-/** The animated podium scene (pure DOM + CSS: transform and opacity only). */
+const BADGE = { distance: 'distance-record', pace: 'pace-record', km: 'fastest-kilometre' };
+const layer = (name, cls = '') => h('img', { class: `pd-l ${cls}`, src: `art/celebrate/${name}-${isDark() ? 'dark' : 'light'}.svg`, alt: '', draggable: false });
+
+/** The animated podium scene from the design kit's layers (rays, floor, steps, laurel, photo, frame, ribbon + medal or trophy, confetti). */
 export function podiumScene(photo, rec) {
-  const rnd = seeded(7), confetti = Array.from({ length: 24 }, (_, i) => h('i', { class: `pd-c c${i % 5}`, style: { left: `${Math.round(rnd() * 100)}%`, '--d': `${(rnd() * 2).toFixed(2)}s`, '--r': `${Math.round(rnd() * 360)}deg` } }));
+  const rnd = seeded(7), confetti = Array.from({ length: 24 }, (_, i) => { const im = layer(`confetti-${CONFETTI[i % 5]}`, 'pd-c'); im.style.setProperty('inset-inline-start', `${Math.round(rnd() * 94)}%`); im.style.setProperty('--d', `${(0.5 + rnd() * 2).toFixed(2)}s`); return im; });
   return h('div', { class: 'podium', role: 'img', 'aria-label': `${t(TITLE[rec.id])}: ${valueText(rec)}` },
-    ...confetti,
-    h('div', { class: 'pd-title' }, h('b', null, t(TITLE[rec.id])), h('span', null, valueText(rec))),
-    h('div', { class: 'pd-step s2' }, '2'), h('div', { class: 'pd-step s3' }, '3'), h('div', { class: 'pd-step s1' }, '1'),
-    h('div', { class: 'pd-photo' }, photo ? h('img', { src: photo, alt: '' }) : null), h('div', { class: 'pd-ribbon' }), h('div', { class: 'pd-medal' }, '★'));
+    layer('rays', 'pd-rays'), layer('podium-floor', 'pd-steps'), layer('podium-steps', 'pd-steps'), layer('laurel', 'pd-steps'),
+    h('div', { class: 'pd-avatar' }, h('div', { class: 'pd-photo' }, photo ? h('img', { src: photo, alt: '' }) : null), layer('avatar-frame')),
+    rec.id === 'distance' ? layer('trophy', 'pd-trophy') : [layer('ribbon', 'pd-ribbon'), layer('medal', 'pd-medal')], ...confetti);
 }
 
 /** records: [{ id, value, prev }] (best first); w: the finished workout. */
@@ -31,10 +33,10 @@ export function celebrationCard(records, w) {
     if (!native.available) return file.click();
     const r = await native.takePhoto(); if (r?.ok) await got(native.takenPhoto()); else setChildren(msg, t('rcdPhotoCancel'));
   }
-  function card() { return renderCard({ photo: photoCv, title: t(TITLE[rec.id]), value: valueText(rec), sub: `${fmtDate(w.startedAt, getLang())} · ${prevText(rec)}`, dark: isDark(), rtl: getLang() === 'he' }); }
+  function card() { return renderCard({ photo: photoCv, title: t(TITLE[rec.id]), value: valueText(rec), sub: `${fmtDate(w.startedAt, getLang())} · ${prevText(rec)}`, dark: isDark(), rtl: getLang() === 'he', trophy: rec.id === 'distance', style: CARD_STYLES[['distance', 'pace', 'km'].indexOf(rec.id)] || 'sunrise' }); }
   async function share() {
     try {
-      const cv = card(); // encoded once: base64 for Android's share sheet, a blob for the browser
+      const cv = await card(); // encoded once: base64 for Android's share sheet, a blob for the browser
       if (native.available) { const b64 = cv.toDataURL('image/png').split(',')[1]; return setChildren(msg, b64 && native.shareImage(b64) ? '' : t('rcdShareError')); }
       const blob = await new Promise((res) => cv.toBlob(res, 'image/png')); if (!blob) return setChildren(msg, t('rcdShareError'));
       const f = new File([blob], 'stepup-record.png', { type: 'image/png' });
@@ -47,7 +49,7 @@ export function celebrationCard(records, w) {
       h('p', null, t('rcdAsk')), h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'rec-photo', onclick: take }, t('rcdTake')), h('button', { type: 'button', class: 'btn ghost', id: 'rec-nophoto', onclick: () => { photoUrl = ''; photoCv = null; scene(); } }, t('rcdNoPhoto'))), file, msg);
   }
   function scene() {
-    setChildren(box, podiumScene(photoUrl, rec), h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'rec-share', onclick: share }, t('rcdShare')), h('button', { type: 'button', class: 'btn ghost', id: 'rec-retake', onclick: ask }, t('rcdAgain'))), file, msg);
+    setChildren(box, h('div', { class: 'pd-head' }, h('img', { class: 'badge', src: `art/celebrate/${BADGE[rec.id]}-${isDark() ? 'dark' : 'light'}.svg`, alt: '' }), h('div', null, h('b', null, t(TITLE[rec.id])), h('span', null, valueText(rec)))), podiumScene(photoUrl, rec), h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'rec-share', onclick: share }, t('rcdShare')), h('button', { type: 'button', class: 'btn ghost', id: 'rec-retake', onclick: ask }, t('rcdAgain'))), file, msg);
   }
   ask(); return box;
 }

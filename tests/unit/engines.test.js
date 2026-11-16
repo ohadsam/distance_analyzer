@@ -163,3 +163,16 @@ test('monthSeries: calendar months ending now, oldest first, empty months includ
   assert.deepEqual(s.map((m) => new Date(m.t).getMonth()), [10, 11, 0]); assert.deepEqual(s.map((m) => m.n), [0, 1, 2]);
   assert.equal(s[2].distanceM, 15000); assert.equal(s[2].longestM, 10000); assert.equal(s[0].distanceM, 0);
 });
+
+import { challengeStatus, challengeWeeks, challengeStreak, weeklySummary, nextSundayAt } from '../../web/js/challenge.js';
+test('weekly challenge: progress, weeks met, streak that survives a running week, Sunday summary and schedule', () => {
+  const now = new Date(2026, 10, 11, 12).getTime(); // Wed 11 Nov 2026 (week starts Sun 8 Nov)
+  const w = (m, d, km = 5) => ({ startedAt: new Date(2026, m, d, 8).getTime(), distanceM: km * 1000, movingMs: km * 360000 });
+  const rows = [w(10, 9), w(10, 10), w(10, 1), w(10, 2), w(10, 3), w(9, 25), w(9, 26), w(9, 27)]; // this week 2; last week (1-7 Nov) 3; the week before 3
+  assert.deepEqual(challengeStatus(rows, now, 3), { target: 3, done: 2, left: 1, complete: false }); assert.equal(challengeStatus(rows, now, 99).target, 0); assert.equal(challengeStatus(rows, now, 2).complete, true);
+  assert.deepEqual(challengeWeeks(rows, now, 3, 3).map((x) => [x.n, x.met]), [[3, true], [3, true], [2, false]]);
+  assert.equal(challengeStreak(rows, now, 3), 2, 'the running week (2 of 3) does not break the streak'); assert.equal(challengeStreak(rows, now, 0), 0); assert.equal(challengeStreak([], now, 3), 0);
+  assert.deepEqual(weeklySummary(rows, now), { n: 2, km: 10, minutes: 60 });
+  const sun = nextSundayAt(now); assert.equal(new Date(sun).getDay(), 0); assert.equal(new Date(sun).getHours(), 18); assert.ok(sun > now && sun - now < 7 * 86400000);
+  const onSunday = new Date(2026, 10, 15, 19, 0).getTime(); assert.ok(nextSundayAt(onSunday) > onSunday + 6 * 86400000, 'after the hour: next week');
+});

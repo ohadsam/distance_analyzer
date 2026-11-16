@@ -1,0 +1,123 @@
+{
+  "units": "ms",
+  "properties": [
+    "transform",
+    "opacity"
+  ],
+  "animations": {
+    "steps": {
+      "duration": 650,
+      "delay": 0,
+      "easing": "cubic-bezier(.2,.8,.2,1)",
+      "frames": [
+        {
+          "offset": 0,
+          "transform": "translateY(28px)",
+          "opacity": 0
+        },
+        {
+          "offset": 1,
+          "transform": "translateY(0)",
+          "opacity": 1
+        }
+      ]
+    },
+    "avatar": {
+      "duration": 650,
+      "delay": 350,
+      "easing": "ease-out",
+      "frames": [
+        {
+          "offset": 0,
+          "transform": "scale(.88)",
+          "opacity": 0
+        },
+        {
+          "offset": 0.75,
+          "transform": "scale(1.04)",
+          "opacity": 1
+        },
+        {
+          "offset": 1,
+          "transform": "scale(1)",
+          "opacity": 1
+        }
+      ]
+    },
+    "ribbon": {
+      "duration": 850,
+      "delay": 800,
+      "easing": "ease-in-out",
+      "frames": [
+        {
+          "offset": 0,
+          "transform": "translateY(-18px)",
+          "opacity": 0
+        },
+        {
+          "offset": 0.65,
+          "transform": "translateY(3px)",
+          "opacity": 1
+        },
+        {
+          "offset": 1,
+          "transform": "translateY(0)",
+          "opacity": 1
+        }
+      ]
+    },
+    "medal": {
+      "duration": 850,
+      "delay": 950,
+      "easing": "ease-in-out",
+      "frames": [
+        {
+          "offset": 0,
+          "transform": "translateY(-20px)",
+          "opacity": 0
+        },
+        {
+          "offset": 0.65,
+          "transform": "translateY(4px)",
+          "opacity": 1
+        },
+        {
+          "offset": 1,
+          "transform": "translateY(0)",
+          "opacity": 1
+        }
+      ]
+    },
+    "confetti": {
+      "duration": 4200,
+      "delay": 500,
+      "easing": "linear",
+      "frames": [
+        {
+          "offset": 0,
+          "transform": "translateY(-30px) rotate(0deg)",
+          "opacity": 0
+        },
+        {
+          "offset": 0.15,
+          "transform": "translateY(0) rotate(30deg)",
+          "opacity": 1
+        },
+        {
+          "offset": 1,
+          "transform": "translateY(450px) rotate(180deg)",
+          "opacity": 0
+        }
+      ]
+    }
+  },
+  "iterations": 1,
+  "reducedMotion": {
+    "steps": "final static",
+    "avatar": "final static",
+    "ribbon": "final static",
+    "medal": "final static",
+    "confetti": "omit or fixed decorative particles"
+  },
+  "notes": "No flashing; one-shot transitions. Apply avatar transform to photo and frame together, origin 180px 114px in scene coordinates. All other artwork static. Trophy replaces ribbon and medal."
+}

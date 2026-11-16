@@ -59,6 +59,14 @@ export function recentPaceSec(w) {
   return d >= 5 ? dt / (d / 1000) : 0;
 }
 
+/** True when the person seems to have stopped: the last ~30 s of fixes barely moved and the newest fix is fresh (used to OFFER a pause, never to pause by itself). */
+export function stoppedFor(w, now) {
+  const r = w.recent; if (r.length < 3 || isPaused(w) || isFinished(w)) return false;
+  const first = r[0], last = r[r.length - 1];
+  if (now - last[2] > 15000 || last[2] - first[2] < 28000) return false;
+  return haversine({ lat: first[0], lon: first[1] }, { lat: last[0], lon: last[1] }) < 10;
+}
+
 /** Rough energy estimate: kcal ~ MET x kg x hours (walk 3.5, run 9.8). Weight is optional (default 70 kg). */
 export function kcal(w, weightKg = 70) {
   const kg = clamp(Number(weightKg) || 70, 30, 250);

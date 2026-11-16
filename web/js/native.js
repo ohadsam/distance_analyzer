@@ -37,6 +37,8 @@ export const native = {
   takenPhoto: () => { const s = call('takenPhoto'); return typeof s === 'string' && s.startsWith('data:image/jpeg;base64,') ? s : ''; },
   /** Shares a PNG (base64, no prefix) with Android's share sheet; true when handed over. */
   shareImage: (b64) => call('shareImage', String(b64)) === true,
+  /** Spoken kilometre times from the background service while the screen is off: { on, lang, tpl, dist, moving }. */
+  setVoice: (o) => call('setVoice', JSON.stringify(o)),
   /** Keeps the screen on during a workout. */
   keepAwake: (on) => call('keepAwake', !!on),
   /** Android's share sheet with a plain text; true only when the bridge accepted it. */

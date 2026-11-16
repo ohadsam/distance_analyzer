@@ -1,37 +1,49 @@
-// The shareable record card as a PNG (canvas, 1080 x 1350): the person's photo on the top step of a podium with a gold medal, the result and the app name.
+// The shareable record card as a PNG (canvas, 1080 x 1350): the design kit's card background and podium layers, the person's photo in the avatar frame, the result in words.
 // The photo and the card are never uploaded by the app. They live in memory; on Android the card is written to the app's cache only while the share sheet needs it and removed at the next start.
-const W = 1080, H = 1350;
-const PALETTE = { light: { bg1: '#F5F8FA', bg2: '#DDEFEA', text: '#17232D', muted: '#526474', primary: '#006B60', gold: '#E0A800', silver: '#B8C2CC', bronze: '#C07A4A', confetti: ['#006B60', '#216B39', '#A13F20', '#145AA0', '#E0A800'] },
-  dark: { bg1: '#111820', bg2: '#16363D', text: '#F5F8FA', muted: '#B8C6D2', primary: '#9CE5D6', gold: '#F2C230', silver: '#8FA0B0', bronze: '#D49B73', confetti: ['#9CE5D6', '#9BE3B1', '#FFC4A6', '#A9D4FF', '#F2C230'] } };
+const W = 1080, H = 1350, ART = 'art/celebrate';
+const TEXT = { light: { text: '#17232D', primary: '#006B60', muted: '#526474' }, dark: { text: '#F5F8FA', primary: '#9CE5D6', muted: '#B8C6D2' } };
+export const CARD_STYLES = ['sunrise', 'forest', 'ocean'];
+/** Scene layout in the kit's 360 x 450 coordinates: the photo circle (centre 180,114, diameter 136.8) and the layers that stack around it. */
+export const SCENE = { w: 360, h: 450, photo: { cx: 180, cy: 114, d: 136.8 }, rays: { x: 0, y: -66, s: 360 }, trophy: { x: 132, y: 184, s: 96 } };
+export const CONFETTI = ['rectangle', 'circle', 'triangle', 'curl', 'star'];
 
 /** Deterministic pseudo-random numbers (the on-screen scene and the PNG scatter the confetti the same way). */
 export function seeded(seed) { let s = seed >>> 0 || 1; return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
 
+const loaded = new Map();
+/** A kit picture as an image element (cached; rejects when it cannot load). */
+export function loadArt(name, mode, size) {
+  const key = `${name}-${mode}`; if (loaded.has(key)) return loaded.get(key);
+  const p = new Promise((res, rej) => { const i = new Image(); if (size) { i.width = size[0]; i.height = size[1]; } i.onload = () => res(i); i.onerror = () => rej(new Error(key)); i.src = `${ART}/${key}.svg`; });
+  loaded.set(key, p); p.catch(() => loaded.delete(key)); return p;
+}
+
 function fit(ctx, text, maxW, size, weight = 700) { let s = size; do { ctx.font = `${weight} ${s}px system-ui, "Segoe UI", Roboto, "Noto Sans", sans-serif`; s -= 4; } while (ctx.measureText(text).width > maxW && s > 24); }
 
 /**
- * opts: { photo: CanvasImageSource | null, title, value, sub, brand, dark, rtl }. Returns the canvas (call toBlob on it).
+ * opts: { photo: CanvasImageSource | null, title, value, sub, brand, dark, rtl, style, trophy }.
+ * Resolves to the canvas (call toBlob / toDataURL on it). Missing pictures are skipped, never fatal.
  */
-export function renderCard({ photo = null, title, value, sub = '', brand = 'StepUp', dark = false, rtl = false } = {}, canvas = document.createElement('canvas')) {
-  const c = PALETTE[dark ? 'dark' : 'light']; canvas.width = W; canvas.height = H;
+export async function renderCard({ photo = null, title, value, sub = '', brand = 'StepUp', dark = false, rtl = false, style = 'sunrise', trophy = false } = {}, canvas = document.createElement('canvas')) {
+  const mode = dark ? 'dark' : 'light', c = TEXT[mode]; canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d'); ctx.direction = rtl ? 'rtl' : 'ltr'; ctx.textAlign = 'center';
-  const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, c.bg1); g.addColorStop(1, c.bg2); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  const rnd = seeded(7); // confetti
-  for (let i = 0; i < 46; i++) { ctx.save(); ctx.translate(rnd() * W, rnd() * 760); ctx.rotate(rnd() * 3); ctx.fillStyle = c.confetti[i % 5]; ctx.globalAlpha = 0.85; ctx.fillRect(-9, -5, 18, 10); ctx.restore(); }
+  const k = 864 / SCENE.w, ox = (W - 864) / 2, oy = H - SCENE.h * k; // the 360 x 450 scene fills the lower part of the card
+  const put = async (name, x, y, w, h) => { try { ctx.drawImage(await loadArt(name, mode, [Math.round(w), Math.round(h)]), x, y, w, h); } catch { /* a missing picture is skipped */ } };
+  await put(style, 0, 0, W, H);
+  await put('rays', ox + SCENE.rays.x * k, oy + SCENE.rays.y * k, SCENE.rays.s * k, SCENE.rays.s * k);
+  const rnd = seeded(7); // confetti behind the podium, below the text, scattered like the on-screen scene
+  for (let i = 0; i < 24; i++) await put(`confetti-${CONFETTI[i % 5]}`, rnd() * (W - 40), 390 + rnd() * 600, 36, 36);
+  await put('podium-floor', ox, oy, SCENE.w * k, SCENE.h * k); await put('podium-steps', ox, oy, SCENE.w * k, SCENE.h * k); await put('laurel', ox, oy, SCENE.w * k, SCENE.h * k);
+  const p = SCENE.photo, cx = ox + p.cx * k, cy = oy + p.cy * k, r = p.d / 2 * k;
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+  if (photo) { const s = Math.min(photo.width, photo.height); ctx.drawImage(photo, (photo.width - s) / 2, (photo.height - s) / 2, s, s, cx - r, cy - r, r * 2, r * 2); } else { ctx.fillStyle = c.primary; ctx.fillRect(cx - r, cy - r, r * 2, r * 2); }
+  ctx.restore();
+  await put('avatar-frame', ox, oy, SCENE.w * k, SCENE.h * k);
+  if (trophy) await put('trophy', ox + SCENE.trophy.x * k, oy + SCENE.trophy.y * k, SCENE.trophy.s * k, SCENE.trophy.s * k);
+  else { await put('ribbon', ox, oy, SCENE.w * k, SCENE.h * k); await put('medal', ox, oy, SCENE.w * k, SCENE.h * k); }
   ctx.fillStyle = c.text; fit(ctx, title, 960, 92); ctx.fillText(title, W / 2, 150);
   ctx.fillStyle = c.primary; fit(ctx, value, 960, 132); ctx.fillText(value, W / 2, 290);
   if (sub) { ctx.fillStyle = c.muted; fit(ctx, sub, 960, 46, 500); ctx.fillText(sub, W / 2, 360); }
-  // podium: silver (left), gold (centre, highest), bronze (right)
-  const step = (x, top, w, color, label) => { ctx.fillStyle = color; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, top, w, 1300 - top, [18, 18, 0, 0]); else ctx.rect(x, top, w, 1300 - top); ctx.fill(); ctx.fillStyle = dark ? '#111820' : '#FFFFFF'; const room = 1300 - top; ctx.font = `700 ${Math.min(84, room - 20)}px system-ui, sans-serif`; ctx.fillText(label, x + w / 2, top + Math.min(100, room - 14)); };
-  step(90, 1190, 300, c.silver, '2'); step(690, 1230, 300, c.bronze, '3'); step(390, 1120, 300, c.gold, '1');
-  // the person: photo in a gold ring (a calm round badge when there is no photo)
-  ctx.save(); ctx.beginPath(); ctx.arc(W / 2, 800, 180, 0, Math.PI * 2); ctx.clip();
-  if (photo) { const s = Math.min(photo.width, photo.height); ctx.drawImage(photo, (photo.width - s) / 2, (photo.height - s) / 2, s, s, W / 2 - 180, 620, 360, 360); } else { ctx.fillStyle = c.primary; ctx.fillRect(W / 2 - 180, 620, 360, 360); }
-  ctx.restore(); ctx.lineWidth = 18; ctx.strokeStyle = c.gold; ctx.beginPath(); ctx.arc(W / 2, 800, 189, 0, Math.PI * 2); ctx.stroke();
-  // medal on a ribbon
-  ctx.fillStyle = c.primary; ctx.beginPath(); ctx.moveTo(W / 2 - 70, 960); ctx.lineTo(W / 2, 1050); ctx.lineTo(W / 2 + 70, 960); ctx.lineTo(W / 2 + 40, 960); ctx.lineTo(W / 2, 1010); ctx.lineTo(W / 2 - 40, 960); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = c.gold; ctx.beginPath(); ctx.arc(W / 2, 1065, 52, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 8; ctx.strokeStyle = dark ? '#111820' : '#FFFFFF'; ctx.stroke();
-  ctx.fillStyle = dark ? '#111820' : '#FFFFFF'; ctx.beginPath(); for (let i = 0; i < 10; i++) { const r = i % 2 ? 11 : 26, a = -Math.PI / 2 + i * Math.PI / 5; ctx.lineTo(W / 2 + Math.cos(a) * r, 1065 + Math.sin(a) * r); } ctx.closePath(); ctx.fill();
   ctx.fillStyle = c.muted; ctx.font = '600 40px system-ui, sans-serif'; ctx.fillText(brand, W / 2, 1335);
   return canvas;
 }

@@ -65,3 +65,6 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 48 | Map tiles (decision D2) | ✅ 0.14.0 opt-in OpenStreetMap, privacy explained (provider response on real devices unverified) |
 | 49 | Battery and resource optimisation of the background processes | ✅ 0.14.0 adaptive GPS, per-widget redraw, hourly sensor alarm, no work while hidden (no battery measurement on a device) |
 | 50 | Record celebration: selfie on a podium with medal/trophy, animated, shareable | ✅ 0.14.0 simple art in code; polished art requested (ROUND6 prompt) |
+| 51 | New minimal workout screen (map, km, speed, pause/stop, alerts, voice, metronome) | ✅ 0.15.0 |
+| 52 | Voice from the background service; stop hint; sunlight mode; weekly challenge; Sunday summary; permissions explained | ✅ 0.15.0 (voice with the screen off unverified on a device) |
+| 53 | Use the celebration kit (podium layers, cards, badges) | ✅ 0.15.0 |

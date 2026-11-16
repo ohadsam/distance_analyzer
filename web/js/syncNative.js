@@ -8,6 +8,7 @@ import { onlineOn, cachedForecast } from './weatherApi.js';
 import { routineProfile, recommend } from './reco.js';
 import { debounce } from './util.js';
 import { widgetSnapshot, weekDays } from './widgetData.js';
+import { nextSundayAt, weeklySummary } from './challenge.js';
 import { profile } from './store.js';
 import { stepSeries, recommendedSteps } from './steps.js';
 import { weekStatus, effortMinutes } from './effort.js';
@@ -46,18 +47,25 @@ function nextText(now) {
   return { value: `${t(`ty${cap(s.type)}`)} ${s.minutes} ${t('min')}`, sub: fmtDate(sessionDate(plan, s), getLang()) };
 }
 
+/** The Sunday-evening summary as a notification for when the app is closed (opt-in). Its text is the week as it stands at the last sync; the in-app inbox version is made fresh. */
+function weeklyEntries(rows, now) {
+  if (getPref('weeklyNotify', '0') !== '1') return [];
+  const at = nextSundayAt(now), s = weeklySummary(rows, at);
+  return [{ id: `weekly-${at}`, at, title: t('weeklyTitle'), body: s.n ? t('weeklyBody', { n: s.n, km: s.km, min: s.minutes }) : t('weeklyBodyNone'), href: '#/d/effort', meta: {} }];
+}
+
 async function sync() {
   if (!native.available) return;
-  const now = Date.now(), rems = getJson('rems', []);
+  const now = Date.now(), rems = getJson('rems', []), rows = await listWorkouts({ points: false });
   const fixed = reminderEntries(rems, now, (kind) => ({ title: t(kind === 'walk' ? 'rem_walk' : 'rem_move'), body: t(kind === 'walk' ? 'rem_walk_body' : 'rem_move_body') }));
   let reco = [];
   if (getPref('recoNotify', '0') === '1' && onlineOn()) {
     const f = cachedForecast(now, 24 * 3600000), kind = getPref('recoKind', 'walk') === 'run' ? 'run' : 'walk';
-    if (f?.length) reco = recoEntries(recommend(f, routineProfile(await listWorkouts({ points: false }), now, kind), kind, now, { tomorrow: true }).items, now, (i) => ({ title: t(`rec_notify_${kind}`), body: t('rec_notify_body', { range: `${String(i.start).padStart(2, '0')}:00-${String(i.end % 24).padStart(2, '0')}:00`, temp: i.params.temp }) }));
+    if (f?.length) reco = recoEntries(recommend(f, routineProfile(rows, now, kind), kind, now, { tomorrow: true }).items, now, (i) => ({ title: t(`rec_notify_${kind}`), body: t('rec_notify_body', { range: `${String(i.start).padStart(2, '0')}:00-${String(i.end % 24).padStart(2, '0')}:00`, temp: i.params.temp }) }));
   }
-  native.setNotifications(buildSchedule(fixed, reco, planReminders(now)));
+  native.setNotifications(buildSchedule(fixed, reco, planReminders(now), weeklyEntries(rows, now)));
   // home-screen widgets: the weekly effort, the steps goal and the quick-start activity
-  const rows = await listWorkouts({ points: false }), prof = profile(), series = stepSeries(rows, 14, now, prof.heightCm, native.stepsDays());
+  const prof = profile(), series = stepSeries(rows, 14, now, prof.heightCm, native.stepsDays());
   native.setWidgetData(widgetSnapshot({ goalSteps: recommendedSteps(series, prof.age), status: weekStatus(rows, prof.age, now, getJson('barOv', null)), kind: getPref('recoKind', 'walk'), last: lastText(rows), next: nextText(now), week: { ...weekDays(rows, now, effortMinutes), labels: dayLabels(now), start: weekStart(now), desc: weekDesc(rows, now) } }, t));
 }
 /** Call whenever reminders, language or recommendation settings change (debounced). */

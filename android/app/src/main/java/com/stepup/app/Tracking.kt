@@ -17,6 +17,7 @@ object Tracking {
         val f = file(ctx)
         if (f.length() > MAX_BYTES) f.delete() // a runaway buffer (the page never drained): start over rather than fill the phone
         f.appendText(FixBuffer.encode(l.latitude, l.longitude, l.time, if (l.hasAccuracy()) l.accuracy else 50f) + "\n")
+        Voice.onFix(ctx, l)
     }
 
     @Synchronized fun drain(ctx: Context): String {

@@ -82,6 +82,7 @@ class TrackingService : Service() {
         handler.removeCallbacksAndMessages(null)
         thread?.quitSafely(); thread = null
         Tracking.running = false
+        Voice.shutdown()
         super.onDestroy()
     }
 

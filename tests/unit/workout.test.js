@@ -52,3 +52,14 @@ test('regression: finishing while paused does not count the pause, and the recor
   const w = newWorkout('walk', 0); pause(w, 10000); finish(w, 50000);
   assert.equal(elapsedMs(w, 99999), 10000); assert.equal(summarize(w).elapsedMs, 10000);
 });
+
+import { stoppedFor } from '../../web/js/workout.js';
+test('stoppedFor: barely moved over ~30 s with a fresh fix -> offer a pause; moving, stale, too short or paused -> no', () => {
+  const mk = (pts, extra = {}) => ({ recent: pts, pausedAt: 0, endedAt: 0, ...extra }), T = 1_000_000;
+  const still = [[32, 34.8, T], [32.000002, 34.8, T + 10000], [32.000003, 34.800001, T + 20000], [32.000002, 34.8, T + 31000]];
+  assert.equal(stoppedFor(mk(still), T + 33000), true);
+  assert.equal(stoppedFor(mk(still), T + 60000), false, 'the last fix is old: the GPS may be lost, not the person');
+  assert.equal(stoppedFor(mk(still.slice(0, 3)), T + 21000), false, 'under 28 s of data');
+  assert.equal(stoppedFor(mk([[32, 34.8, T], [32.0005, 34.8, T + 15000], [32.001, 34.8, T + 31000]]), T + 32000), false, 'moving at walking pace');
+  assert.equal(stoppedFor(mk(still, { pausedAt: T }), T + 33000), false); assert.equal(stoppedFor(mk([]), T), false);
+});

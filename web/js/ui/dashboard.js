@@ -4,9 +4,10 @@ import { art } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
-import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref } from '../store.js';
+import { active, listWorkouts, listRoutes, profile, getJson, setJson, getPref, setPref, getNum } from '../store.js';
 import { alertStore, unreadCount } from '../alerts.js';
 import { fmtKm, fmtPace, fmtPaceUnit, fmtClock, fmtDate, workoutText, bucketLabel } from '../format.js';
+import { challengeStatus, challengeWeeks, challengeStreak } from '../challenge.js';
 import { monthSeries, monthToDate, filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
 import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
@@ -17,9 +18,9 @@ import { recoSummary, mountReco } from './reco.js';
 import { quickActions, routesBody, suggest } from './routes.js';
 import { planSummary, mountPlan } from './plan.js';
 
-export const WIDGETS = ['effort', 'plan', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts', 'month'];
+export const WIDGETS = ['effort', 'plan', 'reco', 'routes', 'steps', 'distance', 'pace', 'consistency', 'weather', 'records', 'alerts', 'month', 'challenge'];
 const PERIODS = { 7: 'p7', 30: 'p30', 365: 'p365', 0: 'pAll' };
-export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan: 'wPlan', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts', month: 'wMonth' };
+export const W_KEY = { effort: 'wEffort', reco: 'wReco', routes: 'wRoutes', plan: 'wPlan', steps: 'wSteps', distance: 'wDistance', pace: 'wPace', consistency: 'wConsistency', weather: 'wWeather', records: 'wRecords', alerts: 'wAlerts', month: 'wMonth', challenge: 'wChallenge' };
 
 // ---------- saved layout and filters (untrusted storage: only known values pass) ----------
 // a new person sees the essentials; everything else is one tap away in Customise
@@ -62,6 +63,12 @@ export const W = {
     summary: (c) => { const today = c.steps[c.steps.length - 1], rec = recommendedSteps(c.steps, c.prof.age); return h('div', null, stat(today.quality.toLocaleString(getLang() === 'he' ? 'he-IL' : 'en-GB'), t('stepsGoal', { n: rec.toLocaleString(getLang() === 'he' ? 'he-IL' : 'en-GB') })), meter(today.quality / rec, t('stepsQuality'))); },
     detail: (c) => { const today = c.steps[c.steps.length - 1], rec = recommendedSteps(c.steps, c.prof.age); return [barChart(c.steps.map((d, i) => ({ v: d.quality, label: dayLabel(d.t), cls: i === c.steps.length - 1 ? 'now' : '' })), { target: rec }),
       h('div', { class: 'rows' }, row(t('stepsQuality'), String(today.quality)), row(t('stepsRaw'), String(today.steps)), today.sensor ? row(t('stepsPhone'), '') : null, row(t('stepsBrisk'), String(today.brisk)), row(t('stepsGoal', { n: rec }), ''), row(t('stepsLongest', { km: (today.longestM / 1000).toFixed(1) }), '')), h('p', { class: 'note' }, t('stepsHow'))]; },
+  },
+  challenge: {
+    summary: (c) => { const st = challengeStatus(c.all, c.now, getNum('challengeN', 3, 0, 7)); if (!st.target) return h('p', { class: 'note' }, t('chOff'));
+      return h('div', null, stat(t('chProgress', { done: st.done, target: st.target }), st.complete ? t('chDone') : t('chLeft', { n: st.left })), meter(st.done / st.target, t('chProgress', { done: st.done, target: st.target })), st.complete ? h('img', { class: 'badge', src: `art/celebrate/most-workouts-week-${document.documentElement.dataset.theme === 'dark' || (document.documentElement.dataset.theme !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light'}.svg`, alt: '' }) : null); },
+    detail: (c) => { const target = getNum('challengeN', 3, 0, 7); if (!target) return [h('p', { class: 'note' }, t('chOff'))]; const weeks = challengeWeeks(c.all, c.now, target, 8), streak = challengeStreak(c.all, c.now, target);
+      return [h('p', { class: 'note' }, t('chWeeks')), barChart(weeks.map((x, i) => ({ v: x.n, label: weekLabel(x.t), cls: i === weeks.length - 1 ? 'now' : x.met ? '' : 'bad' })), { target }), h('div', { class: 'rows' }, row(t('chN', { n: target }), ''), streak ? row(t('chStreak', { n: streak }), '') : null)]; },
   },
   month: {
     summary: (c) => { const cur = monthSeries(c.all, c.now, 1)[0], earlier = c.all.some((w) => w.startedAt < cur.t), prev = monthToDate(c.all, c.now, 1), d = (cur.distanceM - prev.distanceM) / 1000, km = Math.abs(d).toFixed(1);
@@ -127,7 +134,7 @@ function welcome(c, redraw) {
   if (getPref('welcomed', '') || c.all.length) return null;
   const done = () => { setPref('welcomed', '1'); redraw(); };
   const age = h('input', { id: 'welcome-age', type: 'number', inputMode: 'numeric', min: 5, max: 100, value: getPref('age', '') || '', placeholder: '35' });
-  return h('div', { class: 'card welcome', id: 'welcome' }, art('onboarding', 'welcome'), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')),
+  return h('div', { class: 'card welcome', id: 'welcome' }, art('onboarding', 'welcome'), h('h2', null, t('welcomeTitle')), h('p', null, t('welcomeText')), h('p', { class: 'note' }, t('welcomePerms')),
     h('label', { for: 'welcome-age' }, t('age')), age,
     h('div', { class: 'row' }, h('button', { type: 'button', class: 'btn', id: 'welcome-ok', onclick: () => { const a = Number(age.value); if (a >= 5 && a <= 100) setPref('age', Math.round(a)); done(); } }, t('welcomeOk')), h('button', { type: 'button', class: 'btn ghost', onclick: done }, t('welcomeSkip'))));
 }

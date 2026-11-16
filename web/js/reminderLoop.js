@@ -9,6 +9,7 @@ import { planReminders } from './syncNative.js';
 import { dayStart } from './stats.js';
 import { stepSeries, recommendedSteps } from './steps.js';
 import { weekStatus } from './effort.js';
+import { weeklySummary } from './challenge.js';
 import { active, getPref } from './store.js';
 import { onlineOn, fetchForecast } from './weatherApi.js';
 import { routineProfile, recommend } from './reco.js';
@@ -26,8 +27,19 @@ async function runChecks(now, prevCheck) {
   const list = sanitizeReminders(getJson('rems', [])), smart = sanitizeSmart(getJson('smart', {}));
   for (const r of dueReminders(list, prevCheck, now)) pushAlert({ id: `rem-${r.id}-${dayStart(now)}-${r.time}`, kind: 'reminder', title: r.kind === 'walk' ? 'rem_walk' : 'rem_move', lines: [r.kind === 'walk' ? 'rem_walk_body' : 'rem_move_body'], href: '#/workout/walk' });
   if (!native.available) for (const e of planReminders(prevCheck)) if (e.at <= now) pushAlert({ id: e.id, kind: 'reminder', title: 'planRemindTitle', lines: ['planRemindBody'], params: { what: t(`ty${e.meta.type[0].toUpperCase()}${e.meta.type.slice(1)}`), min: e.meta.min }, href: '#/plan' }); // in the browser: while the page is open (Android has the notification already)
+  await weeklyPart(now);
   await smartPart(smart, now);
   await recoPart(now);
+}
+
+/** Sunday from 18:30 on: the week as one calm inbox card (opt-in), once per Sunday. */
+async function weeklyPart(now) {
+  if (getPref('weeklyNotify', '0') !== '1') return;
+  const d = new Date(now); if (d.getDay() !== 0 || d.getHours() * 60 + d.getMinutes() < 18 * 60 + 30) return;
+  const day = dayStart(now), sent = getJson('weeklySent', 0); if (sent === day) return;
+  const s = weeklySummary(await listWorkouts({ points: false }), now);
+  setJson('weeklySent', day);
+  pushAlert({ id: `weekly-${day}`, kind: 'reminder', title: 'weeklyTitle', lines: [s.n ? 'weeklyBody' : 'weeklyBodyNone'], params: { n: s.n, km: s.km, min: s.minutes }, href: '#/d/effort' });
 }
 
 async function smartPart(smart, now) {

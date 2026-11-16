@@ -26,6 +26,12 @@ Settings → Reminders: add reminders for a walk or a movement break at set time
 ## Training plan
 Open **Training plan** from the dashboard widget (or search). Choose your goal, level, how many sessions a week, for how many weeks, and which kinds of workouts you want. The plan starts on Sunday and grows gently: about 10 % more a week at most, a lighter week every fourth week, and an easier last week. Each session shows its length and what to do (for example "10 × (1:00 run + 2:00 walk)"). Tap **Start** to measure it at once, **Mark done** for movement exercises, or **Skip**. A workout you do on the planned day completes the session by itself. If you miss a session, StepUp offers to move it to a free day soon or to skip it, and makes the next week a little lighter after a week with misses. You can get a reminder on the day of each session (Settings → Training plan). General guidance, not medical advice.
 
+## The workout screen
+The map takes the most room. Under it: distance, pace (tap to switch to speed) and time. **Metronome**, **Voice** and **Sunlight** are switches; the big button pauses and resumes; **Finish** asks before saving. If you stop moving for about 30 seconds, the app offers to pause.
+
+## Weekly challenge and Sunday summary
+Settings -> Weekly challenge picks how many workouts you want each week; the dashboard shows progress and a medal when you make it. Turn on the Sunday summary for one calm notification with your last 7 days.
+
 ## Street map
 Settings -> Show a street map: a real map under your routes and the live map (off by default; it asks OpenStreetMap for the map squares of the area, so that service learns roughly where you are). Needs internet.
 
@@ -36,7 +42,7 @@ When a workout breaks a record (longest distance, best pace, fastest kilometre) 
 Settings -> Your data: **Save a backup file** keeps your workouts, routes and settings in one file; **Restore from a backup file** adds what is missing and brings the settings back (useful after changing phone or clearing data).
 
 ## Spoken cues
-Settings -> Speak kilometre times and indications turns on the phone voice during workouts (off by default). It speaks while the screen is on (when the screen is off Android pauses the app's page).
+Settings -> Speak kilometre times and indications (or the Voice switch on the workout screen) turns on the phone voice (off by default). On Android it keeps speaking the kilometre times with the screen off.
 
 ## Updates and sharing
 In **Settings -> About and updates**: **Check for updates** tells you if a newer version exists (the web app can refresh itself, the Android app downloads the new APK). **Download the latest Android app** gives the newest APK. **Share StepUp** sends a link to the web app and the Android app.

@@ -153,11 +153,11 @@ await step('backup: save to a file, wipe, restore (web file picker); hostile fil
 
 await step('dashboard offers walk and run and the essential widgets', async () => {
   const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 7); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
+  assert.equal(await page.locator('.start-card').count(), 2); assert.equal(await page.locator('.wcard').count(), 8); assert.equal(await page.textContent('h1'), 'Dashboard'); assert.deepEqual(errors, []); await shot(page, 'home-en');
 });
 await step('workout: start, GPS distance grows, pause, resume, finish, summary, saved in history', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
-  assert.equal(await page.getAttribute('.workout', 'data-phase'), 'ready'); await page.waitForSelector('.chip[data-gps="good"]');
+  assert.equal(await page.getAttribute('.workout', 'data-phase'), 'ready'); await page.waitForSelector('.gps-card[data-gps="good"]');
   await page.click('.big-btn'); assert.equal(await page.getAttribute('.workout', 'data-phase'), 'running');
   for (let i = 1; i <= 6; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } // ~7.8 m per 1.1 s
   const km = Number(await page.textContent('.v-dist')); assert.ok(km >= 0.03 && km <= 0.06, `distance ${km}`);
@@ -194,18 +194,18 @@ await step('lock needs a press-and-hold to open', async () => {
 });
 await step('rhythm coach: silent while learning, then locks on the runner\'s cadence and shows the breathing guide', async () => {
   const { page, errors } = await newPage({ lang: 'en', clock: true, signalGapMs: 357 }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
-  await page.click('.big-btn'); await page.click('.controls button.round[aria-label="Rhythm"]'); await page.waitForSelector('.rhythm:not([hidden])');
+  await page.click('.big-btn'); await page.click('#wk-metro'); await page.waitForSelector('.rhythm:not([hidden])');
   assert.equal(await page.getAttribute('.rhythm', 'data-state'), 'listening'); await page.clock.runFor(12000);
   assert.equal(await page.getAttribute('.rhythm', 'data-state'), 'listening', 'no sound while it learns'); await shot(page, 'rhythm-listening');
   await page.clock.runFor(26000); assert.equal(await page.getAttribute('.rhythm', 'data-state'), 'locked');
   const bpm = Number(await page.getAttribute('.rhythm', 'data-bpm')); assert.ok(Math.abs(bpm - 168) <= 4, `bpm ${bpm}`); assert.equal(await page.textContent('.rhythm-bpm'), String(bpm));
   await page.clock.runFor(500); assert.match(await page.textContent('.rhythm-cue'), /Breathe (in|out)/); await shot(page, 'rhythm-locked');
   await page.click('.controls .big-btn'); await page.clock.runFor(1000); assert.equal(await page.getAttribute('.rhythm', 'data-state'), 'listening', 'paused workout: silent again');
-  await page.click('.controls button.round[aria-label="Rhythm"]'); assert.equal(await page.locator('.rhythm:not([hidden])').count(), 0); assert.deepEqual(errors, []);
+  await page.click('#wk-metro'); assert.equal(await page.locator('.rhythm:not([hidden])').count(), 0); assert.deepEqual(errors, []);
 });
 await step('rhythm coach without a motion sensor falls back to the manual rhythm', async () => {
   const { page } = await newPage({ lang: 'en', clock: true }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn');
-  await page.click('.big-btn'); await page.click('.controls button.round[aria-label="Rhythm"]'); await page.clock.runFor(5000);
+  await page.click('.big-btn'); await page.click('#wk-metro'); await page.clock.runFor(5000);
   assert.equal(await page.getAttribute('.rhythm', 'data-state'), 'locked'); assert.equal(await page.getAttribute('.rhythm', 'data-bpm'), '170'); assert.match(await page.textContent('.rhythm-label'), /No motion sensor/);
   await page.click('.rhythm-adjust button >> nth=1'); assert.equal(await page.getAttribute('.rhythm', 'data-bpm'), '172');
 });
@@ -334,17 +334,31 @@ await step('street map (opt-in): no request while off; on -> the live map and a 
 
 await step('record celebration: ask, victory photo (web file and Android camera), animated podium, share as PNG, axe clean', async () => {
   const open = async (page) => page.evaluate(async () => { const { celebrationCard } = await import('./js/ui/podium.js'); document.getElementById('app').replaceChildren(Object.assign(document.createElement('h1'), { textContent: 'Summary' }), celebrationCard([{ id: 'distance', value: 12340, prev: 10000 }, { id: 'pace', value: 300, prev: 320 }], { startedAt: Date.now(), kind: 'run' })); });
-  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card'); await open(page);
+  const { page, errors } = await newPage({ lang: 'en' }); const bad = []; page.on('response', (r) => { if (r.status() >= 400) bad.push(r.url()); }); await page.goto(base); await page.waitForSelector('.start-card'); await open(page);
   assert.match(await page.textContent('#celebrate'), /New distance record!/); assert.match(await page.textContent('#celebrate'), /12\.34\s*km/); assert.match(await page.textContent('#celebrate'), /New pace record!/);
   const png = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 300; c.height = 200; const x = c.getContext('2d'); x.fillStyle = '#c33'; x.fillRect(0, 0, 300, 200); return c.toDataURL('image/png').split(',')[1]; });
   await page.setInputFiles('#rec-file', { name: 'me.png', mimeType: 'image/png', buffer: Buffer.from(png, 'base64') }); await page.waitForSelector('.podium .pd-photo img'); assert.match(await page.getAttribute('.pd-photo img', 'src'), /^data:image\/jpeg;base64,/);
-  assert.equal(await page.locator('.podium .pd-c').count(), 24); assert.equal(await page.locator('.podium .pd-step').count(), 3); assert.match(await page.getAttribute('.podium', 'aria-label'), /New distance record!/);
+  assert.equal(await page.locator('.podium .pd-c').count(), 24); assert.ok(await page.locator('.podium img.pd-l').count() >= 30, 'kit layers + confetti'); assert.equal(await page.locator('.pd-trophy').count(), 1, 'distance record = trophy'); assert.equal(await page.locator('.pd-medal').count(), 0); assert.match(await page.getAttribute('.podium', 'aria-label'), /New distance record!/);
   await page.waitForTimeout(3000); await shot(page, 'podium'); assert.deepEqual(await axeViolations(page), []);
   const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#rec-share')]); assert.equal(dl.suggestedFilename(), 'stepup-record.png');
   const fs = await import('node:fs'); const buf = fs.readFileSync(await dl.path()); if (shots) fs.writeFileSync(`${shots}/record-card.png`, buf); assert.equal(buf.subarray(1, 4).toString(), 'PNG'); assert.ok(buf.length > 20000, 'a real picture');
-  await page.click('#rec-retake'); await page.waitForSelector('#rec-nophoto'); await page.click('#rec-nophoto'); await page.waitForSelector('.podium'); assert.equal(await page.locator('.pd-photo img').count(), 0, 'no photo, no image'); assert.deepEqual(errors, []);
+  await page.click('#rec-retake'); await page.waitForSelector('#rec-nophoto'); await page.click('#rec-nophoto'); await page.waitForSelector('.podium'); assert.equal(await page.locator('.pd-photo img').count(), 0, 'no photo, no image'); assert.deepEqual(bad, [], 'every kit picture exists'); assert.deepEqual(errors, []);
   const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base); await a.page.waitForSelector('.start-card'); await open(a.page); await a.page.click('#rec-photo'); await a.page.waitForSelector('.pd-photo img');
   await a.page.click('#rec-share'); await a.page.waitForFunction(() => window.__n.sharedImage); assert.ok((await a.page.evaluate(() => window.__n.sharedImage)).length > 1000);
+});
+
+await step('new workout screen: pace/speed switch, metronome / voice / sunlight toggles, minimal buttons; weekly challenge widget; Sunday summary in the inbox', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/walk'); await page.waitForSelector('.gps-card');
+  assert.equal(await page.locator('.workout button:visible').count() <= 7, true, 'few buttons while ready'); await page.click('.big-btn'); await page.waitForSelector('.workout[data-phase="running"]');
+  assert.match(await page.textContent('#wk-unit'), /Pace/); await page.click('#wk-unit'); assert.match(await page.textContent('#wk-unit'), /Speed \(km\/h\)/); await page.click('#wk-unit');
+  await page.click('#wk-sun'); assert.equal(await page.getAttribute('body', 'data-sun'), '1'); assert.equal(await page.getAttribute('#wk-sun', 'aria-pressed'), 'true');
+  await page.click('#wk-voice'); assert.equal(await page.evaluate(() => localStorage.getItem('da.voice')), '1'); assert.equal(await page.getAttribute('#wk-voice', 'aria-pressed'), 'true');
+  await page.click('.controls .btn.ghost'); await page.click('.confirm .btn.danger'); await page.waitForSelector('.start-card'); assert.equal(await page.getAttribute('body', 'data-sun'), null, 'sunlight mode ends with the workout screen');
+  await seedHours(page, [{ daysAgo: 0, hour: 6, min: 20 }]); await page.goto(base); await page.waitForSelector('[data-widget=challenge]'); assert.match(await page.textContent('[data-widget=challenge]'), /\d of 3 workouts this week/);
+  await page.goto(base + '#/d/challenge'); await page.waitForSelector('.drill'); assert.match(await page.textContent('.drill'), /Last weeks/); assert.deepEqual(errors, []);
+  const sun = await newPage({ lang: 'en', clock: true, clockAt: new Date(2026, 10, 15, 19, 0) }); await sun.page.goto(base); await sun.page.waitForSelector('.start-card');
+  await seedHours(sun.page, [{ daysAgo: 1, hour: 7, min: 30, km: 4 }, { daysAgo: 3, hour: 7, min: 30, km: 3 }]); await sun.page.evaluate(() => localStorage.setItem('da.weeklyNotify', '1')); await sun.page.reload(); await sun.page.waitForSelector('.start-card');
+  await sun.page.clock.runFor(35000); await sun.page.goto(base + '#/alerts'); await sun.page.waitForSelector('.alert'); assert.match(await sun.page.textContent('.alert'), /2 workouts, 7 km/);
 });
 
 await step('quick action "Measure now" starts at once; live map; following a route shows the route and a ghost of the best attempt', async () => {
@@ -354,7 +368,7 @@ await step('quick action "Measure now" starts at once; live map; following a rou
   await seedTracks(page, [{ daysAgo: 3, hour: 7, pace: 300 }, { daysAgo: 2, hour: 7, pace: 310 }]);
   await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/route.js'), w = (await S.listWorkouts())[0]; const r = await S.saveRoute(R.makeRoute(w.points, { id: 'rghost', name: 'Ghost loop' })); for (const x of await S.listWorkouts()) await S.updateWorkout(x.startedAt, { routeId: r.id }); });
   await page.goto(base + '#/workout/run/go/r/rghost'); await page.waitForSelector('.workout[data-phase="running"]'); await page.waitForSelector('text=Following: Ghost loop');
-  for (let i = 1; i <= 3; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } await page.waitForSelector('.ghost:not([hidden])'); assert.match(await page.textContent('.ghost'), /your best|best pace/); assert.ok(await page.locator('.livemap .route-line').count() >= 1); assert.deepEqual(errors, []);
+  for (let i = 1; i <= 3; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } await page.waitForSelector('p.ghost:not([hidden])'); assert.match(await page.textContent('p.ghost'), /your best|best pace/); assert.ok(await page.locator('.livemap .route-line').count() >= 1); assert.deepEqual(errors, []);
 });
 
 await step('android background: the service records fixes (no page GPS), pause/finish stop it, a reload recovers what was recorded meanwhile', async () => {
@@ -414,7 +428,7 @@ await step('axe-core: zero violations on every screen (he light, en dark)', asyn
     for (const route of ['#/', '#/settings', '#/history', '#/alerts', '#/search', '#/d/effort', '#/d/steps', '#/d/weather', '#/d/month', '#/reco', '#/d/reco', '#/routes', '#/d/routes', '#/plan']) { await page.goto(base + route); await page.waitForSelector('h1'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} ${route}`); }
     for (const pack of ['ocean', 'high-contrast', 'mono']) { await page.goto(base + '#/'); await page.evaluate((p) => { document.documentElement.dataset.pack = p; }, pack); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} pack ${pack}`); }
     await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout`);
-    await page.click('.big-btn'); await page.click('.controls button.round[aria-label]:last-child'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);
+    await page.click('.big-btn'); await page.click('#wk-metro'); await page.waitForSelector('.rhythm:not([hidden])'); assert.deepEqual(await axeViolations(page), [], `${lang} ${scheme} workout+rhythm`);
   }
 });
 await step('320 px: no horizontal scroll', async () => {
