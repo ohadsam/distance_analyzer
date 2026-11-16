@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.19.0
+- **Redesigned icons**: every UI icon is redrawn (single colour, two-tone layers, rounded, a small signature) from the ChatGPT round-8b kit (`design/stepup/round8/`, icons in `design/stepup/svg/`); 80 icons incl. the active navigation variants, the `-start/-end` pairs and the speed / pace gauge glyphs. They still follow the style pack (currentColor).
+- **Animated characters**: the start cards now show a walking and a running character on a round plate that move (`figure()` in `icons.js`, drawn inline from generated data so the CSS can move their parts). Animations are limited to places that opt in with `.anim-on`: the start cards, the workout screen while running (GPS ping, flame, stopwatch...), the alerts bell while there are unread alerts.
+- **Live gauge**: the speed and pace captions on the workout screen show a tiny gauge whose needle follows your current speed / pace (`gaugeDeg` in `metrics.js`).
+- **Navigation shows where you are**: the bottom bar uses the active icon variants.
+- **Calm animations** (Settings, searchable): stops every moving picture; the phone's reduce-motion setting is honoured too (`html[data-calm="1"]`, applied before first paint).
+- Build: `class` is allowed on icon data, but only `m-<part>` / `z1..z5` hooks (checked by the design test); `scripts/build-design.mjs` also generates `web/js/figureData.js` (characters + gauges).
+- Round 9 prompt: `docs/prompts/ROUND9_PROMPT.md` (Trail, a signature character born from the logo, with poses and scenes for every place a person is shown). The round-8 zip was reviewed first and returned for correction (`ROUND8B_PROMPT.md`).
+- Verified: unit tests (icon / figure data safety, every icon the code uses exists, gauge needle mapping), e2e (characters move, calm stops them and is remembered, active navigation icon, the needle follows pace), the journey tour in Hebrew and English, axe. Not verified on a device.
+
 ## 0.18.0
 - **Map and measuring** (`#/map`, from Routes): drag to move, tap (or Enter at the crosshair) to lay points, the length of your line updates, undo / clear, save the line as a route or start the planner from the map's centre. Zoom buttons, "my location", a scale bar, keyboard control. The street map stays opt-in (a plain grid without it, no network).
 - **Route planner** (`#/routeplan`): start address (or my location / a point from the map), the distance you want, an end address or "finish where I started" -> up to five different routes nearby, **ranked by how close they are to the request**: distance first, then climbs (ascent / descent, elevation profile), road crossings (and how many have lights), sidewalks / paths / trails / roads, according to preferences (flat or hilly, few crossings, sidewalks or trails). Each card shows the match %, the facts that decided it, a map picture and buttons to start it (walk or run) or save it as a route. Everything online asks first (consent card, revocable), and missing data is said, not guessed. Uses Nominatim, FOSSGIS OSRM, Open-Meteo elevation and Overpass (see ARCHITECTURE).

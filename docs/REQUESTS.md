@@ -76,5 +76,5 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 59 | A clear live map (legend, scale, hint) | ✅ 0.18.0 |
 | 60 | Map screen with distance measuring on the map | ✅ 0.18.0 (`#/map`) |
 | 61 | Route planner: start address, wanted distance, end address (may equal the start); several routes ranked by closeness to the request, considering climbs, road crossings, sidewalks, trails | ✅ 0.18.0 (`#/routeplan`; live services unverified from the sandbox; crossings / sidewalks depend on OpenStreetMap coverage) |
-| 62 | Much better, unique, rounded, animated icons (walk / run characters, all icons, speedometer) via a detailed ChatGPT prompt | 🟡 round 8 returned but did not meet the contract (reviewed, not integrated); correction prompt ready: `docs/prompts/ROUND8B_PROMPT.md` |
+| 62 | Much better, unique, rounded, animated icons (walk / run characters, all icons, speedometer) via a detailed ChatGPT prompt | ✅ 0.19.0 (round 8b integrated; a signature character is requested in round 9) |
 | 63 | A signature, original character based on the app logo that accompanies the app wherever a person is needed, with animations | 🟡 prompt ready: `docs/prompts/ROUND9_PROMPT.md`; integration when the kit returns |

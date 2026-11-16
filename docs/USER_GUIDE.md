@@ -83,5 +83,8 @@ Open **Routes -> Map and measuring**. Drag the map to move, tap to add a point (
 ## Plan a route
 Open **Routes -> Plan a route**. The first time you are asked to allow online services (the address you type and points along the routes are sent to public services; nothing before you allow it; you can stop at the bottom of the screen). Type a start address (or use your location), the distance you want and an end address (or leave "Finish where I started"). Under **Preferences** choose flat or hilly, as few road crossings as possible, sidewalks or trails. **Find routes** shows up to five different routes, best first, each with a match %, climb, crossings and surface. **Start this route** opens the workout screen following it; **Save the route** adds it to your routes. Routes are suggestions: check them against what you see on the way.
 
+## Calm animations
+Settings -> **Calm animations** stops the moving pictures (the walking and running characters, the gauge needle, the ringing bell). Your phone's reduce-motion setting does the same.
+
 ## User guide
 Settings -> **User guide** (or search "guide") opens a tour of the app with a picture for each area and a "Try it" button.
