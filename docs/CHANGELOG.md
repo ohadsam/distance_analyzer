@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.21.0
+- **Trail V5** (`design/stepup/round9/`): the athlete is now one connected figure (neck, jersey, shorts, shoes, a sun head with a headband) in **fifteen poses**: idle, walk, run, sprint, finish, cheer, rest, wave, focus, ready, stretch, cooldown, start-crouch, sit, sleep. The kit's motion CSS animates walk, run, sprint, cooldown and loading; the other poses are still. Calm animations and the phone's reduce-motion setting stop everything.
+- **Trail in more places**: the countdown shows her crouching for 3-2-1 and sprinting at "Go"; the guide tour changes her pose from step to step (a wave to start, a cheer at the end); start cards, welcome and summary keep walk / run / wave / finish.
+- User-guide screenshots (Hebrew and English, 20 steps) regenerated from this version.
+- Not integrated from the V5 kit and why (see `docs/prompts/ROUND9D_PROMPT.md` for the open requests): the scenes (time-of-day banners, empty states, weather, celebration, share) reuse one standing pose with a small prop and a tiny figure, the S-trail on the jersey is still a white squiggle rather than the gap between two hills, and the sleep pose is awkward.
+- Verified: static checks, 127 unit tests (every pose exists in light and dark, safe drawing elements only), the full e2e (characters move, calm stops them, guide walk-through, countdown), the Hebrew and English journeys (92 screens audited; the only audit finding is the 24 px OpenStreetMap credit link). Not verified on a device.
+
 ## 0.20.1
 - Hebrew: the four service lines on the route planner's consent card mixed Hebrew and English in a way that scrambled the order (the service name drifted to the next line). They now end in Hebrew with the service name in parentheses.
 - Full re-check of 0.20.0 before this fix: static checks, 127 unit tests, 45 e2e steps (axe, 320 px, calm animations, planner, map, guide walk-through) and the Hebrew + English journey (92 screens audited; the only audit finding is the 24 px OpenStreetMap credit link, which is the minimum target size WCAG 2.2 allows; the rest is the "many choices above the fold" heuristic on dense screens).
