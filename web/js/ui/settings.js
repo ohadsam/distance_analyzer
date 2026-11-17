@@ -27,6 +27,7 @@ export function applyLook() {
   if (pack === 'momentum') delete root.dataset.pack; else root.dataset.pack = pack;
   refreshArt();
   if (getPref('calm', '0') === '1') root.dataset.calm = '1'; else delete root.dataset.calm; // calm animations: the pictures stay still
+  dispatchEvent(new Event('stepup-calm')); // pictures that animate in code (the puppet) listen for this
   const bg = getComputedStyle(root).getPropertyValue('--background').trim(); if (bg) document.querySelector('meta[name=theme-color]')?.setAttribute('content', bg);
 }
 

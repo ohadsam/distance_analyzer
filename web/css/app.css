@@ -273,3 +273,7 @@ html[data-calm="1"] .char-cycle img { animation: none !important; } @media (pref
 .cdwrap { display: grid; justify-items: center; gap: 6px; } .cdwrap .cd-img { inline-size: min(44vmin, 240px); } .cdwrap .char { inline-size: 130px; }
 .gtalk { display: flex; gap: 12px; align-items: flex-start; } .gtalk .char { inline-size: 76px; block-size: auto; } .gtalk .gtext { margin: 0; }
 .metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }
+
+/* the puppet: joints are zero-size boxes that rotate around their own origin; the picture hangs from them */
+.puppet { display: block; flex: none; direction: ltr; position: relative; overflow: visible; } .pp-stage { position: absolute; inset-inline-start: 0; inset-block-start: 0; transform-origin: 0 0; }
+.pp-joint { position: absolute; inline-size: 0; block-size: 0; isolation: isolate; } .pp-art { position: absolute; display: block; background-repeat: no-repeat; pointer-events: none; }
