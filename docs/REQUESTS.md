@@ -83,3 +83,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 66 | Review Athlete V5, integrate what is good, re-run all checks and the guide screenshots | ✅ 0.21.0 (rig poses, countdown and guide integrated; scenes held back, reasons in the changelog) |
 | 67 | Round 9e prompt: fix the logo on the jersey, headband, sleep pose, and redo the scenes | 🟡 prompt ready: `docs/prompts/ROUND9E_PROMPT.md` |
 | 68 | Review Athlete V6 and integrate if good | ⛔ V6 reviewed and not integrated (the kit itself says not release-ready; the requested logo / headband / sleep fixes are missing); V5 stays |
+| 69 | Draw the Trail character by hand (designer): brief, reference pack and a validator | 🟡 `docs/DESIGNER_BRIEF.md`, `designer-pack.zip`, `scripts/check-trail-svg.mjs`; waiting for the designer's files |
