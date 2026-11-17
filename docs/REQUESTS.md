@@ -81,3 +81,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 64 | Make Trail look sporty and tied to the logo; use it in the user guide | 🟡 0.20.0: Athlete V3 integrated (start cards, welcome, summary, guide); remaining corrections and scenes requested in `docs/prompts/ROUND9C_PROMPT.md` |
 | 65 | Review Athlete V4 and integrate if good | ⛔ V4 reviewed and not integrated (floating head, merged body, scenes without the character); V3 stays; correction prompt `docs/prompts/ROUND9D_PROMPT.md` |
 | 66 | Review Athlete V5, integrate what is good, re-run all checks and the guide screenshots | ✅ 0.21.0 (rig poses, countdown and guide integrated; scenes held back, reasons in the changelog) |
+| 67 | Round 9e prompt: fix the logo on the jersey, headband, sleep pose, and redo the scenes | 🟡 prompt ready: `docs/prompts/ROUND9E_PROMPT.md` |
