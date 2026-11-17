@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.22.0
+- **Trail from the designer brief** (`docs/DESIGNER_BRIEF.md`, `design/stepup/round9/`): a slimmer athlete with the headband in the upper third of the sun head, a clean jersey with a small S-swirl, thin jointed limbs, ten poses in the app: idle, walk, run, sprint, finish, cheer, wave, ready, stretch, cooldown (light and dark). **Per-pose joint pivots**: the build reads each limb's first circle (the joint) and the figure sets `--o-<part>` so the motion CSS turns every limb around its own joint (`pivotsOf` in `scripts/build-design.mjs`). She stands on a soft round plate in the brand tint.
+- Honest note: the delivery says it was generated with AI-assisted code, not drawn by hand, and several of its poses were left out because they were broken (sit, sleep and start-crouch float or are cut off; focus and rest were replaced by the pose set above). The countdown now shows `ready` for 3-2-1 and `sprint` for "Go".
+- `scripts/check-trail-svg.mjs` validates any pose file against the rig contract (checked by a unit test for every pose built in).
+- Guide screenshots regenerated (Hebrew and English, 20 steps).
+- Verified: static checks, 129 unit tests, the full e2e, the Hebrew + English journey (92 screens; the only audit finding is the 24 px OpenStreetMap credit link). Not verified on a device.
+
 ## 0.21.0
 - **Trail V5** (`design/stepup/round9/`): the athlete is now one connected figure (neck, jersey, shorts, shoes, a sun head with a headband) in **fifteen poses**: idle, walk, run, sprint, finish, cheer, rest, wave, focus, ready, stretch, cooldown, start-crouch, sit, sleep. The kit's motion CSS animates walk, run, sprint, cooldown and loading; the other poses are still. Calm animations and the phone's reduce-motion setting stop everything.
 - **Trail in more places**: the countdown shows her crouching for 3-2-1 and sprinting at "Go"; the guide tour changes her pose from step to step (a wave to start, a cheer at the end); start cards, welcome and summary keep walk / run / wave / finish.

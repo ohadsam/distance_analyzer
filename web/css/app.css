@@ -292,7 +292,7 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 /* calm animations (Settings) stop every moving part; the poses and the needle stay where they are */
 html[data-calm="1"] .anim-on [class^="m-"], html[data-calm="1"] .anim-on [class*=" m-"], html[data-calm="1"].anim-on [class*="m-"] { animation: none !important; }
 html[data-calm="1"] .anim-on .tier1-icon [class^="m-"]:not(.m-needle), html[data-calm="1"] .anim-on .tier1-icon [class*=" m-"]:not(.m-needle) { transform: none !important; }
-.figure { display: block; flex: none; } .start-card .figure { inline-size: 64px; block-size: 64px; } .start-card { gap: 12px; } .welcome .figure, .summary .figure { inline-size: 96px; block-size: 96px; }
+.figure { display: block; flex: none; } .start-card .figure { inline-size: 80px; block-size: 80px; } .start-card { gap: 12px; } .welcome .figure, .summary .figure { inline-size: 112px; block-size: 112px; }
 .metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }
 
 /* ---- Trail, the athlete (hand-built rig): moves only inside .anim-on; each limb turns around its own joint (--o-<part>, set from the file); the calm switch stops it ---- */
@@ -336,4 +336,6 @@ html[data-calm="1"] .trail-companion * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .trail-companion * { animation: none !important; } }
 .welcome .figure, .summary .figure { inline-size: 96px; block-size: 96px; } .welcome .figure { margin-inline: auto; } .summary .figure { margin: 0 auto 4px; }
 .cdwrap { display: grid; justify-items: center; gap: 6px; } .cdwrap .cd-img { inline-size: min(44vmin, 240px); } .cdwrap .figure { inline-size: 110px; block-size: 110px; }
-.guide > .figure { margin: 0 auto 8px; inline-size: 96px; block-size: 96px; } .gtalk { display: flex; gap: 12px; align-items: flex-start; } .gtalk .figure { inline-size: 64px; block-size: 64px; } .gtalk .gtext { margin: 0; }
+.guide > .figure { margin: 0 auto 8px; inline-size: 112px; block-size: 112px; } .gtalk { display: flex; gap: 12px; align-items: flex-start; } .gtalk .figure { inline-size: 72px; block-size: 72px; } .gtalk .gtext { margin: 0; }
+/* the character stands on a soft round plate in the brand tint (the hand-built rig has no plate of its own) */
+.figure.trail-companion { border-radius: 50%; background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
