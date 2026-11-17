@@ -35,6 +35,7 @@ export function figure(name, size = 96, { animate = true } = {}) {
 function paintFigure(svg) {
   const f = FIGURES[`${svg.dataset.fig}-${isDark() ? 'dark' : 'light'}`]; if (!f) return;
   svg.setAttribute('viewBox', f.vb); svg.replaceChildren(); draw(svg, f.nodes);
+  for (const [part, [x, y]] of Object.entries(f.pivots || {})) svg.style.setProperty(`--o-${part}`, `${x}px ${y}px`); // where the motion CSS turns each limb
 }
 export const refreshFigures = () => document.querySelectorAll('svg[data-fig]').forEach(paintFigure);
 try { globalThis.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', refreshFigures); } catch { /* old browser */ }

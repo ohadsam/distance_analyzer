@@ -4,7 +4,7 @@ import { t, getLang } from '../i18n.js';
 import { icon, figure } from '../icons.js';
 import { GUIDE, guideIndex, stepKeys } from '../guide.js';
 
-const POSES = ['idle', 'focus', 'ready', 'rest', 'stretch', 'cooldown']; // Trail's poses along the tour
+const POSES = ['idle', 'ready', 'stretch', 'cooldown', 'wave']; // Trail's poses along the tour
 const shotSrc = (id) => `art/guide/${getLang() === 'he' ? 'he' : 'en'}-${id}.jpg`;
 
 export function renderGuide(id) {

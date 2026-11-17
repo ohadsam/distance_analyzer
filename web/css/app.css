@@ -295,7 +295,7 @@ html[data-calm="1"] .anim-on .tier1-icon [class^="m-"]:not(.m-needle), html[data
 .figure { display: block; flex: none; } .start-card .figure { inline-size: 64px; block-size: 64px; } .start-card { gap: 12px; } .welcome .figure, .summary .figure { inline-size: 96px; block-size: 96px; }
 .metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }
 
-/* ---- Trail, the athlete (V5): moves only inside .anim-on; the calm switch stops it ---- */
+/* ---- Trail, the athlete (hand-built rig): moves only inside .anim-on; each limb turns around its own joint (--o-<part>, set from the file); the calm switch stops it ---- */
 @keyframes trail-walk-arm{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
 @keyframes trail-walk-leg{0%,100%{transform:rotate(7deg)}50%{transform:rotate(-7deg)}}
 @keyframes trail-run-arm{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(17deg)}}
@@ -304,33 +304,32 @@ html[data-calm="1"] .anim-on .tier1-icon [class^="m-"]:not(.m-needle), html[data
 @keyframes trail-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
 @keyframes trail-ribbon{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(9deg)}}
 @keyframes trail-pulse{0%,100%{opacity:.4}50%{opacity:.9}}
-.trail-companion.anim-on[data-pose="walk"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-walk-arm 1200ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="walk"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-walk-leg 1200ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="walk"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-walk-arm 1200ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="walk"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-walk-leg 1200ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="walk"] .m-character{animation:trail-bob 1200ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="cooldown"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-walk-arm 1400ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="cooldown"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-walk-leg 1400ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="cooldown"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-walk-arm 1400ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="cooldown"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-walk-leg 1400ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="cooldown"] .m-character{animation:trail-bob 1400ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="run"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-run-arm 700ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="run"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-run-leg 700ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="run"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-run-arm 700ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="run"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-run-leg 700ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="run"] .m-character{animation:trail-bob 700ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="sprint"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-run-arm 550ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="sprint"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-run-leg 550ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="sprint"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-run-arm 550ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="sprint"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-run-leg 550ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="sprint"] .m-character{animation:trail-bob 550ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="loading"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-run-arm 900ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="loading"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-run-leg 900ms ease-in-out infinite;animation-direction:normal}
-.trail-companion.anim-on[data-pose="loading"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-run-arm 900ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="loading"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-run-leg 900ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="loading"] .m-character{animation:trail-bob 900ms ease-in-out infinite}
-.trail-companion.anim-on .m-ribbon{transform-box:view-box;transform-origin:126px 86px;animation:trail-ribbon 1100ms ease-in-out infinite}
+.trail-companion.anim-on .m-arm-a{transform-box:view-box;transform-origin:var(--o-arm-a,80px 100px)}
+.trail-companion.anim-on .m-arm-b{transform-box:view-box;transform-origin:var(--o-arm-b,80px 100px)}
+.trail-companion.anim-on .m-leg-a{transform-box:view-box;transform-origin:var(--o-leg-a,80px 100px)}
+.trail-companion.anim-on .m-leg-b{transform-box:view-box;transform-origin:var(--o-leg-b,80px 100px)}
+.trail-companion.anim-on .m-ribbon{transform-box:view-box;transform-origin:var(--o-ribbon,126px 86px);animation:trail-ribbon 1100ms ease-in-out infinite}
 .trail-companion.anim-on .m-streaks{animation:trail-pulse 700ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="walk"] .m-arm-a{animation:trail-walk-arm 1200ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="walk"] .m-leg-a{animation:trail-walk-leg 1200ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="walk"] .m-arm-b{animation:trail-walk-arm 1200ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="walk"] .m-leg-b{animation:trail-walk-leg 1200ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="walk"] .m-character{animation:trail-bob 1200ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="cooldown"] .m-arm-a{animation:trail-walk-arm 1400ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="cooldown"] .m-leg-a{animation:trail-walk-leg 1400ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="cooldown"] .m-arm-b{animation:trail-walk-arm 1400ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="cooldown"] .m-leg-b{animation:trail-walk-leg 1400ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="cooldown"] .m-character{animation:trail-bob 1400ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="run"] .m-arm-a{animation:trail-run-arm 700ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="run"] .m-leg-a{animation:trail-run-leg 700ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="run"] .m-arm-b{animation:trail-run-arm 700ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="run"] .m-leg-b{animation:trail-run-leg 700ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="run"] .m-character{animation:trail-bob 700ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="sprint"] .m-arm-a{animation:trail-run-arm 550ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="sprint"] .m-leg-a{animation:trail-run-leg 550ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="sprint"] .m-arm-b{animation:trail-run-arm 550ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="sprint"] .m-leg-b{animation:trail-run-leg 550ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="sprint"] .m-character{animation:trail-bob 550ms ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.trail-companion *{animation:none!important;transition:none!important}}
 html[data-calm="1"] .trail-companion *, .calm .trail-companion *{animation:none!important;transition:none!important}
 html[data-calm="1"] .trail-companion * { animation: none !important; }

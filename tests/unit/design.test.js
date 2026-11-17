@@ -27,6 +27,6 @@ test('icon data only uses safe drawing elements and attributes (nested)', () => 
   for (const [name, f] of Object.entries(FIGURES)) { assert.match(f.vb, /^0 0 \d+ \d+$/, name); walk(name, f.nodes); }
 });
 test('the walking and running characters and both gauges exist in light and dark; every icon the code asks for exists', () => {
-  for (const n of ['trail-idle', 'trail-walk', 'trail-run', 'trail-sprint', 'trail-finish', 'trail-cheer', 'trail-rest', 'trail-wave', 'trail-focus', 'trail-ready', 'trail-stretch', 'trail-cooldown', 'trail-start-crouch', 'trail-sit', 'trail-sleep', 'gauge-speed', 'gauge-pace']) for (const m of ['light', 'dark']) assert.ok(FIGURES[`${n}-${m}`], `${n}-${m}`);
+  for (const n of ['trail-idle', 'trail-walk', 'trail-run', 'trail-sprint', 'trail-finish', 'trail-cheer', 'trail-wave', 'trail-ready', 'trail-stretch', 'trail-cooldown', 'gauge-speed', 'gauge-pace']) for (const m of ['light', 'dark']) assert.ok(FIGURES[`${n}-${m}`], `${n}-${m}`);
   for (const n of ['home-active', 'route-active', 'calendar-active', 'star-active', 'gauge-speed', 'gauge-pace', 'stopwatch', 'calories', 'cadence', 'lastkm', 'avgpace', 'speed', 'exportfile', 'sharepic']) assert.ok(ICONS[n], n);
 });

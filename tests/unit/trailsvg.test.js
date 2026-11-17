@@ -4,7 +4,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { checkTrailSvg } from '../../scripts/check-trail-svg.mjs';
 
 test('every Trail pose built into the app passes the designer contract', () => {
-  const files = readdirSync('design/stepup/round9').filter((f) => /^trail-.*-(light|dark)\.svg$/.test(f)); assert.ok(files.length >= 30);
+  const files = readdirSync('design/stepup/round9').filter((f) => /^trail-.*-(light|dark)\.svg$/.test(f)); assert.ok(files.length >= 20);
   for (const f of files) assert.deepEqual(checkTrailSvg(readFileSync(`design/stepup/round9/${f}`, 'utf8'), { name: f }), [], f);
 });
 test('the checker rejects what the app cannot draw', () => {
