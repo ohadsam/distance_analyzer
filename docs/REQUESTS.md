@@ -90,3 +90,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 73 | Round-11 prompt: true loops, registration, magenta keying, more sequences for the character | 🟡 prompt ready: `docs/prompts/ROUND11_ANIMATION_PROMPT.md` |
 | 74 | Review the revision packages (true loops, magenta background) and integrate if good | ⛔ reviewed, not integrated (draft by its own admission: no true loops, per-frame bbox scaling, none of the new sequences); 0.23.0 sprites stay |
 | 75 | Seamless walk / run by animating a puppet of the character in code (option 3, with a fallback to the 0.23.0 sprites) | 🟡 prompt ready: `docs/prompts/ROUND12_PUPPET_PROMPT.md`; engine in progress |
+| 76 | Review the puppet parts and integrate if usable | ⛔ not usable (a labelled concept preview in front view, not a sliceable sheet); back to the 0.23.0 sprites (option 1); the puppet engine stays shelved in the repo |
