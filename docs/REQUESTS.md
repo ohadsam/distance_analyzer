@@ -85,3 +85,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 68 | Review Athlete V6 and integrate if good | ⛔ V6 reviewed and not integrated (the kit itself says not release-ready; the requested logo / headband / sleep fixes are missing); V5 stays |
 | 69 | Draw the Trail character by hand (designer): brief, reference pack and a validator | 🟡 `docs/DESIGNER_BRIEF.md`, `designer-pack.zip`, `scripts/check-trail-svg.mjs`; waiting for the designer's files |
 | 70 | Integrate the designer's Trail rig | ✅ 0.22.0 (10 of the 15 delivered poses; the broken ones left out, see the changelog) |
+| 71 | A standalone, good-looking character (no logo) with animation, via a new ChatGPT prompt | 🟡 prompt ready: `docs/prompts/ROUND10_CHARACTER_PROMPT.md`; the sprite-sheet player is built when the art arrives |
