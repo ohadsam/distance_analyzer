@@ -147,7 +147,7 @@ export function renderWorkout(kind, go, routeId) {
     cdEl.hidden = false; mainBtn.disabled = true; let left = n;
     const stop = () => { clearTimeout(cdTimer); cdTimer = 0; cdEl.hidden = true; mainBtn.disabled = false; };
     cdEl.onclick = stop;
-    const tick = () => { const label = left > 0 ? String(left) : t('wkGo'); setChildren(cdEl, art('workout', `count-${left > 0 ? left : 'go'}`, 'cd-img'), h('span', { class: 'sr-only' }, label)); sr.textContent = label; if (getPref('voice', '0') === '1') speak(label, getLang());
+    const tick = () => { const label = left > 0 ? String(left) : t('wkGo'); setChildren(cdEl, h('div', { class: 'cdwrap' }, art('workout', `count-${left > 0 ? left : 'go'}`, 'cd-img'), figure(left > 0 ? 'trail-start-crouch' : 'trail-sprint', 110, { animate: false })), h('span', { class: 'sr-only' }, label)); sr.textContent = label; if (getPref('voice', '0') === '1') speak(label, getLang());
       if (left <= 0) { cdTimer = setTimeout(() => { stop(); onMain(true); }, 600); return; } left--; cdTimer = setTimeout(tick, 1000); };
     tick();
   }

@@ -1,13 +1,15 @@
-# StepUp Trail Athlete V3 — integrated limbs and sporty silhouettes
+# StepUp Trail Athlete V5 — V3-based rebuild
 
-This iteration reconstructs the athlete with longer legs, anatomically continuous two-part arms and legs, sleeves and shorts overlapping the joints, integrated shoes, a sporty sun headband, and the StepUp sun / two hills / winding trail at the centre of the jersey. Running has stronger stride geometry, a forward-driving stance and streaks.
+**Integration status:** V3 remains the approved in-app character. V5 is a proposed replacement and needs visual review and Android testing.
 
-- `inline/`: eight distinct poses × light/dark × 96/200 = 32 FORM R SVGs. Embed SVG inline and apply `.anim-on` and `trail-motion.css`. No inline `style` attributes.
-- `standalone/`: walk/run × light/dark = 4 FORM S SVGs with internal `<style>`; CSP may block internal CSS.
-- `trail-motion.css`: joint pivots, 1200ms walk, 700ms run, gentle bob and ribbon, reduced-motion and `.calm`.
-- `preview.html`: browser preview with Calm toggle.
-- `contact-sheets/`: light/dark PNG sheets.
-- `validation.json`: structural, size and rendering checks.
-- `build_trail_athlete_v3.py`: Python generator in ZIP.
+- `rig/`: all 15 poses × light/dark × 96/200, original V3 pose filenames retained, external CSS only.
+- `standalone/`: standalone animated pose and utility SVGs with embedded @keyframes.
+- `silhouettes/`: 5 poses × 24/96, currentColor.
+- `countdown/`: crouch ×3 then sprint, no digits; app supplies digits.
+- `banners/`, `weather/`, `empty/`, `celebration/`, `share/`: character-bearing scenes.
+- `utility/`: workout, alerts, loading, searching, guide states.
+- `motion/`: trail-motion.css and motion.json.
+- `contact-sheets/`: 24, 64, 96, 200 light/dark, scene sheets, original V3 sheets for comparison.
+- `validation.json`: structural/render checks and pixel connectivity checks. Review reported failures before integration.
 
-These are original vector constructions. No lettering in artwork. Existing logo is unchanged. Device animation quality is not verified.
+All artwork is original and dedicated CC0. No fonts, scripts or textual art. CSS animation and device behavior require integration testing. No external resources.

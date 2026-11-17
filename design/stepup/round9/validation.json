@@ -1,9 +1,464 @@
 {
-  "svg_files": 36,
-  "largest_bytes": 5609,
-  "errors": [],
+  "svg_count": 178,
+  "largest_bytes": 11129,
+  "automated_errors": [],
+  "pose_connectivity": {
+    "idle-light": {
+      "components": 1,
+      "component_pixels": [
+        7413
+      ],
+      "bbox": [
+        58,
+        26,
+        142,
+        184
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "walk-light": {
+      "components": 1,
+      "component_pixels": [
+        7256
+      ],
+      "bbox": [
+        53,
+        26,
+        150,
+        180
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "run-light": {
+      "components": 1,
+      "component_pixels": [
+        7506
+      ],
+      "bbox": [
+        47,
+        26,
+        173,
+        173
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "sprint-light": {
+      "components": 1,
+      "component_pixels": [
+        7654
+      ],
+      "bbox": [
+        35,
+        26,
+        182,
+        169
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "finish-light": {
+      "components": 1,
+      "component_pixels": [
+        7668
+      ],
+      "bbox": [
+        53,
+        26,
+        151,
+        182
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "cheer-light": {
+      "components": 1,
+      "component_pixels": [
+        7759
+      ],
+      "bbox": [
+        44,
+        26,
+        156,
+        176
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "rest-light": {
+      "components": 1,
+      "component_pixels": [
+        7292
+      ],
+      "bbox": [
+        60,
+        26,
+        140,
+        182
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "wave-light": {
+      "components": 1,
+      "component_pixels": [
+        7479
+      ],
+      "bbox": [
+        58,
+        26,
+        152,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "focus-light": {
+      "components": 1,
+      "component_pixels": [
+        7027
+      ],
+      "bbox": [
+        62,
+        26,
+        137,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "ready-light": {
+      "components": 1,
+      "component_pixels": [
+        7430
+      ],
+      "bbox": [
+        56,
+        26,
+        144,
+        182
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "stretch-light": {
+      "components": 1,
+      "component_pixels": [
+        7518
+      ],
+      "bbox": [
+        54,
+        26,
+        147,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "cooldown-light": {
+      "components": 1,
+      "component_pixels": [
+        7509
+      ],
+      "bbox": [
+        56,
+        26,
+        143,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "start-crouch-light": {
+      "components": 1,
+      "component_pixels": [
+        8376
+      ],
+      "bbox": [
+        48,
+        26,
+        176,
+        180
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "sit-light": {
+      "components": 1,
+      "component_pixels": [
+        7560
+      ],
+      "bbox": [
+        39,
+        26,
+        167,
+        170
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "sleep-light": {
+      "components": 1,
+      "component_pixels": [
+        7320
+      ],
+      "bbox": [
+        28,
+        105,
+        187,
+        190
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "idle-dark": {
+      "components": 1,
+      "component_pixels": [
+        7413
+      ],
+      "bbox": [
+        58,
+        26,
+        142,
+        184
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "walk-dark": {
+      "components": 1,
+      "component_pixels": [
+        7256
+      ],
+      "bbox": [
+        53,
+        26,
+        150,
+        180
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "run-dark": {
+      "components": 1,
+      "component_pixels": [
+        7506
+      ],
+      "bbox": [
+        47,
+        26,
+        173,
+        173
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "sprint-dark": {
+      "components": 1,
+      "component_pixels": [
+        7654
+      ],
+      "bbox": [
+        35,
+        26,
+        182,
+        169
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "finish-dark": {
+      "components": 1,
+      "component_pixels": [
+        7668
+      ],
+      "bbox": [
+        53,
+        26,
+        151,
+        182
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "cheer-dark": {
+      "components": 1,
+      "component_pixels": [
+        7759
+      ],
+      "bbox": [
+        44,
+        26,
+        156,
+        176
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "rest-dark": {
+      "components": 1,
+      "component_pixels": [
+        7292
+      ],
+      "bbox": [
+        60,
+        26,
+        140,
+        182
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "wave-dark": {
+      "components": 1,
+      "component_pixels": [
+        7479
+      ],
+      "bbox": [
+        58,
+        26,
+        152,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "focus-dark": {
+      "components": 1,
+      "component_pixels": [
+        7027
+      ],
+      "bbox": [
+        62,
+        26,
+        137,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "ready-dark": {
+      "components": 1,
+      "component_pixels": [
+        7430
+      ],
+      "bbox": [
+        56,
+        26,
+        144,
+        182
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "stretch-dark": {
+      "components": 1,
+      "component_pixels": [
+        7518
+      ],
+      "bbox": [
+        54,
+        26,
+        147,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "cooldown-dark": {
+      "components": 1,
+      "component_pixels": [
+        7509
+      ],
+      "bbox": [
+        56,
+        26,
+        143,
+        183
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "start-crouch-dark": {
+      "components": 1,
+      "component_pixels": [
+        8376
+      ],
+      "bbox": [
+        48,
+        26,
+        176,
+        180
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "sit-dark": {
+      "components": 1,
+      "component_pixels": [
+        7560
+      ],
+      "bbox": [
+        39,
+        26,
+        167,
+        170
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    },
+    "sleep-dark": {
+      "components": 1,
+      "component_pixels": [
+        7320
+      ],
+      "bbox": [
+        28,
+        105,
+        187,
+        190
+      ],
+      "head_neck_overlap": true,
+      "no_pink_head": true,
+      "in_canvas": true
+    }
+  },
   "notes": [
-    "FORM R uses external CSS; FORM S embeds style and may be blocked by CSP",
-    "SVG rendering and structure checked; Android device motion not tested"
+    "V3 retained as app baseline; V5 is a proposed replacement",
+    "Automated raster union uses 4-neighbour flood fill at 200px, removing decorative objects",
+    "Character pose checks at 200px; SVG renders at 64 and 200px",
+    "Scene celestial overlap and artistic quality require visual inspection; not claimed automatically verified",
+    "Android device performance and CSS playback untested"
   ]
 }

@@ -295,24 +295,46 @@ html[data-calm="1"] .anim-on .tier1-icon [class^="m-"]:not(.m-needle), html[data
 .figure { display: block; flex: none; } .start-card .figure { inline-size: 64px; block-size: 64px; } .start-card { gap: 12px; } .welcome .figure, .summary .figure { inline-size: 96px; block-size: 96px; }
 .metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }
 
-/* ---- Trail, the athlete (round 9c): moves only inside .anim-on; the calm switch stops it ---- */
-@keyframes trail-arm-a{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(12deg)}}
-@keyframes trail-arm-b{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-12deg)}}
-@keyframes trail-leg-a{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-11deg)}}
-@keyframes trail-leg-b{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(11deg)}}
+/* ---- Trail, the athlete (V5): moves only inside .anim-on; the calm switch stops it ---- */
+@keyframes trail-walk-arm{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
+@keyframes trail-walk-leg{0%,100%{transform:rotate(7deg)}50%{transform:rotate(-7deg)}}
+@keyframes trail-run-arm{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(17deg)}}
+@keyframes trail-run-leg{0%,100%{transform:rotate(13deg)}50%{transform:rotate(-12deg)}}
+@keyframes trail-shin{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-8deg)}}
 @keyframes trail-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
-@keyframes trail-ribbon{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(7deg)}}
-@keyframes trail-streak{0%,100%{opacity:.15}50%{opacity:.75}}
-.trail-companion.anim-on .m-arm-a{transform-box:view-box;transform-origin:77px 81px;animation:trail-arm-a var(--cycle,1200ms) ease-in-out infinite}
-.trail-companion.anim-on .m-arm-b{transform-box:view-box;transform-origin:123px 81px;animation:trail-arm-b var(--cycle,1200ms) ease-in-out infinite}
-.trail-companion.anim-on .m-leg-a{transform-box:view-box;transform-origin:89px 124px;animation:trail-leg-a var(--cycle,1200ms) ease-in-out infinite}
-.trail-companion.anim-on .m-leg-b{transform-box:view-box;transform-origin:111px 124px;animation:trail-leg-b var(--cycle,1200ms) ease-in-out infinite}
-.trail-companion.anim-on .m-torso,.trail-companion.anim-on .m-head{animation:trail-bob var(--cycle,1200ms) ease-in-out infinite}
-.trail-companion.anim-on .m-ribbon{transform-box:view-box;transform-origin:123px 78px;animation:trail-ribbon var(--cycle,1200ms) ease-in-out infinite}
-.trail-companion.anim-on .m-streaks{animation:trail-streak var(--cycle,700ms) ease-in-out infinite}
-.trail-companion.anim-on[data-pose="run"]{--cycle:700ms}
-@media(prefers-reduced-motion:reduce){.trail-companion.anim-on *{animation:none!important;transition:none!important}}
-
+@keyframes trail-ribbon{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(9deg)}}
+@keyframes trail-pulse{0%,100%{opacity:.4}50%{opacity:.9}}
+.trail-companion.anim-on[data-pose="walk"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-walk-arm 1200ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="walk"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-walk-leg 1200ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="walk"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-walk-arm 1200ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="walk"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-walk-leg 1200ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="walk"] .m-character{animation:trail-bob 1200ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="cooldown"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-walk-arm 1400ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="cooldown"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-walk-leg 1400ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="cooldown"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-walk-arm 1400ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="cooldown"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-walk-leg 1400ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="cooldown"] .m-character{animation:trail-bob 1400ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="run"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-run-arm 700ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="run"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-run-leg 700ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="run"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-run-arm 700ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="run"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-run-leg 700ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="run"] .m-character{animation:trail-bob 700ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="sprint"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-run-arm 550ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="sprint"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-run-leg 550ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="sprint"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-run-arm 550ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="sprint"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-run-leg 550ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="sprint"] .m-character{animation:trail-bob 550ms ease-in-out infinite}
+.trail-companion.anim-on[data-pose="loading"] .m-arm-a{transform-box:view-box;transform-origin:77px 85px;animation:trail-run-arm 900ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="loading"] .m-leg-a{transform-box:view-box;transform-origin:89px 126px;animation:trail-run-leg 900ms ease-in-out infinite;animation-direction:normal}
+.trail-companion.anim-on[data-pose="loading"] .m-arm-b{transform-box:view-box;transform-origin:123px 85px;animation:trail-run-arm 900ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="loading"] .m-leg-b{transform-box:view-box;transform-origin:111px 126px;animation:trail-run-leg 900ms ease-in-out infinite;animation-direction:reverse}
+.trail-companion.anim-on[data-pose="loading"] .m-character{animation:trail-bob 900ms ease-in-out infinite}
+.trail-companion.anim-on .m-ribbon{transform-box:view-box;transform-origin:126px 86px;animation:trail-ribbon 1100ms ease-in-out infinite}
+.trail-companion.anim-on .m-streaks{animation:trail-pulse 700ms ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.trail-companion *{animation:none!important;transition:none!important}}
+html[data-calm="1"] .trail-companion *, .calm .trail-companion *{animation:none!important;transition:none!important}
 html[data-calm="1"] .trail-companion * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .trail-companion * { animation: none !important; } }
 .welcome .figure, .summary .figure { inline-size: 96px; block-size: 96px; } .welcome .figure { margin-inline: auto; } .summary .figure { margin: 0 auto 4px; }
+.cdwrap { display: grid; justify-items: center; gap: 6px; } .cdwrap .cd-img { inline-size: min(44vmin, 240px); } .cdwrap .figure { inline-size: 110px; block-size: 110px; }
 .guide > .figure { margin: 0 auto 8px; inline-size: 96px; block-size: 96px; } .gtalk { display: flex; gap: 12px; align-items: flex-start; } .gtalk .figure { inline-size: 64px; block-size: 64px; } .gtalk .gtext { margin: 0; }

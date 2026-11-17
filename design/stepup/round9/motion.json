@@ -1,0 +1,11 @@
+{
+  "walk_ms": 1200,
+  "run_ms": 700,
+  "sprint_ms": 550,
+  "loading_ms": 900,
+  "countdown_oneshot_ms": 700,
+  "calm": "html[data-calm=\"1\"]",
+  "reduced_motion": true,
+  "form_r": "external css",
+  "form_s": "embedded CSS keyframes"
+}

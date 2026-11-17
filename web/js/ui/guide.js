@@ -4,6 +4,7 @@ import { t, getLang } from '../i18n.js';
 import { icon, figure } from '../icons.js';
 import { GUIDE, guideIndex, stepKeys } from '../guide.js';
 
+const POSES = ['idle', 'focus', 'ready', 'rest', 'stretch', 'cooldown']; // Trail's poses along the tour
 const shotSrc = (id) => `art/guide/${getLang() === 'he' ? 'he' : 'en'}-${id}.jpg`;
 
 export function renderGuide(id) {
@@ -25,7 +26,7 @@ function step(i) {
     h('div', { class: 'dots', 'aria-hidden': 'true' }, GUIDE.map((x, n) => h('i', { class: n === i ? 'on' : n < i ? 'seen' : '' }))),
     h('h1', null, t(tk)),
     g.shot ? h('img', { class: 'gshot', src: shotSrc(g.id), alt: '', draggable: false, onerror: (e) => e.target.remove() }) : h('div', { class: 'gshot gicon' }, icon('settings', 64)),
-    h('div', { class: 'gtalk' }, figure(`trail-${i === 0 ? 'wave' : !next ? 'finish' : i % 2 ? 'idle' : 'focus'}`, 64), h('p', { class: 'gtext' }, t(xk))), // Trail talks you through it
+    h('div', { class: 'gtalk' }, figure(`trail-${i === 0 ? 'wave' : !next ? 'cheer' : POSES[i % POSES.length]}`, 64), h('p', { class: 'gtext' }, t(xk))), // Trail talks you through it
     h('div', { class: 'row' }, h('a', { class: 'btn', id: 'guide-try', href: g.href }, t('guideTry'))),
     h('div', { class: 'gnav' }, prev ? h('a', { class: 'btn ghost', id: 'guide-prev', href: `#/guide/${prev.id}` }, icon(getLang() === 'he' ? 'forward' : 'back', 20), t('guidePrev')) : h('span'),
       h('a', { class: 'btn ghost', href: '#/guide' }, t('guideTopics')), next ? h('a', { class: 'btn', id: 'guide-next', href: `#/guide/${next.id}` }, t('guideNext'), icon(getLang() === 'he' ? 'back' : 'forward', 20)) : h('span')));
