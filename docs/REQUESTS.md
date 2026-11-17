@@ -88,3 +88,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 71 | A standalone, good-looking character (no logo) with animation, via a new ChatGPT prompt | 🟡 prompt ready: `docs/prompts/ROUND10_CHARACTER_PROMPT.md`; the sprite-sheet player is built when the art arrives |
 | 72 | Illustrated standalone character, animated | ✅ 0.23.0 (cleaned sprites: walk and run strips, 14 poses; device look unverified) |
 | 73 | Round-11 prompt: true loops, registration, magenta keying, more sequences for the character | 🟡 prompt ready: `docs/prompts/ROUND11_ANIMATION_PROMPT.md` |
+| 74 | Review the revision packages (true loops, magenta background) and integrate if good | ⛔ reviewed, not integrated (draft by its own admission: no true loops, per-frame bbox scaling, none of the new sequences); 0.23.0 sprites stay |
