@@ -258,84 +258,18 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 @keyframes needle{from{transform:rotate(-120deg)}to{transform:rotate(var(--deg,-120deg))}}
 @media(prefers-reduced-motion:reduce){.anim-on .tier1-icon [class^="m-"]:not(.m-needle),.anim-on .tier1-icon [class*=" m-"]:not(.m-needle){animation:none!important;transform:none!important}.anim-on .tier1-icon .m-needle{animation:none!important}}
 
-/* StepUp refined character motion: works for 96 and 200 SVG because fill-box pivots scale with the art. */
-.anim-on .m-arm-a,.anim-on .m-arm-b,.anim-on .m-leg-a,.anim-on .m-leg-b,.anim-on .m-head,.anim-on .m-torso,.anim-on .m-ribbon,.anim-on .m-shadow,.anim-on .m-streaks {transform-box:fill-box;}
-.anim-on .m-arm-a,.anim-on .m-arm-b{transform-origin:50% 12%}
-.anim-on .m-leg-a,.anim-on .m-leg-b{transform-origin:50% 8%}
-.anim-on .m-head{transform-origin:50% 85%}
-.anim-on .m-ribbon{transform-origin:88% 50%}
-.anim-on .m-arm-a,.anim-on .m-leg-b{animation:step-forward var(--cycle,1200ms) ease-in-out infinite alternate}
-.anim-on .m-arm-b,.anim-on .m-leg-a{animation:step-back var(--cycle,1200ms) ease-in-out infinite alternate}
-.anim-on .m-head,.anim-on .m-torso{animation:bob calc(var(--cycle,1200ms)/2) ease-in-out infinite alternate}
-.anim-on .m-ribbon{animation:ribbon 650ms ease-in-out infinite alternate}
-.anim-on .m-shadow{animation:shadow 600ms ease-in-out infinite alternate}
-.anim-on .m-streaks{animation:streaks 700ms ease-in-out infinite alternate}
-.anim-on .character-run .m-arm-a,.anim-on .character-run .m-leg-b{animation-duration:700ms}
-.anim-on .character-run .m-arm-b,.anim-on .character-run .m-leg-a{animation-duration:700ms}
-@keyframes step-forward{from{transform:rotate(-27deg)}to{transform:rotate(28deg)}}
-@keyframes step-back{from{transform:rotate(27deg)}to{transform:rotate(-28deg)}}
-@keyframes bob{from{transform:translateY(0)}to{transform:translateY(-1px)}}
-@keyframes ribbon{from{transform:rotate(-9deg)}to{transform:rotate(11deg)}}
-@keyframes shadow{from{transform:scaleX(.94);opacity:.35}to{transform:scaleX(1.04);opacity:.2}}
-@keyframes streaks{from{opacity:.1}to{opacity:.65}}
-@media(prefers-reduced-motion:reduce){.anim-on .m-arm-a,.anim-on .m-arm-b,.anim-on .m-leg-a,.anim-on .m-leg-b,.anim-on .m-head,.anim-on .m-torso,.anim-on .m-ribbon,.anim-on .m-shadow,.anim-on .m-streaks{animation:none!important}}
-
-/* TIER 2 gauge: needle geometry initially at -120 degrees. */
-.gauge .m-needle{transform-box:view-box;transform-origin:50px 50px;transform:rotate(calc(var(--deg,-120deg) + 120deg))}
-.gauge.anim-on .m-needle{animation:gauge-sweep 1600ms cubic-bezier(.2,.7,.2,1) 1 both,gauge-tremble 900ms ease-in-out 1600ms infinite alternate}
-.gauge.anim-on .m-zone-glow{animation:zone-glow 1800ms ease-in-out infinite alternate}
-@keyframes gauge-sweep{from{transform:rotate(0deg)}to{transform:rotate(calc(var(--deg,-120deg) + 120deg))}}
-@keyframes gauge-tremble{from{transform:rotate(calc(var(--deg,-120deg) + 119deg))}to{transform:rotate(calc(var(--deg,-120deg) + 121deg))}}
-@keyframes zone-glow{from{opacity:0}to{opacity:.4}}
-@media(prefers-reduced-motion:reduce){.gauge.anim-on .m-needle,.gauge.anim-on .m-zone-glow{animation:none!important}}
-
 /* calm animations (Settings) stop every moving part; the poses and the needle stay where they are */
 html[data-calm="1"] .anim-on [class^="m-"], html[data-calm="1"] .anim-on [class*=" m-"], html[data-calm="1"].anim-on [class*="m-"] { animation: none !important; }
 html[data-calm="1"] .anim-on .tier1-icon [class^="m-"]:not(.m-needle), html[data-calm="1"] .anim-on .tier1-icon [class*=" m-"]:not(.m-needle) { transform: none !important; }
-.figure { display: block; flex: none; } .start-card .figure { inline-size: 80px; block-size: 80px; } .start-card { gap: 12px; } .welcome .figure, .summary .figure { inline-size: 112px; block-size: 112px; }
 .metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }
 
-/* ---- Trail, the athlete (hand-built rig): moves only inside .anim-on; each limb turns around its own joint (--o-<part>, set from the file); the calm switch stops it ---- */
-@keyframes trail-walk-arm{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}
-@keyframes trail-walk-leg{0%,100%{transform:rotate(7deg)}50%{transform:rotate(-7deg)}}
-@keyframes trail-run-arm{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(17deg)}}
-@keyframes trail-run-leg{0%,100%{transform:rotate(13deg)}50%{transform:rotate(-12deg)}}
-@keyframes trail-shin{0%,100%{transform:rotate(0deg)}50%{transform:rotate(-8deg)}}
-@keyframes trail-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
-@keyframes trail-ribbon{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(9deg)}}
-@keyframes trail-pulse{0%,100%{opacity:.4}50%{opacity:.9}}
-.trail-companion.anim-on .m-arm-a{transform-box:view-box;transform-origin:var(--o-arm-a,80px 100px)}
-.trail-companion.anim-on .m-arm-b{transform-box:view-box;transform-origin:var(--o-arm-b,80px 100px)}
-.trail-companion.anim-on .m-leg-a{transform-box:view-box;transform-origin:var(--o-leg-a,80px 100px)}
-.trail-companion.anim-on .m-leg-b{transform-box:view-box;transform-origin:var(--o-leg-b,80px 100px)}
-.trail-companion.anim-on .m-ribbon{transform-box:view-box;transform-origin:var(--o-ribbon,126px 86px);animation:trail-ribbon 1100ms ease-in-out infinite}
-.trail-companion.anim-on .m-streaks{animation:trail-pulse 700ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="walk"] .m-arm-a{animation:trail-walk-arm 1200ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="walk"] .m-leg-a{animation:trail-walk-leg 1200ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="walk"] .m-arm-b{animation:trail-walk-arm 1200ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="walk"] .m-leg-b{animation:trail-walk-leg 1200ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="walk"] .m-character{animation:trail-bob 1200ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="cooldown"] .m-arm-a{animation:trail-walk-arm 1400ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="cooldown"] .m-leg-a{animation:trail-walk-leg 1400ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="cooldown"] .m-arm-b{animation:trail-walk-arm 1400ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="cooldown"] .m-leg-b{animation:trail-walk-leg 1400ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="cooldown"] .m-character{animation:trail-bob 1400ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="run"] .m-arm-a{animation:trail-run-arm 700ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="run"] .m-leg-a{animation:trail-run-leg 700ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="run"] .m-arm-b{animation:trail-run-arm 700ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="run"] .m-leg-b{animation:trail-run-leg 700ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="run"] .m-character{animation:trail-bob 700ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="sprint"] .m-arm-a{animation:trail-run-arm 550ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="sprint"] .m-leg-a{animation:trail-run-leg 550ms ease-in-out infinite}
-.trail-companion.anim-on[data-pose="sprint"] .m-arm-b{animation:trail-run-arm 550ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="sprint"] .m-leg-b{animation:trail-run-leg 550ms ease-in-out infinite;animation-direction:reverse}
-.trail-companion.anim-on[data-pose="sprint"] .m-character{animation:trail-bob 550ms ease-in-out infinite}
-@media(prefers-reduced-motion:reduce){.trail-companion *{animation:none!important;transition:none!important}}
-html[data-calm="1"] .trail-companion *, .calm .trail-companion *{animation:none!important;transition:none!important}
-html[data-calm="1"] .trail-companion * { animation: none !important; }
-@media (prefers-reduced-motion: reduce) { .trail-companion * { animation: none !important; } }
-.welcome .figure, .summary .figure { inline-size: 96px; block-size: 96px; } .welcome .figure { margin-inline: auto; } .summary .figure { margin: 0 auto 4px; }
-.cdwrap { display: grid; justify-items: center; gap: 6px; } .cdwrap .cd-img { inline-size: min(44vmin, 240px); } .cdwrap .figure { inline-size: 110px; block-size: 110px; }
-.guide > .figure { margin: 0 auto 8px; inline-size: 112px; block-size: 112px; } .gtalk { display: flex; gap: 12px; align-items: flex-start; } .gtalk .figure { inline-size: 72px; block-size: 72px; } .gtalk .gtext { margin: 0; }
-/* the character stands on a soft round plate in the brand tint (the hand-built rig has no plate of its own) */
-.figure.trail-companion { border-radius: 50%; background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
+/* the character: strips of 8 frames played with steps(); .anim-on opts in, calm / reduced motion show the first frame */
+.char { display: block; flex: none; } .char-pose { block-size: auto; max-inline-size: 100%; }
+.char-cycle { direction: ltr; overflow: hidden; position: relative; } .char-cycle img { display: block; block-size: 100%; inline-size: calc(var(--n) * 100%); max-inline-size: none; }
+.char-cycle.anim-on img { animation: char-strip var(--ms, 1200ms) steps(8) infinite; } @keyframes char-strip { to { transform: translateX(-100%); } }
+html[data-calm="1"] .char-cycle img { animation: none !important; } @media (prefers-reduced-motion: reduce) { .char-cycle img { animation: none !important; } }
+.start-card .char { inline-size: 88px; block-size: 88px; } .start-card { gap: 12px; }
+.welcome .char, .summary .char, .guide > .char { margin: 0 auto 4px; } .guide > .char { inline-size: 120px; block-size: auto; } .welcome .char, .summary .char { inline-size: 120px; block-size: auto; }
+.cdwrap { display: grid; justify-items: center; gap: 6px; } .cdwrap .cd-img { inline-size: min(44vmin, 240px); } .cdwrap .char { inline-size: 130px; }
+.gtalk { display: flex; gap: 12px; align-items: flex-start; } .gtalk .char { inline-size: 76px; block-size: auto; } .gtalk .gtext { margin: 0; }
+.metric .cap .tier1-icon, .cap .tier1-icon { overflow: visible; }

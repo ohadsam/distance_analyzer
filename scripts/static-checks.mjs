@@ -21,7 +21,7 @@ if (/ style="/.test(readFileSync('web/index.html', 'utf8').replace(/<noscript>[\
 
 // Every file the service worker precaches must exist; every web .js must be precached (otherwise offline breaks).
 const sw = readFileSync('web/sw.js', 'utf8');
-const shell = [...sw.matchAll(/'([^']+\.(?:js|css|html|json|svg|png|webmanifest))'/g)].map((m) => m[1]);
+const shell = [...sw.matchAll(/'([^']+\.(?:js|css|html|json|svg|png|webp|webmanifest))'/g)].map((m) => m[1]);
 for (const p of shell) { try { statSync(join('web', p)); } catch { fail(`sw.js precaches missing file ${p}`); } }
 for (const f of js) { const rel = f.replace(/^web\//, ''); if (rel !== 'sw.js' && !shell.includes(rel)) fail(`${rel} is not in sw.js SHELL (offline would break)`); }
 

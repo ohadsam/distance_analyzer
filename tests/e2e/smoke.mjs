@@ -129,7 +129,7 @@ await step('illustrations: empty states and the welcome card load the kit art (l
       await page.goto(base + route); await page.waitForSelector(sel); await page.waitForFunction((s) => document.querySelector(s).complete && document.querySelector(s).naturalWidth > 0, sel);
       assert.match(await page.getAttribute(sel, 'src'), new RegExp(`-${scheme}\\.svg$`), `${route} ${scheme}`);
     }
-    await page.goto(base + '#/'); await page.waitForSelector('#welcome svg.trail-companion[data-pose="wave"]'); // the welcome card is Trail, drawn inline for the current look
+    await page.goto(base + '#/'); await page.waitForSelector('#welcome img.char-pose[src$="pose-wave.webp"]'); // the welcome card is the character waving
     assert.deepEqual(bad, []); assert.deepEqual(errors, []);
   }
 });
@@ -271,11 +271,11 @@ await step('route planner: consent first, then address -> ranked routes with cli
 });
 await step('round-8 art: characters on the start cards move, calm animations stop them, the navigation shows where you are, the gauge needle follows your pace', async () => {
   const { page, ctx, errors } = await newPage({ lang: 'en' }); await page.goto(base); await page.waitForSelector('.start-card');
-  assert.equal(await page.locator('.start-card svg.figure').count(), 2); assert.ok(await page.locator('.start-card.walk .m-leg-a').count() >= 1 && await page.locator('.start-card.run .m-arm-a').count() >= 1);
+  assert.equal(await page.locator('.start-card .char-cycle').count(), 2); assert.ok(await page.locator('.start-card.walk .char-walk img').count() === 1 && await page.locator('.start-card.run .char-run img').count() === 1);
   const anim = (sel) => page.evaluate((q) => getComputedStyle(document.querySelector(q)).animationName, sel);
-  assert.notEqual(await anim('.start-card.run .m-leg-a'), 'none', 'the runner moves'); const homeIcon = await page.innerHTML('#bottomnav .bn:nth-child(1) svg');
+  assert.equal(await anim('.start-card.run .char-cycle img'), 'char-strip', 'the runner moves'); await page.waitForFunction(() => [...document.querySelectorAll('.char img')].every((i) => i.complete && i.naturalWidth > 0)); const homeIcon = await page.innerHTML('#bottomnav .bn:nth-child(1) svg');
   await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.check('#s-calm'); assert.equal(await page.getAttribute('html', 'data-calm'), '1');
-  await page.goto(base + '#/'); await page.waitForSelector('.start-card'); assert.equal(await anim('.start-card.run .m-leg-a'), 'none', 'calm: still'); await page.reload(); await page.waitForSelector('.start-card'); assert.equal(await page.getAttribute('html', 'data-calm'), '1', 'remembered');
+  await page.goto(base + '#/'); await page.waitForSelector('.start-card'); assert.equal(await anim('.start-card.run .char-cycle img'), 'none', 'calm: still'); await page.reload(); await page.waitForSelector('.start-card'); assert.equal(await page.getAttribute('html', 'data-calm'), '1', 'remembered');
   await page.goto(base + '#/routes'); await page.waitForSelector('h1'); assert.notEqual(await page.innerHTML('#bottomnav .bn:nth-child(1) svg'), homeIcon, 'the home icon is no longer the active one');
   await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.uncheck('#s-calm'); assert.equal(await page.getAttribute('html', 'data-calm'), null);
   await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); assert.match((await page.getAttribute('#wk-a svg', 'style')) || '--deg: -120deg', /-120deg/);

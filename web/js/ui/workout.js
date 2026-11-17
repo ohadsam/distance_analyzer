@@ -8,7 +8,8 @@ import { speak } from '../voice.js';
 import { badgeFor, art } from '../art.js';
 import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
-import { icon, figure, setNeedle } from '../icons.js';
+import { icon, setNeedle } from '../icons.js';
+import { pose } from './character.js';
 import { stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
 import { active, saveWorkout, getNum, getPref, setPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
@@ -147,7 +148,7 @@ export function renderWorkout(kind, go, routeId) {
     cdEl.hidden = false; mainBtn.disabled = true; let left = n;
     const stop = () => { clearTimeout(cdTimer); cdTimer = 0; cdEl.hidden = true; mainBtn.disabled = false; };
     cdEl.onclick = stop;
-    const tick = () => { const label = left > 0 ? String(left) : t('wkGo'); setChildren(cdEl, h('div', { class: 'cdwrap' }, art('workout', `count-${left > 0 ? left : 'go'}`, 'cd-img'), figure(left > 0 ? 'trail-ready' : 'trail-sprint', 110, { animate: false })), h('span', { class: 'sr-only' }, label)); sr.textContent = label; if (getPref('voice', '0') === '1') speak(label, getLang());
+    const tick = () => { const label = left > 0 ? String(left) : t('wkGo'); setChildren(cdEl, h('div', { class: 'cdwrap' }, art('workout', `count-${left > 0 ? left : 'go'}`, 'cd-img'), pose(left > 0 ? 'idle' : 'jump', 130)), h('span', { class: 'sr-only' }, label)); sr.textContent = label; if (getPref('voice', '0') === '1') speak(label, getLang());
       if (left <= 0) { cdTimer = setTimeout(() => { stop(); onMain(true); }, 600); return; } left--; cdTimer = setTimeout(tick, 1000); };
     tick();
   }
@@ -227,7 +228,7 @@ export function renderWorkout(kind, go, routeId) {
   function summary() {
     const n = w.endedAt, mins = elapsedMs(w, n);
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
-    return h('div', { class: 'summary' }, figure('trail-finish', 96), h('h2', null, t('summary')), trackPicture(w.points),
+    return h('div', { class: 'summary' }, pose('cheer', 120), h('h2', null, t('summary')), trackPicture(w.points),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
       workoutShareBox(w), recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
