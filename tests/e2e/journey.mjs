@@ -13,7 +13,7 @@ const findings = [], shotsList = []; let n = 0, curLang = 'he'; const LANGS = ['
 
 async function ctxPage({ lang = 'he', width = 390, height = 800, scheme = 'light', geo = true, sheet = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
-  await ctx.addInitScript(({ l, ask }) => { try { localStorage.setItem('da.lang', l); localStorage.setItem('da.mapTiles', '0'); localStorage.setItem('da.onlineWx', '0'); localStorage.setItem('da.planNet', '0'); if (!ask) localStorage.setItem('da.permAsk', '0'); } catch { /* blocked */ } }, { l: lang, ask: sheet }); // the map and the weather are on by default in the app; the tour keeps them off (no network here) except where a flow mocks them
+  await ctx.addInitScript(({ l, ask }) => { try { localStorage.setItem('da.lang', l); const once = (k, v) => { if (localStorage.getItem(`da.${k}`) === null) localStorage.setItem(`da.${k}`, v); }; once('mapTiles', '0'); once('onlineWx', '0'); once('planNet', '0'); if (!ask) once('permAsk', '0'); } catch { /* blocked */ } }, { l: lang, ask: sheet }); // the map and the weather are on by default in the app; the tour keeps them off (no network here) except where a flow mocks them
   const page = await ctx.newPage(); const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   return { ctx, page, errors };
 }

@@ -146,7 +146,7 @@ class MainActivity : ComponentActivity() {
     }
     fun ask(vararg wanted: String) = runOnUiThread {
         val need = wanted.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
-        if (need.isNotEmpty()) permissions.launch(need.toTypedArray())
+        if (need.isNotEmpty()) permissions.launch(need.toTypedArray()) else deliver(JSONObject().put("type", "permissions-changed")) // nothing to ask: say so, the page is waiting for an answer
     }
 
     // ---- the permissions screen of the page: what is allowed, and asking for it (or the phone's settings when Android will not ask again) ----

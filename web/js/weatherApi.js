@@ -1,4 +1,4 @@
-// The ONLY place the app talks to the internet: one GET to the weather service (Open-Meteo) with rounded coordinates, on the person's request.
+// The weather service door: one GET to Open-Meteo with rounded coordinates (the route planner's services are in planApi.js, the update check in update.js).
 // On by default (pref onlineWx; the person can turn it off), cached for an hour, bounded (8 s, 200 KB), credentials/referrer omitted; the answer is normalised in forecast.js.
 import { forecastUrl, normalizeForecast, sanitizeHours, roundCoord, validCoords } from './forecast.js';
 import { getPref, setPref } from './store.js';
@@ -8,7 +8,7 @@ const TTL = 60 * 60000, STALE = 6 * 3600000, RETRY = 15 * 60000, MAX_BYTES = 200
 export const onlineOn = () => getPref('onlineWx', '1') === '1'; // on unless the person turned it off (the location permission is what decides whether it works)
 export function getLoc() { try { const o = JSON.parse(getPref('loc', 'null')); return o && validCoords(o.lat, o.lon) ? { lat: roundCoord(o.lat), lon: roundCoord(o.lon) } : null; } catch { return null; } }
 export function setLoc({ lat, lon }) { if (validCoords(lat, lon)) setPref('loc', JSON.stringify({ lat: roundCoord(lat), lon: roundCoord(lon) })); }
-export function forgetWeather() { setPref('onlineWx', '0'); setPref('recoNotify', '0'); setPref('loc', 'null'); setPref('locAt', '0'); setPref('wxfail', '0'); try { localStorage.removeItem(CACHE); } catch { /* ignore */ } }
+export function forgetWeather() { setPref('onlineWx', '0'); setPref('recoNotify', '0'); setPref('loc', 'null'); setPref('locAt', '0'); setPref('locFail', '0'); setPref('wxfail', '0'); try { localStorage.removeItem(CACHE); } catch { /* ignore */ } }
 
 /** One-shot position (low accuracy is enough for weather). */
 export const locate = () => new Promise((res, rej) => {
@@ -23,7 +23,8 @@ export const locate = () => new Promise((res, rej) => {
 export async function ensureLocation({ now = Date.now(), locateFn = locate } = {}) {
   if (!onlineOn()) return getLoc();
   if (getLoc() && now - (Number(getPref('locAt', '0')) || 0) < 6 * 3600000) return getLoc();
-  try { setLoc(await locateFn()); setPref('locAt', String(now)); } catch { /* no signal: what was saved stays */ }
+  if (now - (Number(getPref('locFail', '0')) || 0) < 30 * 60000) return getLoc(); // a failed try (no signal indoors) is not repeated at every focus
+  try { setLoc(await locateFn()); setPref('locAt', String(now)); setPref('locFail', '0'); } catch { setPref('locFail', String(now)); /* what was saved stays */ }
   return getLoc();
 }
 

@@ -36,7 +36,7 @@ export async function permissionList(env = {}) {
 export function requestPermission(id, env = {}) {
   const { app = native, nav = globalThis.navigator, Notif = globalThis.Notification } = env;
   if (app.available) return new Promise((res) => { const done = () => { clearTimeout(timer); removeEventListener('stepup-native', on); res(); }, on = (e) => { if (e.detail?.type === 'permissions-changed') done(); }, timer = setTimeout(done, 60000); addEventListener('stepup-native', on); app.requestPermission(id); });
-  if (id === 'notifications') return Notif?.requestPermission?.().catch(() => {}) || Promise.resolve();
+  if (id === 'notifications') return Promise.resolve().then(() => Notif?.requestPermission?.()).catch(() => {}); // (old browsers answer through a callback and return nothing)
   if (id === 'location') return new Promise((res) => { try { nav.geolocation.getCurrentPosition(() => res(), () => res(), { timeout: 15000, maximumAge: 600000 }); } catch { res(); } });
   return Promise.resolve();
 }
@@ -44,7 +44,7 @@ export function requestPermission(id, env = {}) {
 export function onPermissionsChanged(fn, nav = globalThis.navigator) {
   const a = (e) => { if (e.detail?.type === 'permissions-changed') fn(); }, b = () => { if (!document.hidden) fn(); };
   addEventListener('stepup-native', a); document.addEventListener('visibilitychange', b);
-  const watched = [];
-  for (const name of native.available ? [] : ['geolocation', 'notifications']) nav?.permissions?.query({ name }).then((s) => { s.onchange = fn; watched.push(s); }).catch(() => {});
-  return () => { removeEventListener('stepup-native', a); document.removeEventListener('visibilitychange', b); for (const s of watched) s.onchange = null; };
+  const watched = []; let stopped = false;
+  for (const name of native.available ? [] : ['geolocation', 'notifications']) nav?.permissions?.query({ name }).then((s) => { if (stopped) return; s.onchange = fn; watched.push(s); }).catch(() => {}); // (the queries answer later: a list closed meanwhile must not get a listener)
+  return () => { stopped = true; removeEventListener('stepup-native', a); document.removeEventListener('visibilitychange', b); for (const s of watched) s.onchange = null; };
 }

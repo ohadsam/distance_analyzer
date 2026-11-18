@@ -48,3 +48,8 @@ test('ensureLocation saves a rounded position, refreshes after 6 hours, keeps th
   setPref('onlineWx', '0'); const before = calls; await ensureLocation({ now: 2e12, locateFn: at(1, 1) }); assert.equal(calls, before); assert.equal(getPref('onlineWx', '1'), '0');
   setPref('onlineWx', '1');
 });
+test('a failed position try is not repeated for 30 minutes (no retry at every focus indoors)', async () => {
+  forgetWeather(); setPref('onlineWx', '1'); let calls = 0; const fail = async () => { calls++; throw new Error('no fix'); };
+  await ensureLocation({ now: 5e12, locateFn: fail }); await ensureLocation({ now: 5e12 + 10 * 60000, locateFn: fail }); assert.equal(calls, 1);
+  await ensureLocation({ now: 5e12 + 31 * 60000, locateFn: fail }); assert.equal(calls, 2); forgetWeather(); setPref('onlineWx', '1');
+});

@@ -18,6 +18,8 @@ async function refreshApp() {
   location.reload();
 }
 
+let lastUpdate = null; // the phone's last update event, kept while the box is not on screen (the download goes on when you leave Settings)
+onNativeEvent((e) => { if (e?.type === 'update') lastUpdate = e; });
 const ERR = ['url', 'http', 'size', 'checksum', 'invalid', 'package', 'same', 'signature', 'install', 'failed'];
 
 /** The update box: "Check for updates"; when a newer version exists the web app refreshes itself and the Android app downloads and installs it as an update (data stays). */
@@ -33,19 +35,19 @@ export function updateBox() {
     waitingForInstallPermission = false;
     if (!native.updateStart(APK_URL)) say(t('updErr_failed'), manual()); else { bar.hidden = false; bar.removeAttribute('value'); say(t('updDownloadingNoPct')); }
   }
-  const stopEvents = onNativeEvent((e) => { // the installer's progress, from the phone
-    if (!out.isConnected) return stopEvents();
-    if (e?.type !== 'update') return;
+  function show(e) {
     const s = e.state, pct = Number.isFinite(e.pct) ? e.pct : -1;
     if (s === 'need-permission') return install();
     bar.hidden = !(s === 'downloading' || s === 'verifying' || s === 'installing'); if (!bar.hidden && pct >= 0) bar.value = pct; else if (!bar.hidden) bar.removeAttribute('value');
     if (s === 'downloading') say(pct >= 0 ? t('updDownloading', { pct }) : t('updDownloadingNoPct'));
     else if (s === 'verifying') say(t('updVerifying')); else if (s === 'installing') say(t('updInstalling')); else if (s === 'confirm') say(t('updConfirm'));
     else if (s === 'done') say(t('updDone')); else if (s === 'error') say(t(`updErr_${ERR.includes(e.reason) ? e.reason : 'failed'}`), manual());
-  });
-  onPermissionsChanged(() => { if (!out.isConnected) return; if (waitingForInstallPermission && native.permissionState().install === 'granted') install(); }); // back from Android's "allow installing" screen
+  }
+  const stopEvents = onNativeEvent((e) => { if (!out.isConnected) return stopEvents(); if (e?.type === 'update') show(e); }); // the installer's progress, from the phone
+  if (lastUpdate && (native.updateRunning() || ['confirm', 'done', 'error'].includes(lastUpdate.state))) queueMicrotask(() => show(lastUpdate)); // back in Settings: pick up where it is
+  const stopPerm = onPermissionsChanged(() => { if (!out.isConnected) return stopPerm(); if (waitingForInstallPermission && native.permissionState().install === 'granted') install(); }); // back from Android's "allow installing" screen
   const check = h('button', { type: 'button', class: 'btn', id: 'upd-check', onclick: async () => {
-    check.disabled = true; bar.hidden = true; say(t('updChecking'));
+    check.disabled = true; bar.hidden = true; lastUpdate = null; say(t('updChecking'));
     const current = native.version() || APP_VERSION, r = await checkUpdate(current);
     check.disabled = false;
     if (r.state === 'error') return say(t('updError'), art('onboarding', 'offline'));

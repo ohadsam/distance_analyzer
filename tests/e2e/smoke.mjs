@@ -17,7 +17,7 @@ const step = async (name, fn) => { if (process.env.ONLY && !name.includes(proces
 // legacy: the map, the weather and the planner start OFF (the older steps test the consent flows); fresh: the real defaults (all ON). sheet: allow the start-up permission sheet.
 async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null, scheme = 'light', fresh = false, sheet = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
-  await ctx.addInitScript(({ l, legacy, ask }) => { try { if (l !== 'he') localStorage.setItem('da.lang', l); if (legacy) for (const k of ['mapTiles', 'onlineWx', 'planNet']) localStorage.setItem(`da.${k}`, '0'); if (!ask) localStorage.setItem('da.permAsk', '0'); } catch { /* blocked */ } }, { l: lang, legacy: !fresh, ask: sheet });
+  await ctx.addInitScript(({ l, legacy, ask }) => { try { if (l !== 'he') localStorage.setItem('da.lang', l); const once = (k, v) => { if (localStorage.getItem(`da.${k}`) === null) localStorage.setItem(`da.${k}`, v); }; /* only when unset: a step may change them and reload */ if (legacy) for (const k of ['mapTiles', 'onlineWx', 'planNet']) once(k, '0'); if (!ask) once('permAsk', '0'); } catch { /* blocked */ } }, { l: lang, legacy: !fresh, ask: sheet });
   const page = await ctx.newPage(); const errors = [];
   if (clock) await page.clock.install(clockAt ? { time: clockAt } : undefined);
   if (signalGapMs) await page.addInitScript(fakeFootsteps, signalGapMs);

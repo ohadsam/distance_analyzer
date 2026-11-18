@@ -6,7 +6,7 @@ import { APP_VERSION } from './appVersion.js';
 
 export const MAX_BACKUP_CHARS = 20_000_000, MAKE_LIMIT_CHARS = 18_000_000; // a file we make must always be one we accept again
 /** Settings that are not part of a backup: the work in progress and everything about where the person is. */
-const SKIP = new Set(['active', 'loc', 'onlineWx', 'wxfail', 'wxc', 'recoSent', 'nudge']);
+const SKIP = new Set(['active', 'loc', 'locAt', 'locFail', 'onlineWx', 'wxfail', 'wxc', 'recoSent', 'nudge']); // device-specific: where this phone is
 const KEY = /^[A-Za-z0-9]{1,30}$/;
 
 /** { prefs } from a storage-like object (keys "da.<name>"). */

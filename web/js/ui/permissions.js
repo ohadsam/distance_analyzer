@@ -22,7 +22,7 @@ function row(p, refresh) {
 /** The list of permissions, kept current: it redraws by itself when an answer arrives or the person comes back from the phone's settings. */
 function permList(onChange, requiredOnly = false) {
   const box = h('div', { class: 'perms', role: 'list' });
-  async function refresh() { const list = await permissionList(); if (!box.isConnected && box.dataset.drawn) return stop(); box.dataset.drawn = '1'; const shown = requiredOnly ? list.filter((p) => p.required) : list; setChildren(box, shown.map((p) => row(p, refresh))); onChange?.(list); }
+  async function refresh() { const list = await permissionList(); if (!box.isConnected) return stop(); const shown = requiredOnly ? list.filter((p) => p.required) : list; setChildren(box, shown.map((p) => row(p, refresh))); onChange?.(list); }
   const stop = onPermissionsChanged(refresh); refresh(); return { box, refresh, stop };
 }
 
@@ -30,7 +30,7 @@ function permList(onChange, requiredOnly = false) {
 export function permissionsBlock() {
   const { box, refresh } = permList();
   const ask = h('input', { type: 'checkbox', id: 's-permask', checked: getPref('permAsk', '1') !== '0', onchange: (e) => setPref('permAsk', e.target.checked ? '1' : '0') });
-  return h('div', { class: 'permsec', id: 'f-s-perms' }, h('p', { class: 'note' }, t('permIntro')), box, h('p', { class: 'note' }, t('permOnline')),
+  return h('div', { class: 'permsec' }, h('p', { class: 'note' }, t('permIntro')), box, h('p', { class: 'note' }, t('permOnline')),
     h('label', { class: 'check' }, ask, h('span', null, t('permAskStart'))), h('button', { type: 'button', class: 'btn ghost', id: 'perm-refresh', onclick: refresh }, icon('refresh', 20), t('permRefresh')));
 }
 
@@ -38,7 +38,7 @@ export function permissionsBlock() {
 export async function maybeShowPermissionSheet() {
   if (getPref('permAsk', '1') === '0' || /^#\/workout/.test(location.hash)) return;
   try { if (sessionStorage.getItem('da.permShown')) return; } catch { /* storage blocked: ask once per page load */ }
-  if (!missing(await permissionList()).length) return;
+  if (!missing(await permissionList()).length || /^#\/workout/.test(location.hash)) return; // (the person may have started a workout while we were reading)
   try { sessionStorage.setItem('da.permShown', '1'); } catch { /* ignore */ }
   openSheet();
 }
