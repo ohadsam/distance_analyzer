@@ -88,4 +88,6 @@ class NativeBridge(private val activity: MainActivity) {
     /** The in-app route a tapped notification asked for (once). */
     @JavascriptInterface fun takePendingHref(): String = activity.takeHref()
 
+
+    private fun notificationPermission(): Array<String> = if (Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray()
 }
