@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. Network: only the opt-in forecast request, the opt-in street-map tiles and the update check (see below). -->
+    <!-- Every permission needs a written reason here and in docs/ARCHITECTURE.md. Network: the weather forecast, the street-map tiles, the route planner's services and the update check/download (see below). -->
     <!-- Recommendations by weather (opt-in, off by default): one request to the weather service (api.open-meteo.com) with the approximate location, only while the person uses recommendations. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Workout tracking: the GPS position, read only while a workout is on screen (the page asks; MainActivity answers for our own origin only). -->
@@ -19,6 +19,8 @@
     <!-- Arm the reminder and step alarms again after a reboot. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-feature android:name="android.hardware.sensor.stepcounter" android:required="false"/>
+    <!-- "Check for updates" downloads the new APK from this project's GitHub release and installs it over the app (an update: same package and signing key, data stays). Android asks once to allow it. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
@@ -81,6 +83,8 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_next_info"/>
         </receiver>
+        <!-- the installer's answer to an in-app update (a PendingIntent of ours; nothing else can call it) -->
+        <receiver android:name=".InstallReceiver" android:exported="false"/>
         <receiver android:name=".NotifyReceiver" android:exported="false"/>
         <receiver android:name=".StepReceiver" android:exported="false"/>
         <receiver android:name=".BootReceiver" android:exported="false">

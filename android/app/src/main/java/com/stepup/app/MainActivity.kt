@@ -5,7 +5,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.hardware.Sensor
+import android.hardware.SensorManager
+import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.WindowManager
 import android.webkit.GeolocationPermissions
@@ -135,10 +140,50 @@ class MainActivity : ComponentActivity() {
     }.start()
 
     // One launcher for the other runtime permissions the page asks for (location for background tracking, notifications, step counter).
-    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
+    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { res ->
+        getSharedPreferences("perm", MODE_PRIVATE).edit().apply { res.keys.forEach { putBoolean(it, true) } }.apply() // remembered: "asked before and still denied" means blocked
+        deliver(JSONObject().put("type", "permissions-changed"))
+    }
     fun ask(vararg wanted: String) = runOnUiThread {
         val need = wanted.filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (need.isNotEmpty()) permissions.launch(need.toTypedArray())
+    }
+
+    // ---- the permissions screen of the page: what is allowed, and asking for it (or the phone's settings when Android will not ask again) ----
+    private fun granted(p: String) = checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
+    private fun runtimeState(vararg perms: String): String {
+        val sp = getSharedPreferences("perm", MODE_PRIVATE)
+        return PermMath.state(perms.any { granted(it) }, perms.any { sp.getBoolean(it, false) }, perms.any { shouldShowRequestPermissionRationale(it) })
+    }
+    /** { location, notifications, activity, battery, install } -> "granted" | "ask" | "blocked" | "unsupported". */
+    fun permissionState(): String {
+        val sensor = (getSystemService(SENSOR_SERVICE) as SensorManager).getDefaultSensor(Sensor.TYPE_STEP_COUNTER) != null
+        val notifications = if (NotifyStore.allowed(this)) PermMath.GRANTED else if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS)) runtimeState(Manifest.permission.POST_NOTIFICATIONS) else PermMath.BLOCKED
+        return JSONObject()
+            .put("location", runtimeState(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            .put("notifications", notifications)
+            .put("activity", if (!sensor) "unsupported" else if (Build.VERSION.SDK_INT >= 29) runtimeState(Manifest.permission.ACTIVITY_RECOGNITION) else PermMath.GRANTED)
+            .put("battery", if ((getSystemService(POWER_SERVICE) as PowerManager).isIgnoringBatteryOptimizations(packageName)) PermMath.GRANTED else PermMath.ASK)
+            .put("install", if (packageManager.canRequestPackageInstalls()) PermMath.GRANTED else PermMath.ASK).toString()
+    }
+    fun openAppSettings() = runOnUiThread { runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }
+    private fun askOrSettings(perms: Array<String>) {
+        val sp = getSharedPreferences("perm", MODE_PRIVATE)
+        if (perms.none { granted(it) } && perms.any { sp.getBoolean(it, false) } && perms.none { shouldShowRequestPermissionRationale(it) }) openAppSettings() else ask(*perms)
+    }
+    /** [name] is one of PermMath.NAMES (the bridge checks). Settings screens open for what Android has no dialog for. */
+    fun requestPermission(name: String) = runOnUiThread {
+        runCatching {
+            when (name) {
+                "location" -> askOrSettings(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+                "notifications" -> if (Build.VERSION.SDK_INT >= 33 && !granted(Manifest.permission.POST_NOTIFICATIONS)) askOrSettings(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                    else startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+                "activity" -> { if (Build.VERSION.SDK_INT >= 29) askOrSettings(arrayOf(Manifest.permission.ACTIVITY_RECOGNITION)); StepStore.arm(this) }
+                "battery" -> startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)) // the list: the direct "allow" dialog is for apps that need it for a store listing
+                "install" -> startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+                else -> Unit
+            }
+        }
     }
 
     // The in-app route a tapped notification asked for ("#/reco"); the page picks it up once.
@@ -163,6 +208,7 @@ class MainActivity : ComponentActivity() {
             setSupportMultipleWindows(false)
         }
         web.addJavascriptInterface(NativeBridge(this), "StepUpNative")
+        Updater.sink = { deliver(it) }
         web.webChromeClient = object : WebChromeClient() {
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
                 runOnUiThread {
@@ -197,9 +243,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readHref(intent); if (pendingHref.isNotEmpty()) deliver(JSONObject().put("type", "href")) } // the app is already in front: tell the page now
-    override fun onResume() { super.onResume(); Voice.foreground = true; web.onResume() }
+    override fun onResume() { super.onResume(); Voice.foreground = true; web.onResume(); deliver(JSONObject().put("type", "permissions-changed")) } // (back from a settings screen)
     override fun onPause() { keysOn = false; Voice.foreground = false; web.onPause(); super.onPause() }
-    override fun onDestroy() { web.destroy(); super.onDestroy() }
+    override fun onDestroy() { Updater.sink = null; web.destroy(); super.onDestroy() }
 
     /** Keeps the screen on during a workout (the web Wake Lock API is not reliable in every WebView). */
     fun setKeepAwake(on: Boolean) = runOnUiThread {

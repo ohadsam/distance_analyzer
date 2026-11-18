@@ -79,6 +79,15 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun notificationsAllowed(): Boolean = NotifyStore.allowed(ctx)
     @JavascriptInterface fun requestNotifications() { activity.ask(*notificationPermission()) }
     @JavascriptInterface fun setNotifications(json: String) { if (BridgeLimits.within(json, 60_000)) NotifyStore.replace(ctx, json) }
+    // ---- permissions, asked from the page's Settings screen and start-up sheet ----
+    @JavascriptInterface fun permissionState(): String = activity.permissionState()
+    @JavascriptInterface fun requestPermission(name: String) { if (PermMath.known(name)) activity.requestPermission(name) }
+    @JavascriptInterface fun openAppSettings() { activity.openAppSettings() }
+
+    // ---- in-app update: download, verify, install as an update (see Updater) ----
+    @JavascriptInterface fun updateStart(url: String): Boolean { if (!UpdateMath.validUrl(url) || Updater.running) return false; Updater.start(ctx, url); return true }
+    @JavascriptInterface fun updateRunning(): Boolean = Updater.running
+
     /** The in-app route a tapped notification asked for (once). */
     @JavascriptInterface fun takePendingHref(): String = activity.takeHref()
 

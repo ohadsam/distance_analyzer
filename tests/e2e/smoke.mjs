@@ -14,9 +14,10 @@ let failures = 0;
 const step = async (name, fn) => { if (process.env.ONLY && !name.includes(process.env.ONLY)) return; try { await fn(); console.log('✓', name); } catch (e) { failures++; console.error('✗', name, '\n  ', e.message.split('\n').slice(0, 14).join(' / ')); } };
 
 // Hebrew/RTL is the default; pass {lang:'en'} to start in English. Collects console/page errors.
-async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null, scheme = 'light' } = {}) {
+// legacy: the map, the weather and the planner start OFF (the older steps test the consent flows); fresh: the real defaults (all ON). sheet: allow the start-up permission sheet.
+async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null, scheme = 'light', fresh = false, sheet = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
-  if (lang !== 'he') await ctx.addInitScript((l) => { try { localStorage.setItem('da.lang', l); } catch { /* blocked */ } }, lang);
+  await ctx.addInitScript(({ l, legacy, ask }) => { try { if (l !== 'he') localStorage.setItem('da.lang', l); if (legacy) for (const k of ['mapTiles', 'onlineWx', 'planNet']) localStorage.setItem(`da.${k}`, '0'); if (!ask) localStorage.setItem('da.permAsk', '0'); } catch { /* blocked */ } }, { l: lang, legacy: !fresh, ask: sheet });
   const page = await ctx.newPage(); const errors = [];
   if (clock) await page.clock.install(clockAt ? { time: clockAt } : undefined);
   if (signalGapMs) await page.addInitScript(fakeFootsteps, signalGapMs);
@@ -74,7 +75,10 @@ async function seedTracks(page, rows) {
 // Injected before the app loads: a stand-in for the Android bridge (window.StepUpNative) that records what the page asks and serves fixes/steps.
 function fakeAndroid(init) {
   const n = window.__n = { started: 0, stopped: 0, fixes: JSON.parse(sessionStorage.getItem('__fixes') || '[]') /* the native buffer survives a page reload */, steps: {}, notes: null, href: '', sampled: 0, reqNotif: 0, reqActivity: 0, ...init };
-  window.StepUpNative = { appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
+  const perm = n.perm = { location: 'ask', notifications: 'ask', activity: 'ask', battery: 'ask', install: 'ask', ...(init?.perm || {}) }; n.permReq = []; n.updateStarted = []; // what the phone allows; what the page asked for
+  const changed = () => queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'permissions-changed' } })));
+  window.StepUpNative = { permissionState: () => JSON.stringify(perm), requestPermission(name) { n.permReq.push(name); if (perm[name] === 'ask') perm[name] = n.denyAll ? 'blocked' : 'granted'; changed(); }, openAppSettings() { n.settingsOpened = (n.settingsOpened || 0) + 1; },
+    updateStart(url) { n.updateStarted.push(url); return n.updateRefuse ? false : true; }, updateRunning: () => false, appVersion: () => '9.9', keepAwake() {}, trackAvailable: () => true, trackStart() { n.started++; return true; }, trackStop() { n.stopped++; },
     trackDrain() { const f = JSON.stringify(n.fixes); n.fixes = []; return f; }, stepsAvailable: () => true, stepsSample() { n.sampled++; }, stepsDays: () => JSON.stringify(n.steps), requestActivity() { n.reqActivity++; },
     setWidgetData(j) { n.widget = JSON.parse(j); }, share(x) { n.shared = x; return true; }, handsFree(on) { n.hands = on; }, saveGpx(t, name) { n.gpx = t; n.gpxName = name; queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'gpx-saved', ok: true } }))); return true; }, takePhoto() { queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'photo-taken', ok: true } }))); return true; },
     takenPhoto() { const c = document.createElement('canvas'); c.width = c.height = 64; c.getContext('2d').fillRect(0, 0, 64, 64); return c.toDataURL('image/jpeg'); }, shareImage(b) { n.sharedImage = b; return true; }, saveBackup(j, name) { n.backup = j; n.backupName = name; queueMicrotask(() => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'backup-saved', ok: true } }))); return true; },
@@ -119,7 +123,26 @@ await step('about: update check (newer / latest / offline), newest APK link, sha
   await page.click('#share-app'); await page.waitForFunction(() => window.__shared); const sh = await page.evaluate(() => window.__shared); assert.match(sh.text, /ohadsam\.github\.io\/distance_analyzer\/ .*stepup\.apk/); assert.equal(sh.url, undefined, 'the links are in the text once');
   assert.deepEqual(errors.filter((e) => !/ERR_FAILED/.test(e)), []); // the aborted request is the offline case on purpose
   const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base + '#/settings/s-about'); await a.page.waitForSelector('#share-app'); await a.page.click('#share-app'); await a.page.waitForFunction(() => window.__n.shared); assert.match(await a.page.evaluate(() => window.__n.shared), /Android app:/);
-  release = { name: 'v99.0.0 (build 1)' }; await a.page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(release) })); await a.page.click('#upd-check'); await a.page.waitForSelector('#upd-apk-new');
+  release = { name: 'v99.0.0 (build 1)' }; await a.page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(release) })); await a.page.click('#upd-check'); await a.page.waitForSelector('#upd-install'); assert.equal(await a.page.locator('#upd-apk-new').count(), 0);
+});
+
+await step('in-app update on Android: needs the one-time OK, downloads and installs as an update, progress and errors are explained', async () => {
+  const { page, errors } = await newPage({ lang: 'en', native: {} }); const rel = { name: 'v99.0.0 (build 1)', body: 'Big news' };
+  await page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rel) }));
+  await page.goto(base + '#/settings'); await page.waitForSelector('#upd-check'); assert.equal(await page.locator('#upd-check').isVisible(), true, 'the check button is on top of Settings, no section to open');
+  await page.click('#upd-check'); await page.waitForSelector('#upd-install'); await page.click('#upd-install');
+  await page.waitForSelector('#upd-allow'); assert.match(await page.textContent('#upd-msg'), /needs your OK once/); assert.deepEqual(await page.evaluate(() => window.__n.updateStarted), [], 'nothing downloads before the OK');
+  await page.click('#upd-allow'); await page.waitForFunction(() => window.__n.updateStarted.length === 1); // the phone granted it and the page carried on by itself
+  assert.deepEqual(await page.evaluate(() => [window.__n.permReq, window.__n.updateStarted]), [['install'], ['https://github.com/ohadsam/distance_analyzer/releases/latest/download/stepup.apk']]);
+  const say = (d) => page.evaluate((x) => dispatchEvent(new CustomEvent('stepup-native', { detail: { type: 'update', ...x } })), d);
+  await say({ state: 'downloading', pct: 40 }); await page.waitForFunction(() => /Downloading the update... 40%/.test(document.getElementById('upd-msg').textContent)); assert.equal(await page.getAttribute('#upd-progress', 'value'), '40');
+  await say({ state: 'verifying' }); await page.waitForFunction(() => /Checking the file/.test(document.getElementById('upd-msg').textContent));
+  await say({ state: 'confirm' }); await page.waitForFunction(() => /keeps your data/.test(document.getElementById('upd-msg').textContent)); assert.equal(await page.locator('#upd-progress').isHidden(), true);
+  await say({ state: 'error', reason: 'checksum' }); await page.waitForFunction(() => /did not match its checksum/.test(document.getElementById('upd-msg').textContent)); assert.match(await page.getAttribute('#upd-manual', 'href'), /stepup\.apk$/, 'a manual download stays available');
+  await say({ state: 'error', reason: 'nonsense' }); await page.waitForFunction(() => /The update failed/.test(document.getElementById('upd-msg').textContent));
+  await say({ state: 'done' }); await page.waitForFunction(() => /Updated/.test(document.getElementById('upd-msg').textContent)); assert.deepEqual(errors, []);
+  const refuse = await newPage({ lang: 'en', native: { perm: { install: 'granted' }, updateRefuse: true } }); await refuse.page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(rel) }));
+  await refuse.page.goto(base + '#/settings'); await refuse.page.click('#upd-check'); await refuse.page.click('#upd-install'); await refuse.page.waitForSelector('#upd-manual'); assert.match(await refuse.page.textContent('#upd-msg'), /The update failed/);
 });
 
 await step('illustrations: empty states and the welcome card load the kit art (light and dark); no 404s', async () => {
@@ -281,6 +304,30 @@ await step('round-8 art: characters on the start cards move, calm animations sto
   await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); assert.match((await page.getAttribute('#wk-a svg', 'style')) || '--deg: -120deg', /-120deg/);
   for (let i = 1; i <= 6; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
   const deg = parseInt(((await page.getAttribute('#wk-a svg', 'style')) || '').match(/--deg:\s*(-?\d+)deg/)?.[1] ?? '-120', 10); assert.ok(deg > -120, `needle at ${deg}`); assert.equal(await page.locator('.workout.anim-on').count(), 1); assert.deepEqual(errors, []);
+});
+await step('permissions: Settings lists them with their state and asks from there; the start-up sheet opens when something is missing and can be dismissed for good', async () => {
+  const { page, errors } = await newPage({ lang: 'en', native: {}, sheet: true }); await page.goto(base); await page.waitForSelector('#perm-sheet[open]');
+  assert.equal(await page.locator('#perm-sheet [data-perm]').count(), 3, 'location, notifications, steps (the battery row is optional and only in Settings)'); assert.deepEqual(await axeViolations(page), []); await shot(page, 'perm-sheet-en');
+  await page.click('#perm-all'); await page.waitForFunction(() => document.getElementById('perm-done')?.textContent.includes('All set')); assert.deepEqual(await page.evaluate(() => __n.permReq), ['location', 'notifications', 'activity']);
+  await page.waitForSelector('#perm-sheet', { state: 'detached' });
+  const blocked = await newPage({ lang: 'en', native: { perm: { location: 'blocked', notifications: 'granted', activity: 'granted' } }, sheet: true }); await blocked.page.goto(base); await blocked.page.waitForSelector('#perm-sheet[open]');
+  assert.match(await blocked.page.textContent('[data-perm=location]'), /Blocked/); assert.match(await blocked.page.textContent('[data-perm=location]'), /Android will not ask again/); assert.equal(await blocked.page.textContent('#perm-location'), 'Open settings');
+  await blocked.page.click('#perm-location'); await blocked.page.waitForFunction(() => __n.permReq.includes('location')); await blocked.page.click('#perm-later'); await blocked.page.waitForSelector('#perm-sheet', { state: 'detached' });
+  const never = await newPage({ lang: 'en', native: {}, sheet: true }); await never.page.goto(base); await never.page.click('#perm-never'); await never.page.waitForSelector('#perm-sheet', { state: 'detached' });
+  await never.page.reload(); await never.page.waitForSelector('.start-card'); await never.page.waitForTimeout(400); assert.equal(await never.page.locator('#perm-sheet').count(), 0, 'not asked again');
+  await never.page.goto(base + '#/settings'); await never.page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await never.page.waitForSelector('#s-permask'); assert.equal(await never.page.isChecked('#s-permask'), false);
+  await never.page.check('#s-permask'); assert.equal(await never.page.evaluate(() => localStorage.getItem('da.permAsk')), '1'); await shot(never.page, 'perm-settings-en');
+  const web = await newPage({ lang: 'en', sheet: true }); await web.page.goto(base); await web.page.waitForSelector('#perm-sheet[open]'); assert.equal(await web.page.locator('#perm-sheet [data-perm]').count() >= 1, true, 'a browser asks too'); await web.page.keyboard.press('Escape'); await web.page.waitForSelector('#perm-sheet', { state: 'detached' });
+  await web.page.goto(base + '#/workout/walk'); await web.page.waitForSelector('.big-btn'); assert.equal(await web.page.locator('#perm-sheet').count(), 0, 'never over a workout'); assert.deepEqual(errors, []);
+});
+await step('defaults: the street map, the weather and the planner are on from the first launch; the position is found by itself once allowed', async () => {
+  const { page, errors } = await newPage({ lang: 'en', fresh: true, clock: true, clockAt: SUMMER }); const calls = await mockWeather(page, hotForecast(SUMMER)); await page.goto(base);
+  await page.waitForFunction(() => localStorage.getItem('da.loc')); assert.deepEqual(JSON.parse(await page.evaluate(() => localStorage.getItem('da.loc'))), { lat: 32, lon: 34.8 }, 'saved rounded, without a tap');
+  await page.goto(base + '#/reco'); await page.waitForSelector('[data-reco=best]'); assert.ok(calls.length >= 1); assert.equal(await page.locator('#reco-consent').count(), 0, 'no consent card');
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#s-tiles'); assert.equal(await page.isChecked('#s-tiles'), true); assert.equal(await page.isChecked('#s-online'), true);
+  await page.goto(base + '#/map'); await page.waitForSelector('svg.bigmap'); assert.equal(await page.locator('#map-tiles-on').count(), 0, 'the street map is already on');
+  await page.goto(base + '#/routeplan'); await page.waitForSelector('#rp-go'); assert.equal(await page.locator('#plan-consent').count(), 0, 'the planner needs no consent card'); assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+  const off = await newPage({ lang: 'en', fresh: true }); await off.page.addInitScript(() => localStorage.setItem('da.onlineWx', '0')); await off.page.goto(base); await off.page.waitForTimeout(600); assert.equal(await off.page.evaluate(() => localStorage.getItem('da.loc')), null, 'turned off: no position is stored');
 });
 await step('weather: add it to a workout, the weather widget and filter use it', async () => {
   const { page } = await newPage({ lang: 'en' }); await page.goto(base); await seed(page, [{ daysAgo: 1, km: 6, min: 33 }, { daysAgo: 3, km: 6, min: 40 }]);
@@ -463,9 +510,9 @@ await step('android background: the service records fixes (no page GPS), pause/f
   assert.ok(Number(await p2.page.textContent('.v-dist')) >= 0.02, 'the recorded fixes were applied');
 });
 await step('android: settings shows the background permissions only in the app; reminders are handed over for when the app is closed; a tapped notification opens its screen', async () => {
-  const plain = await newPage({ lang: 'en' }); await plain.page.goto(base + '#/settings'); await plain.page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await plain.page.waitForSelector('#s-lang'); assert.equal(await plain.page.locator('#f-s-bg').count(), 0, 'not in a browser');
+  const plain = await newPage({ lang: 'en' }); await plain.page.goto(base + '#/settings'); await plain.page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await plain.page.waitForSelector('#s-lang'); assert.equal(await plain.page.locator('#f-s-perms').count(), 1, 'the permissions section exists in a browser too'); assert.equal(await plain.page.locator('[data-perm=activity]').count(), 0, 'but the Android-only rows do not');
   const { page } = await newPage({ lang: 'en', native: { href: '#/reco' } }); await page.goto(base); await page.waitForFunction(() => location.hash === '#/reco'); assert.equal(await page.textContent('h1'), 'Recommendations');
-  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('#f-s-bg'); await page.click('#bg-notify'); assert.equal(await page.evaluate(() => __n.reqNotif), 1);
+  await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await page.waitForSelector('[data-perm=activity]'); await page.click('#perm-notifications'); await page.waitForFunction(() => document.querySelector('[data-perm=notifications]').dataset.state === 'granted'); assert.deepEqual(await page.evaluate(() => __n.permReq), ['notifications']);
   await page.waitForTimeout(1800); const wd = await page.evaluate(() => __n.widget); assert.ok(wd && wd.stepsGoal > 0 && wd.effortPlan > 0 && wd.stepsTitle === 'Steps' && wd.quickTitle === 'Measure now' && ['walk', 'run'].includes(wd.kind), JSON.stringify(wd));
   await page.click('#rem-add'); await page.waitForTimeout(2200); const notes = await page.evaluate(() => __n.notes);
   assert.ok(Array.isArray(notes) && notes.length >= 7, `reminders expanded over the week (${notes?.length})`); assert.equal(notes[0].title, 'Time for a walk'); assert.equal(notes[0].href, '#/workout/walk'); assert.ok(notes.every((x, i) => i === 0 || notes[i - 1].at <= x.at));

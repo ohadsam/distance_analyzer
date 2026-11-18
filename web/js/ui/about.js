@@ -1,10 +1,11 @@
-// "About and updates": the running version, a manual update check, the newest Android app and sharing the app.
+// "Update" (a box at the top of Settings: check, and on Android download + install the new APK as an update) and "About" (version, the manual APK link, sharing).
 import { h, setChildren } from '../util.js';
 import { t } from '../i18n.js';
 import { art } from '../art.js';
-import { native } from '../native.js';
+import { native, onNativeEvent } from '../native.js';
 import { APP_VERSION } from '../appVersion.js';
 import { APK_URL, SITE_URL, checkUpdate, shareApp } from '../update.js';
+import { onPermissionsChanged } from '../permissions.js';
 
 /** Fetch the new service worker and reload once it has taken over (or at once when there is nothing new to wait for). */
 async function refreshApp() {
@@ -17,25 +18,50 @@ async function refreshApp() {
   location.reload();
 }
 
-export function aboutBlock() {
-  const out = h('p', { class: 'note', id: 'upd-msg', role: 'status' }), extra = h('div', { class: 'upd-extra' });
+const ERR = ['url', 'http', 'size', 'checksum', 'invalid', 'package', 'same', 'signature', 'install', 'failed'];
+
+/** The update box: "Check for updates"; when a newer version exists the web app refreshes itself and the Android app downloads and installs it as an update (data stays). */
+export function updateBox() {
+  const out = h('p', { class: 'note', id: 'upd-msg', role: 'status' }), extra = h('div', { class: 'upd-extra' }), bar = h('progress', { max: 100, id: 'upd-progress', hidden: true, 'aria-label': t('updSection') });
   const say = (text, ...more) => { out.textContent = text; setChildren(extra, ...more); };
-  const check = h('button', { type: 'button', class: 'btn ghost', id: 'upd-check', onclick: async () => {
-    check.disabled = true; say(t('updChecking'));
+  const manual = () => h('a', { class: 'btn ghost', id: 'upd-manual', href: APK_URL, rel: 'noopener noreferrer' }, t('updManual'));
+  let waitingForInstallPermission = false;
+  function install() { // Android: allowed to install? then download, verify and hand over to the installer
+    if (native.permissionState().install !== 'granted') {
+      waitingForInstallPermission = true; return say(t('updNeedInstall'), h('button', { type: 'button', class: 'btn', id: 'upd-allow', onclick: () => native.requestPermission('install') }, t('updAllowInstall')));
+    }
+    waitingForInstallPermission = false;
+    if (!native.updateStart(APK_URL)) say(t('updErr_failed'), manual()); else { bar.hidden = false; bar.removeAttribute('value'); say(t('updDownloadingNoPct')); }
+  }
+  const stopEvents = onNativeEvent((e) => { // the installer's progress, from the phone
+    if (!out.isConnected) return stopEvents();
+    if (e?.type !== 'update') return;
+    const s = e.state, pct = Number.isFinite(e.pct) ? e.pct : -1;
+    if (s === 'need-permission') return install();
+    bar.hidden = !(s === 'downloading' || s === 'verifying' || s === 'installing'); if (!bar.hidden && pct >= 0) bar.value = pct; else if (!bar.hidden) bar.removeAttribute('value');
+    if (s === 'downloading') say(pct >= 0 ? t('updDownloading', { pct }) : t('updDownloadingNoPct'));
+    else if (s === 'verifying') say(t('updVerifying')); else if (s === 'installing') say(t('updInstalling')); else if (s === 'confirm') say(t('updConfirm'));
+    else if (s === 'done') say(t('updDone')); else if (s === 'error') say(t(`updErr_${ERR.includes(e.reason) ? e.reason : 'failed'}`), manual());
+  });
+  onPermissionsChanged(() => { if (!out.isConnected) return; if (waitingForInstallPermission && native.permissionState().install === 'granted') install(); }); // back from Android's "allow installing" screen
+  const check = h('button', { type: 'button', class: 'btn', id: 'upd-check', onclick: async () => {
+    check.disabled = true; bar.hidden = true; say(t('updChecking'));
     const current = native.version() || APP_VERSION, r = await checkUpdate(current);
     check.disabled = false;
     if (r.state === 'error') return say(t('updError'), art('onboarding', 'offline'));
     if (r.state === 'latest') return say(t('updLatest', { v: current }));
-    // a newer release: the installed web app refreshes itself; the Android app downloads the new APK
+    // a newer release: the installed web app refreshes itself; the Android app downloads it and installs it over itself
     say(t('updNewer', { v: r.version }), r.notes ? h('p', { class: 'note' }, r.notes) : null,
-      native.available ? h('a', { class: 'btn', id: 'upd-apk-new', href: APK_URL, rel: 'noopener noreferrer' }, t('updApk'))
-        : h('button', { type: 'button', class: 'btn', id: 'upd-refresh', onclick: refreshApp }, t('updRefresh')));
+      native.available ? h('button', { type: 'button', class: 'btn', id: 'upd-install', onclick: install }, t('updInstall')) : h('button', { type: 'button', class: 'btn', id: 'upd-refresh', onclick: refreshApp }, t('updRefresh')));
   } }, t('updCheck'));
+  return h('div', { class: 'card updbox', id: 'f-s-update' }, h('div', { class: 'row' }, h('b', { id: 'about-version' }, t('aboutVersion', { v: APP_VERSION })), check), out, bar, extra);
+}
+
+export function aboutBlock() {
   const shareOut = h('p', { class: 'note', id: 'share-msg', role: 'status' }), shareText = () => t('shareText', { site: SITE_URL, apk: APK_URL });
   const share = h('button', { type: 'button', class: 'btn ghost', id: 'share-app', onclick: async () => {
     const text = shareText(), how = await shareApp(text, { native });
     setChildren(shareOut, how === 'copied' ? t('shareCopied') : how === 'manual' ? h('span', null, t('shareManual'), h('input', { readOnly: true, value: text, 'aria-label': t('shareApp'), onfocus: (e) => e.target.select() })) : null);
   } }, t('shareApp'));
-  return h('div', { class: 'about' }, h('p', { id: 'about-version' }, t('aboutVersion', { v: APP_VERSION })), check, out, extra,
-    h('a', { class: 'btn ghost', id: 'upd-apk', href: APK_URL, rel: 'noopener noreferrer' }, t('updApk')), h('p', { class: 'note' }, t('updApkHint')), share, shareOut);
+  return h('div', { class: 'about' }, h('a', { class: 'btn ghost', id: 'upd-apk', href: APK_URL, rel: 'noopener noreferrer' }, t('updApk')), h('p', { class: 'note' }, t('updApkHint')), share, shareOut);
 }

@@ -11,9 +11,9 @@ const out = process.argv[2] || '/tmp/journey'; mkdirSync(out, { recursive: true 
 const server = await serve('web', 0), base = `http://localhost:${server.address().port}/`, browser = await chromium.launch();
 const findings = [], shotsList = []; let n = 0, curLang = 'he'; const LANGS = ['he', 'en']; // Hebrew (the default) first, then English
 
-async function ctxPage({ lang = 'he', width = 390, height = 800, scheme = 'light', geo = true } = {}) {
+async function ctxPage({ lang = 'he', width = 390, height = 800, scheme = 'light', geo = true, sheet = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
-  await ctx.addInitScript((l) => { try { localStorage.setItem('da.lang', l); } catch { /* blocked */ } }, lang);
+  await ctx.addInitScript(({ l, ask }) => { try { localStorage.setItem('da.lang', l); localStorage.setItem('da.mapTiles', '0'); localStorage.setItem('da.onlineWx', '0'); localStorage.setItem('da.planNet', '0'); if (!ask) localStorage.setItem('da.permAsk', '0'); } catch { /* blocked */ } }, { l: lang, ask: sheet }); // the map and the weather are on by default in the app; the tour keeps them off (no network here) except where a flow mocks them
   const page = await ctx.newPage(); const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   return { ctx, page, errors };
 }
@@ -123,6 +123,7 @@ async function flowE(lang) { curLang = lang; const { ctx, page, errors } = await
   await page.evaluate(() => window.scrollTo(0, 0)); await page.evaluate(() => document.getElementById('rp-results').scrollIntoView()); await g('routeplan', false);
   await page.goto(base + '#/plan'); await page.waitForTimeout(500); await g('plan'); await page.goto(base + '#/reco'); await page.waitForTimeout(500); await g('reco'); await page.goto(base + '#/alerts'); await page.waitForTimeout(400); await g('alerts');
   await page.goto(base + '#/search'); await page.fill('#q', lang === 'he' ? 'גיבוי' : 'backup'); await page.waitForSelector('.result'); await g('search');
+  await page.goto(base + '#/settings/s-perms'); await page.waitForSelector('[data-perm]'); await page.waitForTimeout(400); await shot(page, 'E', 'settings-permissions'); await g('permissions');
   await page.goto(base + '#/settings'); await page.waitForTimeout(500); await g('settings'); await page.goto(base + '#/settings/s-backup'); await page.waitForTimeout(500); await shot(page, 'E', 'settings-backup'); await g('backup');
   await page.goto(base + '#/guide'); await page.waitForSelector('#guide-start'); await shot(page, 'E', 'guide-index'); await page.click('#guide-start'); await page.waitForSelector('.guide.step'); await shot(page, 'E', 'guide-step');
   if (errors.length) findings.push({ name: 'E/console', issues: errors.filter((e) => !/Failed to load resource/.test(e)).slice(0, 3) }); await ctx.close(); }

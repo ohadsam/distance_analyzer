@@ -5,7 +5,7 @@ import { getPref, setPref } from './store.js';
 import { parseNominatim, parseOsrm, parseElevation, elevationUrl, overpassQuery, parseOverpass } from './routePlan.js';
 
 const MAX_BYTES = 3000000;
-export const planNetOn = () => getPref('planNet', '0') === '1';
+export const planNetOn = () => getPref('planNet', '1') === '1'; // on unless the person turned it off
 export const setPlanNet = (on) => setPref('planNet', on ? '1' : '0');
 
 async function getJson(url, { ms = 15000, body = null, fetchFn = (...a) => fetch(...a) } = {}) {

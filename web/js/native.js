@@ -43,6 +43,14 @@ export const native = {
   saveGpx: (text, name) => (call('saveGpx', text, name) === true ? nativeOnce('gpx-saved') : Promise.resolve({ ok: false, refused: true })),
   /** While the workout screen is up, the volume keys are ours (volume-down = pause / resume, volume-up = say the numbers). */
   handsFree: (on) => call('handsFree', !!on),
+  /** What the phone allows: { location, notifications, activity, battery, install } -> 'granted' | 'ask' | 'blocked' | 'unsupported' ({} outside the app). */
+  permissionState: () => { try { const o = JSON.parse(call('permissionState') || '{}'); return o && typeof o === 'object' ? o : {}; } catch { return {}; } },
+  /** Android's own dialog (or the phone's settings screen when it will not ask again). The answer comes back as a 'permissions-changed' event. */
+  requestPermission: (name) => call('requestPermission', String(name).slice(0, 20)),
+  openAppSettings: () => call('openAppSettings'),
+  /** In-app update: downloads, verifies and installs the release APK as an update. true when started; progress arrives as { type: 'update', state, pct, reason } events. */
+  updateStart: (url) => call('updateStart', String(url).slice(0, 200)) === true,
+  updateRunning: () => call('updateRunning') === true,
   /** Keeps the screen on during a workout. */
   keepAwake: (on) => call('keepAwake', !!on),
   /** Android's share sheet with a plain text; true only when the bridge accepted it. */
@@ -51,5 +59,6 @@ export const native = {
 
 /** Native -> JS events: {type: ...}. */
 export function onNativeEvent(fn) {
-  globalThis.addEventListener('stepup-native', (e) => fn(e.detail));
+  const on = (e) => fn(e.detail); globalThis.addEventListener('stepup-native', on);
+  return () => globalThis.removeEventListener('stepup-native', on);
 }

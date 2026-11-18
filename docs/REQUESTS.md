@@ -91,3 +91,7 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 74 | Review the revision packages (true loops, magenta background) and integrate if good | ⛔ reviewed, not integrated (draft by its own admission: no true loops, per-frame bbox scaling, none of the new sequences); 0.23.0 sprites stay |
 | 75 | Seamless walk / run by animating a puppet of the character in code (option 3, with a fallback to the 0.23.0 sprites) | 🟡 prompt ready: `docs/prompts/ROUND12_PUPPET_PROMPT.md`; engine in progress |
 | 76 | Review the puppet parts and integrate if usable | ⛔ not usable (a labelled concept preview in front view, not a sliceable sheet); back to the 0.23.0 sprites (option 1); the puppet engine stays shelved in the repo |
+| 77 | Settings shows every permission with a way to enable it from inside the app (it did not work) | ✅ 0.24.0 (Permissions section; real Android dialogs unverified without a phone) |
+| 78 | Map display, weather and location on automatically, not only on a tap | ✅ 0.24.0 (on by default; position found by itself once allowed) |
+| 79 | A sheet at start-up asking for missing permissions, with the ability to enable them there | ✅ 0.24.0 |
+| 80 | "Check for updates" that downloads and installs the update, as an update not a fresh install | ✅ 0.24.0 (PackageInstaller; real installer unverified without a phone) |

@@ -8,7 +8,7 @@ import { trackSvg } from '../icons.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const mk = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v)); parent?.append(e); return e; };
-export const tilesOn = () => getPref('mapTiles', '0') === '1';
+export const tilesOn = () => getPref('mapTiles', '1') === '1'; // on unless the person turned it off
 
 /** A <g> of tile images that are reused between updates (a tile is requested once, however often the view moves). */
 export function createTileLayer() {

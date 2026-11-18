@@ -4,7 +4,7 @@ export const GUIDE = [
   { id: 'welcome', href: '#/', shot: true }, { id: 'start', href: '#/workout/walk', shot: true }, { id: 'running', href: '#/workout/run', shot: true }, { id: 'tools', href: '#/workout/run', shot: true },
   { id: 'finish', href: '#/workout/walk', shot: true }, { id: 'records', href: '#/history', shot: true }, { id: 'history', href: '#/history', shot: true }, { id: 'detail', href: '#/history', shot: true },
   { id: 'dashboard', href: '#/', shot: true }, { id: 'drill', href: '#/d/effort', shot: true }, { id: 'routes', href: '#/routes', shot: true }, { id: 'map', href: '#/map', shot: true }, { id: 'routeplan', href: '#/routeplan', shot: true }, { id: 'plan', href: '#/plan', shot: true }, { id: 'reco', href: '#/reco', shot: true },
-  { id: 'alerts', href: '#/alerts', shot: true }, { id: 'search', href: '#/search', shot: true }, { id: 'settings', href: '#/settings', shot: true }, { id: 'backup', href: '#/settings/s-backup', shot: true },
+  { id: 'alerts', href: '#/alerts', shot: true }, { id: 'search', href: '#/search', shot: true }, { id: 'permissions', href: '#/settings/s-perms', shot: true }, { id: 'settings', href: '#/settings', shot: true }, { id: 'backup', href: '#/settings/s-backup', shot: true },
   { id: 'widgets', href: '#/guide/widgets', shot: false },
 ];
 export const guideIndex = (id) => GUIDE.findIndex((g) => g.id === id);

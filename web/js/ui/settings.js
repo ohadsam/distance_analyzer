@@ -6,9 +6,9 @@ import { challengeTarget } from '../challenge.js';
 import { refreshArt } from '../art.js';
 import { t, setLang } from '../i18n.js';
 import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
-import { aboutBlock } from './about.js';
+import { aboutBlock, updateBox } from './about.js';
+import { permissionsBlock } from './permissions.js';
 import { backupBlock } from './backup.js';
-import { native } from '../native.js';
 import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js';
 import { notifyState, askNotify } from './notify.js';
 import { checkReminders } from '../reminderLoop.js';
@@ -48,17 +48,6 @@ function remindersBlock() {
   draw(); return box;
 }
 
-/** Android only: permissions for the background features. */
-function backgroundBlock() {
-  const redraw = () => { // the permission dialog is answered outside the page: redraw when the page is back in front
-    const back = () => { if (document.hidden) return; document.removeEventListener('visibilitychange', back); removeEventListener('focus', back); setTimeout(() => dispatchEvent(new HashChangeEvent('hashchange')), 300); };
-    document.addEventListener('visibilitychange', back); addEventListener('focus', back);
-  };
-  const row = (on, onKey, askKey, ask, id) => on ? h('p', { class: 'note', id }, t(onKey)) : h('button', { type: 'button', class: 'btn ghost', id, onclick: () => { ask(); redraw(); } }, t(askKey));
-  return h('div', { class: 'bg', id: 'f-s-bg' }, h('h2', null, t('bgTitle')), h('p', { class: 'note' }, t('bgNote')),
-    row(native.notificationsAllowed(), 'bgNotifyOn', 'bgNotifyAsk', () => native.requestNotifications(), 'bg-notify'), row(native.stepsAvailable(), 'bgStepsOn', 'bgStepsAsk', () => native.requestActivity(), 'bg-steps'));
-}
-
 const openSecs = new Map(); // which sections the person opened or closed survives a redraw (toggles)
 export function renderSettings(focusId) {
   const redraw = () => dispatchEvent(new HashChangeEvent('hashchange'));
@@ -66,6 +55,8 @@ export function renderSettings(focusId) {
   const smart = sanitizeSmart(getJson('smart', {})), saveSmart = (patch) => { setJson('smart', sanitizeSmart({ ...sanitizeSmart(getJson('smart', {})), ...patch })); checkReminders().catch(() => {}); syncNative(); };
   const ns = notifyState(), nbtn = h('button', { type: 'button', class: 'btn ghost', id: 'notify-btn', disabled: ns === 'granted' || ns === 'unsupported' || ns === 'denied', onclick: async (e) => { await askNotify(); redraw(); } }, ns === 'granted' ? t('remNotifyOn') : ns === 'denied' ? t('remNotifyOff') : t('remNotify'));
   const el = h('section', { class: 'settings' }, h('h1', null, t('settings')), h('a', { class: 'btn ghost', id: 'open-guide', href: '#/guide' }, icon('help', 20), t('guideOpen')),
+    updateBox(),
+    h('h2', { id: 'f-s-perms' }, t('permTitle')), permissionsBlock(),
     h('h2', null, t('look')),
     field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); syncNative(); redraw(); }), 's-lang'),
     field(t('theme'), select('s-theme', getPref('theme', 'auto'), [['auto', t('themeAuto')], ['light', t('themeLight')], ['dark', t('themeDark')]], (v) => { setPref('theme', v); applyLook(); }), 's-theme'),
@@ -92,7 +83,6 @@ export function renderSettings(focusId) {
     field(t('remFrom'), num('s-from', 'smartFrom', smart.fromHour, 0, 23), 's-from'), field(t('remTo'), num('s-to', 'smartTo', smart.toHour, 1, 24), 's-to'),
     field(t('remAfter'), num('s-after', 'smartAfter', smart.afterMin, 30, 480, 5), 's-after'), field(t('remMax'), num('s-max', 'smartMax', smart.maxPerDay, 1, 8), 's-max'),
     nbtn, h('p', { class: 'note' }, t('remNote')),
-    native.available ? backgroundBlock() : null,
     h('h2', null, t('setCues')), check('s-cues', t('setCues'), getPref('cues', '1') !== '0', (on) => setPref('cues', on ? '1' : '0')), h('p', { class: 'note' }, t('setCuesHint')),
     field(t('chSet'), select('s-challenge', String(challengeTarget(getPref('challengeN', '3'))), [['0', t('chOffOpt')], ...[2, 3, 4, 5].map((n) => [String(n), t('chN', { n })])], (v) => { setPref('challengeN', v); }), 's-challenge'), h('p', { class: 'note' }, t('chSetHint')),
     check('s-weekly', t('setWeekly'), getPref('weeklyNotify', '0') === '1', (on) => { setPref('weeklyNotify', on ? '1' : '0'); syncNative(); }), h('p', { class: 'note' }, t('setWeeklyHint')),
@@ -103,7 +93,7 @@ export function renderSettings(focusId) {
     check('s-handsfree', t('setHandsFree'), getPref('handsFree', '1') !== '0', (on) => setPref('handsFree', on ? '1' : '0')),
     h('div', { class: 'hints' }, art('workout', 'hint-double-tap', 'hint-img'), art('workout', 'hint-volume-keys', 'hint-img')),
     field(t('setCountdown'), select('s-countdown', getPref('countdown', '0'), [['0', t('cdOff')], ['3', t('cdN', { n: 3 })], ['5', t('cdN', { n: 5 })]], (v) => setPref('countdown', v)), 's-countdown'),
-    check('s-tiles', t('setTiles'), getPref('mapTiles', '0') === '1', (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
+    check('s-tiles', t('setTiles'), getPref('mapTiles', '1') === '1', (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
     check('s-voice', t('setVoice'), getPref('voice', '0') === '1', (on) => setPref('voice', on ? '1' : '0')), h('p', { class: 'note' }, t('setVoiceHint')),
     check('s-cue-vibrate', t('setCueVibrate'), getPref('cueVibrate', '1') !== '0', (on) => setPref('cueVibrate', on ? '1' : '0')),
     h('h2', null, t('metroSection')),
@@ -113,11 +103,11 @@ export function renderSettings(focusId) {
     h('p', { class: 'note' }, t('stepsNote')),
     h('h2', { id: 'f-s-backup' }, t('bkTitle')), backupBlock(),
     h('h2', { id: 'f-s-about' }, t('aboutTitle')), aboutBlock());
-  // group each heading with what follows it into a collapsible section (Look and Profile start open); open/closed is remembered by the heading's text
+  // group each heading with what follows it into a collapsible section (Permissions, Look and Profile start open); open/closed is remembered by the heading's text
   const secs = []; let cur = null;
   for (const n of [...el.children].slice(1)) {
     if (n.tagName !== 'H2') { if (cur) cur.append(n); continue; } // anything before the first heading stays where it is
-    const key = n.textContent, first = secs.length < 2; cur = h('details', { class: 'sec', open: openSecs.has(key) ? openSecs.get(key) : first, ontoggle: (e) => { openSecs.set(key, e.target.open); } }, h('summary', null, n)); secs.push(cur);
+    const key = n.textContent, first = secs.length < 3; cur = h('details', { class: 'sec', open: openSecs.has(key) ? openSecs.get(key) : first, ontoggle: (e) => { openSecs.set(key, e.target.open); } }, h('summary', null, n)); secs.push(cur);
   }
   el.append(...secs);
   // the smart-nudge numbers are stored together in one JSON object (validated on every read)

@@ -8,6 +8,9 @@ import { renderAlerts } from './ui/alerts.js';
 import { renderSearch } from './ui/search.js';
 import { renderGuide } from './ui/guide.js';
 import { renderMap } from './ui/mapScreen.js';
+import { permissionList, onPermissionsChanged } from './permissions.js';
+import { maybeShowPermissionSheet } from './ui/permissions.js';
+import { ensureLocation } from './weatherApi.js';
 import { renderRoutePlan } from './ui/planner.js';
 import { renderReco } from './ui/reco.js';
 import { renderRoutes, renderRoute } from './ui/routes.js';
@@ -58,4 +61,7 @@ function onFront() {
 }
 if (native.available) { onFront(); onNativeEvent((e) => { if (e?.type === 'href') onFront(); }); document.addEventListener('visibilitychange', () => { if (document.hidden) syncNative(); else onFront(); }); setInterval(() => { if (!document.hidden && native.stepsAvailable()) native.stepsSample(); }, 60000); }
 route();
+// Weather and the map want to know roughly where you are: once the location permission is granted the saved position is kept fresh (never asks by itself).
+async function autoLocate() { if ((await permissionList()).find((p) => p.id === 'location')?.state === 'granted') ensureLocation().then(() => dispatchEvent(new Event('stepup-loc'))); }
+autoLocate(); onPermissionsChanged(autoLocate); maybeShowPermissionSheet(); // and, if something we ask for is missing, one sheet asks for it (once per session)
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });
