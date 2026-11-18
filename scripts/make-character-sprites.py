@@ -52,6 +52,25 @@ def place(img, scale, size, centre='mass'):
     canvas = Image.new('RGBA', (size, size), (0, 0, 0, 0)); x = round(size / 2 - cx); y = min(BASE, size - 6) - img.height
     canvas.alpha_composite(img, (max(0, min(size - img.width, x)), max(0, y))); return canvas
 
+def hair_centre(img):
+    """Centroid (x, y) of the brown hair: the steadiest landmark of the character, used to hold the head still between frames."""
+    a = np.array(img).astype(int); r, g, b, al = a[..., 0], a[..., 1], a[..., 2], a[..., 3]
+    m = (al > 200) & (r > g + 18) & (r > 90) & (b < 90) & (g < 130); m[int(a.shape[0] * 0.30):] = False  # only the head area: the orange soles have the same colour
+    ys, xs = np.nonzero(m); return xs.mean(), ys.mean()
+
+def place_cycle(frames, scale, size):
+    """All frames of a cycle at ONE scale, with the head at the same spot in every frame (x and y). Standing the feet on a baseline instead (as place() does)
+    made the whole body jump up and down by up to 34 px in the run's flight frames; held by the head, only the limbs move. The head spot is chosen so
+    the lowest foot of any frame still fits above the bottom margin."""
+    imgs = []
+    for f in frames:
+        g = f.crop(f.getbbox()); g = g.resize((max(1, round(g.width * scale)), max(1, round(g.height * scale))), Image.LANCZOS); hx, hy = hair_centre(g); imgs.append((g, hx, hy))
+    below = max(g.height - hy for g, hx, hy in imgs); above = max(hy for g, hx, hy in imgs); hy0 = max(above + 4, size - 6 - below)
+    strip = []
+    for g, hx, hy in imgs:
+        c = Image.new('RGBA', (size, size), (0, 0, 0, 0)); c.alpha_composite(g, (round(size / 2 - hx), round(hy0 - hy))) if (round(size / 2 - hx) >= 0 and round(hy0 - hy) >= 0) else c.paste(g, (round(size / 2 - hx), round(hy0 - hy)), g); strip.append(c)
+    return strip
+
 def cells(sheet):
     im = Image.open(SRC / sheet).convert('RGBA'); return [im.crop(((i % 4) * CELL, (i // 4) * CELL, (i % 4 + 1) * CELL, (i // 4 + 1) * CELL)) for i in range(8)]
 
@@ -59,7 +78,7 @@ meta = {'cycles': {}, 'poses': {}}; qa = []
 for name, (sheet, ms) in CYCLES.items():
     frames = [clean(c) for c in cells(sheet)]; assert all(f is not None for f in frames), name
     strip = Image.new('RGBA', (FRAME * 8, FRAME), (0, 0, 0, 0))
-    for i, f in enumerate(frames): strip.alpha_composite(place(f, SCALE, FRAME), (i * FRAME, 0))
+    for i, f in enumerate(place_cycle(frames, SCALE, FRAME)): strip.alpha_composite(f, (i * FRAME, 0))
     strip.save(OUT / f'{name}.webp', 'WEBP', quality=84, alpha_quality=92, method=6); meta['cycles'][name] = {'file': f'art/character/{name}.webp', 'frames': 8, 'w': FRAME, 'h': FRAME, 'ms': ms}; qa.append((name, strip))
 for sheet, names in POSES.items():
     for n, c in zip(names, cells(sheet)):

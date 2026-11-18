@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.23.1
+- **Steadier walk and run**: `scripts/make-character-sprites.py` now holds the head at the same spot in every frame of a cycle (the brown hair of the head area is the landmark; the orange soles have the same colour, so only the top 30 % of the figure is used) instead of standing the lowest foot on a baseline. Before, the whole body jumped up and down by up to 34 px in the run's flight frames and the head wandered 5 px (walk) and 11 px (run) between frames; now the head moves less than 1 px and only the limbs move. The cut-outs, scale (one scale for every frame) and file sizes are unchanged.
+- Tried and rejected: re-ordering the frames to the smoothest cycle (the pixel-distance optimum scrambles the gait order) and cross-dissolved in-between frames (they show double legs and arms).
+- Still not a true loop: the frames are the illustrator's eight drawings, so the step from frame to frame can look slightly jumpy; a real fix needs new frame-by-frame art or a puppet (see `docs/prompts/ROUND12_PUPPET_PROMPT.md`, shelved).
+- Verified: static checks, unit tests, the full e2e, the Hebrew and English journeys with regenerated guide screenshots.
+
 ## 0.23.0
 - **A new, illustrated character** (from a fresh ChatGPT conversation, `docs/prompts/ROUND10_CHARACTER_PROMPT.md`; the art is in `design/stepup/character/`): a friendly, sporty kid with a teal headband, tousled hair, teal top, green shorts and teal running shoes. It replaces the vector rig everywhere (start cards, welcome card, workout summary, countdown, user guide).
 - **Walk and run animations** on the start cards: a strip of 8 frames played with `steps(8)` (walk 1.2 s, run 0.7 s). Calm animations and the phone's reduce-motion setting show the first frame. Still poses elsewhere: wave (welcome and guide), cheer (summary), idle then jump (countdown 3-2-1 / Go), and along the guide: point, think, stretch, rest, cheer, trophy at the end. More poses are ready for later screens: medal, podium, sit, sleep, rain.
