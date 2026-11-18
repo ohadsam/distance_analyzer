@@ -13,11 +13,11 @@ const STATE = { granted: 'permGranted', ask: 'permAsk', blocked: 'permBlocked' }
 
 function row(p, refresh) {
   const [title, why] = KEYS[p.id];
-  const act = p.state === 'granted' ? null
-    : p.state === 'blocked' && !native.available ? h('p', { class: 'note' }, t('permBlockedWeb')) // a browser has no way to open its own site settings for us
+  const webBlocked = p.state === 'blocked' && !native.available; // a browser has no way to open its own site settings for us: say where the person can
+  const act = p.state === 'granted' || webBlocked ? null
     : h('button', { type: 'button', class: p.state === 'ask' ? 'btn' : 'btn ghost', id: `perm-${p.id}`, onclick: async (e) => { e.currentTarget.disabled = true; await requestPermission(p.id); refresh(); } }, p.state === 'blocked' ? t('permOpenSettings') : t('permAllow'));
   return h('div', { class: 'permrow', role: 'listitem', 'data-perm': p.id, 'data-state': p.state },
-    h('span', { class: 'permic' }, icon(p.icon, 24)), h('div', { class: 'permtx' }, h('b', null, t(title), ' ', h('span', { class: `permstate ${p.state}` }, t(STATE[p.state]))), h('small', null, t(why)), p.state === 'blocked' && native.available ? h('small', { class: 'note' }, t('permBlockedApp')) : null), act);
+    h('span', { class: 'permic' }, icon(p.icon, 24)), h('div', { class: 'permtx' }, h('b', null, t(title), ' ', h('span', { class: `permstate ${p.state}` }, t(STATE[p.state]))), h('small', null, t(why)), p.state === 'blocked' ? h('small', { class: 'note' }, t(native.available ? 'permBlockedApp' : 'permBlockedWeb')) : null), act);
 }
 
 /** The list of permissions, kept current: it redraws by itself when an answer arrives or the person comes back from the phone's settings. */
