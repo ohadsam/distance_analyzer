@@ -19,10 +19,7 @@ export const native = {
   stepsAvailable: () => call('stepsAvailable') === true,
   stepsSample: () => call('stepsSample'),
   stepsDays: () => { try { const o = JSON.parse(call('stepsDays') || '{}'); return o && typeof o === 'object' ? o : {}; } catch { return {}; } },
-  requestActivity: () => call('requestActivity'),
   /** Notifications that fire while the app is closed: replaces the whole schedule [{id, at(ms), title, body, href}]. */
-  notificationsAllowed: () => call('notificationsAllowed') === true,
-  requestNotifications: () => call('requestNotifications'),
   /** Goals and texts for the home-screen widgets (the steps themselves come from the phone's sensor). */
   setWidgetData: (o) => call('setWidgetData', JSON.stringify(o)),
   setNotifications: (list) => call('setNotifications', JSON.stringify(list)),

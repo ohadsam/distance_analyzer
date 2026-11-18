@@ -62,6 +62,7 @@ function onFront() {
 if (native.available) { onFront(); onNativeEvent((e) => { if (e?.type === 'href') onFront(); }); document.addEventListener('visibilitychange', () => { if (document.hidden) syncNative(); else onFront(); }); setInterval(() => { if (!document.hidden && native.stepsAvailable()) native.stepsSample(); }, 60000); }
 route();
 // Weather and the map want to know roughly where you are: once the location permission is granted the saved position is kept fresh (never asks by itself).
-async function autoLocate() { if ((await permissionList()).find((p) => p.id === 'location')?.state === 'granted') ensureLocation(); }
-autoLocate(); onPermissionsChanged(autoLocate); maybeShowPermissionSheet(); // and, if something we ask for is missing, one sheet asks for it (once per session)
+const autoLocate = (list) => { if (list.find((p) => p.id === 'location')?.state === 'granted') ensureLocation(); };
+permissionList().then((list) => { autoLocate(list); maybeShowPermissionSheet(list); }); // one reading: the position, and, if something we ask for is missing, one sheet that asks for it (once per session)
+onPermissionsChanged(() => permissionList().then(autoLocate));
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });

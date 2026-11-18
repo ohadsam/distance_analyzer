@@ -1,6 +1,7 @@
 // What the app asks the phone or the browser for, and what is allowed now. Pure rules (which are missing) plus thin adapters: Android answers through the native
 // bridge, a browser through its Permissions API. Nothing here shows anything: ui/permissions.js draws the Settings section and the start-up sheet.
-import { native } from './native.js';
+import { native, onNativeEvent } from './native.js';
+import { locate } from './weatherApi.js';
 
 /** The list, in the order the person sees it. `android` = only in the app; `required` = worth asking for at start-up. */
 export const PERMS = [
@@ -34,17 +35,22 @@ export async function permissionList(env = {}) {
 
 /** Asks for one permission the way this platform does. Resolves when the answer is in (Android: when its 'permissions-changed' event arrives, or after 60 s). */
 export function requestPermission(id, env = {}) {
-  const { app = native, nav = globalThis.navigator, Notif = globalThis.Notification } = env;
-  if (app.available) return new Promise((res) => { const done = () => { clearTimeout(timer); removeEventListener('stepup-native', on); res(); }, on = (e) => { if (e.detail?.type === 'permissions-changed') done(); }, timer = setTimeout(done, 60000); addEventListener('stepup-native', on); app.requestPermission(id); });
+  const { app = native, Notif = globalThis.Notification, locateFn = locate } = env;
+  if (app.available) return new Promise((res) => { let off; const done = () => { clearTimeout(timer); off(); res(); }, timer = setTimeout(done, 60000); off = onNativeEvent((e) => { if (e?.type === 'permissions-changed') done(); }); app.requestPermission(id); });
   if (id === 'notifications') return Promise.resolve().then(() => Notif?.requestPermission?.()).catch(() => {}); // (old browsers answer through a callback and return nothing)
-  if (id === 'location') return new Promise((res) => { try { nav.geolocation.getCurrentPosition(() => res(), () => res(), { timeout: 15000, maximumAge: 600000 }); } catch { res(); } });
+  if (id === 'location') return locateFn().then(() => {}, () => {}); // the browser's own prompt
   return Promise.resolve();
 }
-/** Calls `fn` whenever a permission may have changed: Android's event, the page coming back to the front, or the browser's own permission change. */
+/**
+ * Calls `fn` once after a permission may have changed: Android's event (also sent when the app comes back from a settings screen), a browser's own permission change,
+ * or the page coming back to the front (browsers only: the app gets the native event). Bursts count as one. Returns the unsubscribe function.
+ */
 export function onPermissionsChanged(fn, nav = globalThis.navigator) {
-  const a = (e) => { if (e.detail?.type === 'permissions-changed') fn(); }, b = () => { if (!document.hidden) fn(); };
-  addEventListener('stepup-native', a); document.addEventListener('visibilitychange', b);
-  const watched = []; let stopped = false;
-  for (const name of native.available ? [] : ['geolocation', 'notifications']) nav?.permissions?.query({ name }).then((s) => { if (stopped) return; s.onchange = fn; watched.push(s); }).catch(() => {}); // (the queries answer later: a list closed meanwhile must not get a listener)
-  return () => { stopped = true; removeEventListener('stepup-native', a); document.removeEventListener('visibilitychange', b); for (const s of watched) s.onchange = null; };
+  let timer = 0, stopped = false; const fire = () => { clearTimeout(timer); timer = setTimeout(fn, 120); };
+  const offNative = onNativeEvent((e) => { if (e?.type === 'permissions-changed') fire(); }), onShow = () => { if (!document.hidden) fire(); }, watched = [];
+  if (!native.available) {
+    document.addEventListener('visibilitychange', onShow);
+    for (const name of ['geolocation', 'notifications']) nav?.permissions?.query({ name }).then((s) => { if (stopped) return; s.onchange = fire; watched.push(s); }).catch(() => {}); // (the queries answer later: a list closed meanwhile must not get a listener)
+  }
+  return () => { stopped = true; clearTimeout(timer); offNative(); document.removeEventListener('visibilitychange', onShow); for (const s of watched) s.onchange = null; };
 }

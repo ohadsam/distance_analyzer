@@ -1,11 +1,11 @@
 // The route planner's network door (opt-in, pref planNet). Four public services, each GET/POST only on the person's tap, bounded (time + size), no cookies,
 // no referrer: OpenStreetMap Nominatim (address -> place), FOSSGIS OSRM (walking routes), Open-Meteo (elevation), Overpass (street data near the route).
 // What is sent: the address text typed, and coordinates along the candidate routes. Nothing else, no identifiers. Answers are normalised in routePlan.js.
-import { getPref, setPref } from './store.js';
+import { getPref, setPref, flag } from './store.js';
 import { parseNominatim, parseOsrm, parseElevation, elevationUrl, overpassQuery, parseOverpass } from './routePlan.js';
 
 const MAX_BYTES = 3000000;
-export const planNetOn = () => getPref('planNet', '1') === '1'; // on unless the person turned it off
+export const planNetOn = () => flag('planNet');
 export const setPlanNet = (on) => setPref('planNet', on ? '1' : '0');
 
 async function getJson(url, { ms = 15000, body = null, fetchFn = (...a) => fetch(...a) } = {}) {

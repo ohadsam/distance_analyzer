@@ -5,7 +5,7 @@ import { metricValue, metricPair, METRICS } from '../metrics.js';
 import { challengeTarget } from '../challenge.js';
 import { refreshArt } from '../art.js';
 import { t, setLang } from '../i18n.js';
-import { getPref, setPref, getNum, getJson, setJson } from '../store.js';
+import { getPref, setPref, getNum, getJson, setJson, flag } from '../store.js';
 import { aboutBlock, updateBox } from './about.js';
 import { permissionsBlock } from './permissions.js';
 import { backupBlock } from './backup.js';
@@ -93,7 +93,7 @@ export function renderSettings(focusId) {
     check('s-handsfree', t('setHandsFree'), getPref('handsFree', '1') !== '0', (on) => setPref('handsFree', on ? '1' : '0')),
     h('div', { class: 'hints' }, art('workout', 'hint-double-tap', 'hint-img'), art('workout', 'hint-volume-keys', 'hint-img')),
     field(t('setCountdown'), select('s-countdown', getPref('countdown', '0'), [['0', t('cdOff')], ['3', t('cdN', { n: 3 })], ['5', t('cdN', { n: 5 })]], (v) => setPref('countdown', v)), 's-countdown'),
-    check('s-tiles', t('setTiles'), getPref('mapTiles', '1') === '1', (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
+    check('s-tiles', t('setTiles'), flag('mapTiles'), (on) => setPref('mapTiles', on ? '1' : '0')), h('p', { class: 'note' }, t('setTilesHint')),
     check('s-voice', t('setVoice'), getPref('voice', '0') === '1', (on) => setPref('voice', on ? '1' : '0')), h('p', { class: 'note' }, t('setVoiceHint')),
     check('s-cue-vibrate', t('setCueVibrate'), getPref('cueVibrate', '1') !== '0', (on) => setPref('cueVibrate', on ? '1' : '0')),
     h('h2', null, t('metroSection')),

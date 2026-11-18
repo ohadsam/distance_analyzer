@@ -86,6 +86,9 @@ export const active = {
 const prefs = new Map();
 export const getPref = (k, d) => { try { return localStorage.getItem(`da.${k}`) ?? d; } catch { return prefs.get(k) ?? d; } };
 export const setPref = (k, v) => { prefs.set(k, String(v)); try { localStorage.setItem(`da.${k}`, String(v)); } catch { /* memory only */ } };
+/** Switches that are ON until the person turns them off (everything else is off until turned on): one list, so a toggle and the feature it controls never disagree. */
+const ON_BY_DEFAULT = new Set(['mapTiles', 'onlineWx', 'planNet', 'permAsk']);
+export const flag = (key) => getPref(key, ON_BY_DEFAULT.has(key) ? '1' : '0') === '1';
 export const getNum = (k, d, lo, hi) => { const n = Number(getPref(k, d)); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
 
 /** The person: age, height, weight (clamped). */

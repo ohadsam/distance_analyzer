@@ -1,11 +1,11 @@
 // The weather service door: one GET to Open-Meteo with rounded coordinates (the route planner's services are in planApi.js, the update check in update.js).
 // On by default (pref onlineWx; the person can turn it off), cached for an hour, bounded (8 s, 200 KB), credentials/referrer omitted; the answer is normalised in forecast.js.
 import { forecastUrl, normalizeForecast, sanitizeHours, roundCoord, validCoords } from './forecast.js';
-import { getPref, setPref } from './store.js';
+import { getPref, setPref, flag } from './store.js';
 
 const TTL = 60 * 60000, STALE = 6 * 3600000, RETRY = 15 * 60000, MAX_BYTES = 200000, CACHE = 'da.wxc', FAIL = 'da.wxfail';
 
-export const onlineOn = () => getPref('onlineWx', '1') === '1'; // on unless the person turned it off (the location permission is what decides whether it works)
+export const onlineOn = () => flag('onlineWx'); // (the location permission is what decides whether it works)
 export function getLoc() { try { const o = JSON.parse(getPref('loc', 'null')); return o && validCoords(o.lat, o.lon) ? { lat: roundCoord(o.lat), lon: roundCoord(o.lon) } : null; } catch { return null; } }
 export function setLoc({ lat, lon }) { if (validCoords(lat, lon)) setPref('loc', JSON.stringify({ lat: roundCoord(lat), lon: roundCoord(lon) })); }
 export function forgetWeather() { setPref('onlineWx', '0'); setPref('recoNotify', '0'); setPref('loc', 'null'); setPref('locAt', '0'); setPref('locFail', '0'); setPref('wxfail', '0'); try { localStorage.removeItem(CACHE); } catch { /* ignore */ } }

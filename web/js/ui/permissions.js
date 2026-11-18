@@ -3,11 +3,12 @@
 import { h, setChildren } from '../util.js';
 import { t } from '../i18n.js';
 import { icon } from '../icons.js';
-import { getPref, setPref } from '../store.js';
+import { setPref, flag } from '../store.js';
 import { native } from '../native.js';
 import { permissionList, requestPermission, onPermissionsChanged, missing } from '../permissions.js';
 
 const KEYS = { location: ['permLocation', 'permLocationWhy'], notifications: ['permNotifications', 'permNotificationsWhy'], activity: ['permActivity', 'permActivityWhy'], battery: ['permBattery', 'permBatteryWhy'] };
+const inWorkout = () => /^#\/workout/.test(location.hash);
 const STATE = { granted: 'permGranted', ask: 'permAsk', blocked: 'permBlocked' };
 
 function row(p, refresh) {
@@ -29,25 +30,26 @@ function permList(onChange, requiredOnly = false) {
 /** Settings section body. */
 export function permissionsBlock() {
   const { box, refresh } = permList();
-  const ask = h('input', { type: 'checkbox', id: 's-permask', checked: getPref('permAsk', '1') !== '0', onchange: (e) => setPref('permAsk', e.target.checked ? '1' : '0') });
-  return h('div', { class: 'permsec' }, h('p', { class: 'note' }, t('permIntro')), box, h('p', { class: 'note' }, t('permOnline')),
+  const ask = h('input', { type: 'checkbox', id: 's-permask', checked: flag('permAsk'), onchange: (e) => setPref('permAsk', e.target.checked ? '1' : '0') });
+  return h('div', null, h('p', { class: 'note' }, t('permIntro')), box, h('p', { class: 'note' }, t('permOnline')),
     h('label', { class: 'check' }, ask, h('span', null, t('permAskStart'))), h('button', { type: 'button', class: 'btn ghost', id: 'perm-refresh', onclick: refresh }, icon('refresh', 20), t('permRefresh')));
 }
 
 /** The start-up sheet: once per session, only when something we ask for is missing, never over a workout, and never again after "Do not ask again". */
-export async function maybeShowPermissionSheet() {
-  if (getPref('permAsk', '1') === '0' || /^#\/workout/.test(location.hash)) return;
+export async function maybeShowPermissionSheet(list) {
+  if (!flag('permAsk') || inWorkout()) return;
   try { if (sessionStorage.getItem('da.permShown')) return; } catch { /* storage blocked: ask once per page load */ }
-  if (!missing(await permissionList()).length || /^#\/workout/.test(location.hash)) return; // (the person may have started a workout while we were reading)
+  if (!missing(list || await permissionList()).length || inWorkout()) return; // (the person may have started a workout while we were reading)
   try { sessionStorage.setItem('da.permShown', '1'); } catch { /* ignore */ }
   openSheet();
 }
 function openSheet() {
   const dlg = h('dialog', { class: 'permsheet', id: 'perm-sheet', 'aria-labelledby': 'perm-sheet-title' }), done = h('p', { class: 'note', role: 'status', id: 'perm-done' });
   const close = () => { stop(); if (dlg.open) dlg.close(); dlg.remove(); };
-  const all = h('button', { type: 'button', class: 'btn', id: 'perm-all', onclick: async (e) => { e.currentTarget.disabled = true; for (const p of (await permissionList()).filter((x) => x.required && x.state === 'ask')) await requestPermission(p.id); refresh(); } }, t('permAllowAll'));
+  let askable = []; // what "Allow all" asks for, from the latest reading (one dialog at a time on Android, so one after the other)
+  const all = h('button', { type: 'button', class: 'btn', id: 'perm-all', onclick: async (e) => { e.currentTarget.disabled = true; for (const p of askable) await requestPermission(p.id); refresh(); } }, t('permAllowAll'));
   const { box, refresh, stop } = permList((list) => {
-    const need = missing(list); all.hidden = !need.some((p) => p.state === 'ask'); all.disabled = false;
+    const need = missing(list); askable = need.filter((p) => p.state === 'ask'); all.hidden = !askable.length; all.disabled = false;
     if (!need.length) { done.textContent = t('permAllDone'); setTimeout(close, 1400); }
   }, true); // the sheet shows what is worth asking for at start-up; the optional rows are in Settings
   setChildren(dlg, h('h2', { id: 'perm-sheet-title' }, t('permTitle')), h('p', { class: 'note' }, t('permIntro')), box, h('p', { class: 'note' }, t('permOnline')), done,

@@ -1,8 +1,6 @@
 // Strings of the Android background features (merged into STR by i18n.js). Hebrew + English, same keys, same {placeholders}.
 export const EN = {
   trackTitle: 'StepUp is recording your workout', trackText: 'Distance and path are measured while the screen is off.',
-  bgTitle: 'Android background', bgNote: 'Lets StepUp keep measuring a workout with the screen off, count steps all day and notify you when the app is closed.',
-  bgNotify: 'Notifications', bgNotifyOn: 'Notifications are allowed', bgNotifyAsk: 'Allow notifications', bgSteps: 'Step counter', bgStepsOn: 'Step counter is on', bgStepsAsk: 'Allow the step counter', bgStepsNone: 'This phone has no step sensor.',
   stepsPhone: 'Counted by your phone all day',
   wWeekBars: 'This week', wLast: 'Last workout', wLastNone: 'No workouts yet', wNext: 'Next session', wNextNone: 'No plan yet',
   welcomeTitle: 'Welcome to StepUp', welcomeText: 'Press Walk or Run to measure. Tell us your age so the effort bar fits you - you can change it later in Settings.', welcomeOk: 'Save', welcomeSkip: 'Not now',
@@ -12,8 +10,6 @@ export const EN = {
 };
 export const HE = {
   trackTitle: 'StepUp מתעדת את האימון שלך', trackText: 'המרחק והמסלול נמדדים גם כשהמסך כבוי.',
-  bgTitle: 'רקע באנדרואיד', bgNote: 'מאפשר ל-StepUp להמשיך למדוד אימון כשהמסך כבוי, לספור צעדים לאורך היום ולשלוח התראות כשהאפליקציה סגורה.',
-  bgNotify: 'התראות', bgNotifyOn: 'ההתראות מאושרות', bgNotifyAsk: 'אישור התראות', bgSteps: 'מונה צעדים', bgStepsOn: 'מונה הצעדים פעיל', bgStepsAsk: 'אישור מונה הצעדים', bgStepsNone: 'בטלפון הזה אין חיישן צעדים.',
   stepsPhone: 'נספרו על ידי הטלפון לאורך היום',
   wWeekBars: 'השבוע', wLast: 'אימון אחרון', wLastNone: 'אין עדיין אימונים', wNext: 'האימון הבא', wNextNone: 'אין עדיין תוכנית',
   welcomeTitle: 'ברוכים הבאים ל-StepUp', welcomeText: 'לחצו על הליכה או ריצה כדי למדוד. ספרו לנו בן כמה אתם כדי שמד המאמץ יתאים לכם - אפשר לשנות בהמשך בהגדרות.', welcomeOk: 'שמירה', welcomeSkip: 'לא עכשיו',

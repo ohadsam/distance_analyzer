@@ -70,14 +70,11 @@ class NativeBridge(private val activity: MainActivity) {
     @JavascriptInterface fun stepsAvailable(): Boolean = StepStore.available(ctx)
     @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.sample(ctx) } } }
     @JavascriptInterface fun stepsDays(): String = StepStore.days(ctx)
-    @JavascriptInterface fun requestActivity() { if (Build.VERSION.SDK_INT >= 29) activity.ask(Manifest.permission.ACTIVITY_RECOGNITION); StepStore.arm(ctx) }
 
     /** Goals and texts for the home-screen widgets (validated in WidgetMath). */
     @JavascriptInterface fun setWidgetData(json: String) { if (BridgeLimits.within(json, 6000)) Widgets.save(ctx, json) }
 
     // ---- notifications that fire while the app is closed ----
-    @JavascriptInterface fun notificationsAllowed(): Boolean = NotifyStore.allowed(ctx)
-    @JavascriptInterface fun requestNotifications() { activity.ask(*notificationPermission()) }
     @JavascriptInterface fun setNotifications(json: String) { if (BridgeLimits.within(json, 60_000)) NotifyStore.replace(ctx, json) }
     // ---- permissions, asked from the page's Settings screen and start-up sheet ----
     @JavascriptInterface fun permissionState(): String = activity.permissionState()
@@ -91,5 +88,4 @@ class NativeBridge(private val activity: MainActivity) {
     /** The in-app route a tapped notification asked for (once). */
     @JavascriptInterface fun takePendingHref(): String = activity.takeHref()
 
-    private fun notificationPermission(): Array<String> = if (Build.VERSION.SDK_INT >= 33) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray()
 }

@@ -1,14 +1,14 @@
 // The optional street-map background (off by default, see Settings). Tiles come from OpenStreetMap's public tile server: a request reveals the area being
 // looked at, so it is opt-in. Pictures keep working without it (tile-less drawing); a tile that fails to load is simply not shown.
 import { h } from '../util.js';
-import { getPref } from '../store.js';
+import { flag } from '../store.js';
 import { fitView, followView, tilesOf, ATTRIBUTION } from '../mapView.js';
 import { projectTrack } from '../geo.js';
 import { trackSvg } from '../icons.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 const mk = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v)); parent?.append(e); return e; };
-export const tilesOn = () => getPref('mapTiles', '1') === '1'; // on unless the person turned it off
+export const tilesOn = () => flag('mapTiles');
 
 /** A <g> of tile images that are reused between updates (a tile is requested once, however often the view moves). */
 export function createTileLayer() {

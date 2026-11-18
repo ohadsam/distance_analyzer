@@ -53,6 +53,7 @@ object Updater {
         if (!UpdateMath.validUrl(url)) throw Fail("url")
         val pm = ctx.packageManager
         if (!pm.canRequestPackageInstalls()) { report("need-permission"); return }
+        val want = UpdateMath.parseSha256(readSmall(UpdateMath.checksumUrl(url))) ?: throw Fail("checksum") // the published checksum first: no checksum, no download
         report("downloading", 0)
         val dir = File(ctx.cacheDir, "updates").apply { mkdirs(); listFiles()?.forEach { it.delete() } }
         val apk = File(dir, "stepup-update.apk"); val md = MessageDigest.getInstance("SHA-256")
@@ -73,7 +74,6 @@ object Updater {
         } finally { c.disconnect() }
 
         report("verifying")
-        val want = readSmall(UpdateMath.checksumUrl(url)).let { UpdateMath.parseSha256(it) } ?: throw Fail("checksum")
         if (!UpdateMath.toHex(md.digest()).equals(want, ignoreCase = true)) throw Fail("checksum")
         @Suppress("DEPRECATION") val flags = if (Build.VERSION.SDK_INT >= 28) PackageManager.GET_SIGNING_CERTIFICATES else PackageManager.GET_SIGNATURES
         val info = pm.getPackageArchiveInfo(apk.absolutePath, flags) ?: throw Fail("invalid")
