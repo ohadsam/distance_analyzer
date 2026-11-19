@@ -62,11 +62,23 @@ Gotcha (real): glyphs like ‹ › in Android layouts do not mirror in RTL - put
 Gotcha (real): grid/flex children default to `min-width:auto` - a time input or long word makes sheets wider than the screen; keep `min-width:0` on form controls.
 Gotcha (real): `el.replaceChildren(null)` renders the text "null" - use `setChildren()` from `util.js` or `h()` which flatten and skip null.
 
+## 6b. Updates, PWA and permissions - verify every release (owner's request, from 0.24.x)
+An update that never reaches the phone is a failed release, so check the whole path, not only "CI green":
+1. **Version is the same everywhere.** `web/version.json`, `web/sw.js` `VERSION`, `package.json`, Gradle (reads `version.json`) - `npm run bump` does all four; the unit test fails otherwise. `versionCode` strictly increases.
+2. **Service worker update path** (`sw.js`, `app.js`): the install step fetches with `cache: 'reload'` (Pages serves files with a 10-minute HTTP cache; a worker must never store old files), `skipWaiting` + `clients.claim`, the app reloads itself once on `controllerchange` (not over a workout, loop-guarded by `da.swReload`), `version.json` is network-first. Every new JS/webp/asset is in SHELL (static check) so offline start still works.
+3. **Settings -> "Check for updates"** still works in both worlds: browser = refresh the service worker and reload; Android = `Updater` downloads `stepup.apk`, verifies `.sha256`, package, higher `versionCode`, same signing certificate, installs through `PackageInstaller` as an UPDATE. The same `applicationId` and the same signing key forever (never rotate the committed key); `UpdateMath.validUrl` still matches the release URL shape; CI still uploads `stepup.apk` **and** `stepup.apk.sha256`.
+4. **Permissions** (`permissions.js`, `ui/permissions.js`, `PermMath.kt`, `MainActivity.kt`): every permission the app uses is listed in Settings with its state (granted / ask / blocked / unsupported) and an Allow / Open-settings button; the start-up sheet asks for the missing required ones once per session; a new permission => manifest comment + `PermMath.NAMES` + row + both languages + test. Online features that are ON by default (map tiles, weather, planner) say so in the sheet and the guide and can be turned off.
+5. **After the push, verify the real thing, not the commit:** `ci.yml` run on `main` is green (web + android + release), the latest release has `stepup.apk` + `.sha256` and the new version in its title, `pages.yml` run succeeded (note: it only runs when `web/**` changed - an Android-only commit does not redeploy, which is fine), and the Pages `version.json` / `sw.js` show the new version. If the owner's installed PWA still shows an old version, suspect the worker's HTTP-cache fetch or a missing reload first (0.24.1 incident).
+6. Say plainly what only a phone can prove: real permission dialogs, the installer, a real download, the update-over-install (needs a NEWER version than the installed one).
+
 ## 7. Android verification = CI
-No Android SDK in the sandbox (`dl.google.com` blocked), so Kotlin is only compiled by GitHub Actions (`ci.yml` → *android*: unit tests, lint, release APK). Treat "push, wait, read the log" as mandatory (`get_job_logs` for failures). Pure logic that can be unit-tested on the JVM goes in `BridgeLimits`-style objects (no Android types) with tests in `android/app/src/test`.
+No Android SDK in the sandbox (`dl.google.com` blocked), so Kotlin is only compiled by GitHub Actions (`ci.yml` → *android*: unit tests, lint, release APK). Treat "push, wait, read the log" as mandatory - and after a `/simplify` pass that deletes "dead" Kotlin, grep every deleted name first (0.24.0: `notificationPermission()` was removed while `trackStart` still used it, and only CI caught it) (`get_job_logs` for failures). Pure logic that can be unit-tested on the JVM goes in `BridgeLimits`-style objects (no Android types) with tests in `android/app/src/test`.
 
 ## 8. Ship
 Commit on the working branch, push, wait for **web** + **android** green. On `main` the *release* job publishes `stepup.apk` as the latest release and `pages.yml` deploys the PWA - verify both (release exists with the APK asset; Pages URL serves the new `version.json`). Don't claim "done" before that.
+
+## Reusable version
+This file is StepUp's. The generic, app-independent process (stack, pipeline, permissions, updates, design assets, widgets) lives in `.claude/skills/app-development/` - improve it there when a lesson applies to every app.
 
 ## Known limitations (don't re-report as new)
 - The APK is signed with a committed shared key (stable in-place updates, but not secret) unless private `KEYSTORE_*` secrets are set. Not for the Play Store.

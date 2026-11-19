@@ -95,3 +95,5 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 78 | Map display, weather and location on automatically, not only on a tap | ✅ 0.24.0 (on by default; position found by itself once allowed) |
 | 79 | A sheet at start-up asking for missing permissions, with the ability to enable them there | ✅ 0.24.0 |
 | 80 | "Check for updates" that downloads and installs the update, as an update not a fresh install | ✅ 0.24.0 (PackageInstaller; real installer unverified without a phone) |
+| 81 | Updates / PWA freshness / permissions verification added to the release checklist (§6b); installed PWA must show the new version | ✅ 0.24.1 |
+| 82 | One reusable app-development skill (from StepUp, SonRise, Special Events, Smart Alarm, Kodesh: process, ChatGPT design assets, permissions, Pages/Actions, PWA + native, widgets) that includes the release checklist, in GitHub and in Claude | ✅ `.claude/skills/app-development/` |
