@@ -97,3 +97,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 80 | "Check for updates" that downloads and installs the update, as an update not a fresh install | ✅ 0.24.0 (PackageInstaller; real installer unverified without a phone) |
 | 81 | Updates / PWA freshness / permissions verification added to the release checklist (§6b); installed PWA must show the new version | ✅ 0.24.1 |
 | 82 | One reusable app-development skill (from StepUp, SonRise, Special Events, Smart Alarm, Kodesh: process, ChatGPT design assets, permissions, Pages/Actions, PWA + native, widgets) that includes the release checklist, in GitHub and in Claude | ✅ `.claude/skills/app-development/` |
+| 83 | Skill + checklist cover testing, user guide, UI/UX and screenshots generated from the tests; a full e2e + journey regression with screenshots at the end of every big stage | ✅ app-development §ui-ux-and-guide, testing-quality, release-checklist §6c |

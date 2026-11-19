@@ -17,3 +17,13 @@ Run long jobs in the background, wait with `until grep ... log`; never edit serv
 * Flex/grid children need `min-width:0` (time inputs/long words widen sheets); `el.replaceChildren(null)` prints "null" - use `setChildren()`/`h()`.
 * A bad import in a new module fails e2e at boot: `node -e "import('./web/js/x.js')"`.
 * Squashed text in narrow flex columns (blocked-permission note) - put notes under the row text.
+
+## Full regression at the end of every big stage (owner's rule)
+After a large change set, a new version's feature batch, a design/asset integration, or before handing the owner a build for real-device testing, run the **whole** battery, not only the touched steps:
+1. `npm run check && npm test` (all unit tests).
+2. `npm run e2e` - every step, axe over every screen in he/en light/dark, 320 px.
+3. `node tests/e2e/journey.mjs <dir>` - the full guided tour with screenshots of **every** screen (he + en), usability audit, contact sheets; **open the contact sheets and look**.
+4. Regenerate the guide JPEGs (`GUIDE_DIR=web/art/guide`) when the UI changed; commit them.
+5. Push and read CI (web + android) - Kotlin only compiles there; then verify release + Pages live.
+Report: counts (unit/e2e steps/screens), findings table (empty or explained), what only a phone can prove. Never skip this because "only a small thing changed" at the end of a stage - integrations and refactors break distant screens (a removed bridge method broke the Kotlin build; a defaults flip changed existing installs).
+Where to look at images: the journey writes PNGs/sheets to the directory you pass; use the Read tool on them; send the owner the important ones with SendUserFile.

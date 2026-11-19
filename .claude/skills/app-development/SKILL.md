@@ -20,7 +20,8 @@ Per-app facts live in that repo's `CLAUDE.md` + `docs/CONTEXT.md`; this skill is
 | Android shell, bridge, permissions, in-app update, background, widgets, signing | `references/android-webview-shell.md` |
 | Fully native Kotlin/Compose app | `references/native-kotlin.md` (+ the `android-native-dev` skill in `ohadsam/special_events`) |
 | Icons, logo, illustrations, characters, animations, backgrounds | `references/design-assets.md` |
-| Tests, quality gates, screenshots, a11y | `references/testing-quality.md` |
+| Tests, quality gates, the full regression at the end of a stage, a11y | `references/testing-quality.md` |
+| UI/UX rules, the user guide (in-app + docs), screenshots generated from the tests | `references/ui-ux-and-guide.md` |
 | Working with the owner in chat, reports, ledger | `references/working-with-owner.md` |
 | Past incidents - check before touching the same area | `references/lessons-learned.md` |
 | Finishing / shipping | `references/release-checklist.md` |
@@ -48,7 +49,9 @@ Kotlin cannot be compiled in the sandbox (no Android SDK): CI is the only gate -
 Audience first · simple, beautiful, self-explanatory UI · PWA = Android parity · Hebrew first/English equal/RTL-safe · defaults protect people · tests are the proof (unit + e2e + axe zero + 320 px) · requirements ledger never loses an item · honesty about what only a phone can prove · reuse before writing, token-efficient work · design assets from ChatGPT by prompt, never improvised · context docs current in the same change.
 
 ## 5. How a change flows (always)
-read docs -> small change -> unit test with the logic -> e2e step for the flow -> `npm run check && npm test && npm run e2e` -> look at screenshots (he + en) -> the five reviews + `/simplify` + `/code-review` -> bump version + CHANGELOG + guide + docs -> commit, push branch and `main` (owner authorised) -> wait for CI + release + Pages -> verify live -> report honestly in Hebrew (short: what changed, what was verified how, what needs a phone).
+read docs -> small change -> unit test with the logic -> e2e step for the flow -> `npm run check && npm test && npm run e2e` -> look at screenshots (he + en; they come from the e2e journey, never by hand) -> the five reviews + `/simplify` + `/code-review` -> bump version + CHANGELOG + guide + docs -> commit, push branch and `main` (owner authorised) -> wait for CI + release + Pages -> verify live -> report honestly in Hebrew (short: what changed, what was verified how, what needs a phone).
+
+**End of every big stage** (feature batch, asset integration, refactor, before a phone test): run the FULL regression - all unit tests, all e2e steps, the full journey with screenshots of every screen + usability audit + axe, regenerate guide images, look at the contact sheets, then CI + live verification (`references/testing-quality.md`). The user guide (docs + in-app guide + search + What's New) is updated in every change that users can see (`references/ui-ux-and-guide.md`).
 
 ## 6. Working in the cloud sandbox
 Outbound network is proxied; only the session's repo is writable (others are read-only clones); GitHub via MCP tools (`mcp__github__*`, load with ToolSearch; `gh` only for search); no Android SDK; Playwright + Chromium preinstalled (`npm i` for deps; never `playwright install`). Run long jobs in the background and wait with Monitor (`until grep ... log`); never `pkill`; never edit served web files while e2e runs. A Stop hook may force commit+push when the tree is dirty. Schedule CI re-checks with `send_later` instead of polling.
