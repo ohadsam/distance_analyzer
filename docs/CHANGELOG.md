@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.0
+- **Share StepUp** (Settings > About > Share): a sheet with **WhatsApp**, **e-mail**, **More...** (Android's / the browser's share menu) and **Copy link**. Only the two app links are sent (the web app and the newest Android APK), never data about you. Built from the sister app SonRise's pattern; `appShare.js` (pure links, tested), `ui/shareApp.js`.
+- **What is new**: a window that opens once after an update (never on a first install, never over a workout, never together with the permissions sheet) and a **What is new** button in About. Bullets live in `changelog.js` in both languages; a unit test keeps them in step with this file.
+- Search finds "share", "WhatsApp" and "what is new"; the user guide describes both.
+
 ## 0.24.1
 - **Fix: the installed web app kept showing the old version.** A new service worker could store files from the browser's HTTP cache (GitHub Pages keeps them for 10 minutes), and the page in front of you kept running the old files until the next visit. The worker now always fetches fresh files when it installs, and when a new version takes over the app reloads itself once (never while a workout is in progress).
 

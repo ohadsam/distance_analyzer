@@ -12,9 +12,9 @@ for (const f of js) { try { execFileSync(process.execPath, ['--check', f], { std
 const BANNED = [[/\binnerHTML\b/, 'innerHTML'], [/\bouterHTML\b/, 'outerHTML'], [/\binsertAdjacentHTML\b/, 'insertAdjacentHTML'], [/\beval\s*\(/, 'eval'], [/new Function\s*\(/, 'new Function'], [/document\.write\s*\(/, 'document.write'], [/\bsetTimeout\s*\(\s*['"`]/, 'string setTimeout'], [/\.replaceChildren\((?!\)|\s*\.\.\.)/, 'replaceChildren(args) renders null as text - use setChildren()']];
 for (const f of js) { const src = readFileSync(f, 'utf8'); for (const [re, name] of BANNED) if (re.test(src)) fail(`${f}: uses ${name}`); }
 
-// No remote code/fonts/analytics: the CSP says 'self' only, make sure the sources agree.
+// No remote code/fonts/analytics: the CSP says 'self' only, make sure the sources agree. (wa.me is only a link the person taps, never fetched)
 for (const f of [...js, 'web/index.html', 'web/css/app.css']) {
-  const src = readFileSync(f, 'utf8').replace(/https:\/\/(github\.com|ohadsam\.github\.io|api\.open-meteo\.com|api\.github\.com|nominatim\.openstreetmap\.org|routing\.openstreetmap\.de|overpass-api\.de|tile\.openstreetmap\.org|www\.openstreetmap\.org)\S*/g, '').replace(/http:\/\/www\.topografix\.com\/GPX\/1\/1/g, ''); // (the GPX XML namespace is an identifier, not a request)
+  const src = readFileSync(f, 'utf8').replace(/https:\/\/(github\.com|wa\.me|ohadsam\.github\.io|api\.open-meteo\.com|api\.github\.com|nominatim\.openstreetmap\.org|routing\.openstreetmap\.de|overpass-api\.de|tile\.openstreetmap\.org|www\.openstreetmap\.org)\S*/g, '').replace(/http:\/\/www\.topografix\.com\/GPX\/1\/1/g, ''); // (the GPX XML namespace is an identifier, not a request)
   if (/https?:\/\/(?!www\.w3\.org)/.test(src.replace(/^\s*\/\/.*$/gm, ''))) fail(`${f}: external URL (CSP is 'self' only)`);
 }
 if (/ style="/.test(readFileSync('web/index.html', 'utf8').replace(/<noscript>[\s\S]*<\/noscript>/, ''))) fail('web/index.html: inline style attribute is blocked by CSP');

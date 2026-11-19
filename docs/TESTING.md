@@ -10,6 +10,7 @@ Run all: `npm run check && npm test && npm run e2e` (CI runs the same plus Andro
 | Android | CI only | `gradle testDebugUnitTest`, `lintDebug`, `assembleRelease` (no Android SDK in the sandbox) |
 
 ## Unit tests (tests/unit)
+- `share-whatsnew.test.js`: WhatsApp / e-mail links carry the whole encoded text (and are capped); `changelog.js` has the running version first, equal bullet counts in en and he, and every version also in `docs/CHANGELOG.md`.
 - `workout.test.js`: haversine, distance/moving time/pace/splits from a 3 m/s run, rejected fixes, pause gaps, finish, sanitising hostile records, regressions (pace after pause, finishing while paused).
 - `cadence.test.js`: step detector on synthetic accelerometer signals (`_signal.js`), silent learning then lock, irregular rhythm never locks, stop/pause, re-lock, manual rhythm, breathing pattern, untrusted pattern key.
 - `engines.test.js`: stats (weeks start Sunday, buckets, streak, bests, weather buckets, filters), steps (stride, quality, series, recommendation), effort (minutes, bar from median, ceiling, alerts long/fast/surge, gentle new target), reminders (sanitise, due window incl. midnight, smart nudge rules), alerts (sanitise, bounds), search (Hebrew/English normalisation, ranking).

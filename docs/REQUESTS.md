@@ -100,3 +100,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 83 | Skill + checklist cover testing, user guide, UI/UX and screenshots generated from the tests; a full e2e + journey regression with screenshots at the end of every big stage | ✅ app-development §ui-ux-and-guide, testing-quality, release-checklist §6c |
 | 84 | Skill covers sharing the app (WhatsApp), version, About, What's New and updates as in SonRise/StepUp | ✅ app-development/references/sharing-about-whatsnew.md (StepUp itself still lacks a WhatsApp sheet and a What's New sheet - port on request) |
 | 85 | The skill must be generic for building new apps in other fields (intake, capability menu, domain-neutral wording, template CLAUDE.md) | ✅ app-development/references/domain-adaptation.md |
+| 86 | StepUp itself: a WhatsApp / e-mail / share sheet and a What-is-new window (as in SonRise) | ✅ 0.25.0 |

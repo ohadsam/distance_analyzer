@@ -10,6 +10,7 @@ import { renderGuide } from './ui/guide.js';
 import { renderMap } from './ui/mapScreen.js';
 import { permissionList, onPermissionsChanged } from './permissions.js';
 import { maybeShowPermissionSheet } from './ui/permissions.js';
+import { maybeShowWhatsNew } from './ui/whatsnew.js';
 import { ensureLocation } from './weatherApi.js';
 import { renderRoutePlan } from './ui/planner.js';
 import { renderReco } from './ui/reco.js';
@@ -63,7 +64,7 @@ if (native.available) { onFront(); onNativeEvent((e) => { if (e?.type === 'href'
 route();
 // Weather and the map want to know roughly where you are: once the location permission is granted the saved position is kept fresh (never asks by itself).
 const autoLocate = (list) => { if (list.find((p) => p.id === 'location')?.state === 'granted') ensureLocation(); };
-permissionList().then((list) => { autoLocate(list); maybeShowPermissionSheet(list); }); // one reading: the position, and, if something we ask for is missing, one sheet that asks for it (once per session)
+permissionList().then(async (list) => { autoLocate(list); await maybeShowPermissionSheet(list); maybeShowWhatsNew(); }); // one reading: the position, and, if something we ask for is missing, one sheet that asks for it (once per session)
 onPermissionsChanged(() => permissionList().then(autoLocate));
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   const hadWorker = !!navigator.serviceWorker.controller; // a first visit has nothing to replace

@@ -120,9 +120,9 @@ await step('about: update check (newer / latest / offline), newest APK link, sha
   await page.click('#upd-check'); await page.waitForSelector('#upd-refresh'); assert.match(await page.textContent('#upd-msg'), /99\.0\.0/); assert.match(await page.textContent('.upd-extra'), /Big news/);
   release = { name: 'v0.0.1 (build 1)' }; await page.click('#upd-check'); await page.waitForFunction(() => /latest version/.test(document.getElementById('upd-msg').textContent)); assert.equal(await page.locator('#upd-refresh').count(), 0);
   release = null; await page.click('#upd-check'); await page.waitForFunction(() => /Could not check/.test(document.getElementById('upd-msg').textContent)); assert.equal(await page.locator('.upd-extra img').count(), 1, 'offline picture');
-  await page.click('#share-app'); await page.waitForFunction(() => window.__shared); const sh = await page.evaluate(() => window.__shared); assert.match(sh.text, /ohadsam\.github\.io\/distance_analyzer\/ .*stepup\.apk/); assert.equal(sh.url, undefined, 'the links are in the text once');
+  await page.click('#share-app'); await page.waitForSelector('#share-sheet'); assert.match(decodeURIComponent((await page.getAttribute('#share-wa', 'href')).split('text=')[1]), /ohadsam\.github\.io\/distance_analyzer\/ .*stepup\.apk/); assert.match(await page.getAttribute('#share-wa', 'href'), /^https:\/\/wa\.me\/\?text=/); assert.match(await page.getAttribute('#share-mail', 'href'), /^mailto:\?subject=/); await page.click('#share-more'); await page.waitForFunction(() => window.__shared); const sh = await page.evaluate(() => window.__shared); assert.match(sh.text, /ohadsam\.github\.io\/distance_analyzer\/ .*stepup\.apk/); assert.equal(sh.url, undefined, 'the links are in the text once'); await page.click('#share-close');
   assert.deepEqual(errors.filter((e) => !/ERR_FAILED/.test(e)), []); // the aborted request is the offline case on purpose
-  const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base + '#/settings/s-about'); await a.page.waitForSelector('#share-app'); await a.page.click('#share-app'); await a.page.waitForFunction(() => window.__n.shared); assert.match(await a.page.evaluate(() => window.__n.shared), /Android app:/);
+  const a = await newPage({ lang: 'en', native: {} }); await a.page.goto(base + '#/settings/s-about'); await a.page.waitForSelector('#share-app'); await a.page.click('#share-app'); await a.page.click('#share-more'); await a.page.waitForFunction(() => window.__n.shared); assert.match(await a.page.evaluate(() => window.__n.shared), /Android app:/); await a.page.click('#share-close');
   release = { name: 'v99.0.0 (build 1)' }; await a.page.route('https://api.github.com/**', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(release) })); await a.page.click('#upd-check'); await a.page.waitForSelector('#upd-install'); assert.equal(await a.page.locator('#upd-apk-new').count(), 0);
 });
 
@@ -545,6 +545,17 @@ await step('training plan: an in-app reminder fires at the chosen hour on the da
   const at = new Date(2026, 10, 8, 17, 59, 40); const { page } = await newPage({ lang: 'en', clock: true, clockAt: at }); await page.goto(base);
   await page.evaluate(async (start) => { const P = await import('./js/plan.js'); localStorage.setItem('da.plan', JSON.stringify(P.generatePlan({ age: 35, level: 'beginner', goal: 'general', sessions: 3, types: ['easy', 'long'], weeks: 8, startDay: start, baseEffort: 90, kind: 'walk' }))); localStorage.setItem('da.planHour', '18'); }, new Date(2026, 10, 8).getTime());
   await page.clock.runFor(45000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Planned workout today/);
+});
+await step('share sheet (WhatsApp / e-mail / more / copy) and what-is-new: once after an update, never on a first install, reachable from About, axe clean in he and en', async () => {
+  for (const lang of ['en', 'he']) {
+    const { page, ctx } = await newPage({ lang }); await ctx.addInitScript(() => { try { localStorage.setItem('da.welcomed', '1'); if (localStorage.getItem('da.seenVersion') === null) localStorage.setItem('da.seenVersion', '0.20.0'); } catch { /* blocked */ } });
+    await page.goto(base); await page.waitForSelector('#wn-sheet[open]'); assert.match(await page.textContent('#wn-title'), /0\.25\.0/); assert.ok(await page.locator('#wn-sheet li').count() >= 2); assert.deepEqual(await axeViolations(page), [], `${lang} what-is-new`); await shot(page, `whatsnew-${lang}`);
+    await page.click('#wn-close'); await page.reload(); await page.waitForSelector('h1'); assert.equal(await page.locator('#wn-sheet').count(), 0, 'shown once per version');
+    await page.goto(base + '#/settings/s-about'); await page.waitForSelector('#whats-new'); await page.click('#whats-new'); await page.waitForSelector('#wn-sheet[open]'); await page.click('#wn-close');
+    await page.click('#share-app'); await page.waitForSelector('#share-sheet[open]'); assert.deepEqual(await axeViolations(page), [], `${lang} share sheet`); await shot(page, `share-sheet-${lang}`);
+    assert.match(await page.getAttribute('#share-wa', 'href'), /^https:\/\/wa\.me\/\?text=/); assert.equal(await page.getAttribute('#share-wa', 'target'), '_blank'); await page.click('#share-close'); assert.equal(await page.locator('#share-sheet').count(), 0);
+  }
+  const fresh = await newPage({ lang: 'en' }); await fresh.page.goto(base); await fresh.page.waitForSelector('h1'); assert.equal(await fresh.page.locator('#wn-sheet').count(), 0, 'a first install has nothing new'); assert.equal(await fresh.page.evaluate(() => localStorage.getItem('da.seenVersion')), '0.25.0');
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

@@ -4,7 +4,9 @@ import { t } from '../i18n.js';
 import { art } from '../art.js';
 import { native, onNativeEvent } from '../native.js';
 import { APP_VERSION } from '../appVersion.js';
-import { APK_URL, SITE_URL, checkUpdate, shareApp } from '../update.js';
+import { APK_URL, checkUpdate } from '../update.js';
+import { openShareApp } from './shareApp.js';
+import { openWhatsNew } from './whatsnew.js';
 import { onPermissionsChanged } from '../permissions.js';
 
 /** Fetch the new service worker and reload once it has taken over (or at once when there is nothing new to wait for). */
@@ -60,10 +62,6 @@ export function updateBox() {
 }
 
 export function aboutBlock() {
-  const shareOut = h('p', { class: 'note', id: 'share-msg', role: 'status' }), shareText = () => t('shareText', { site: SITE_URL, apk: APK_URL });
-  const share = h('button', { type: 'button', class: 'btn ghost', id: 'share-app', onclick: async () => {
-    const text = shareText(), how = await shareApp(text, { native });
-    setChildren(shareOut, how === 'copied' ? t('shareCopied') : how === 'manual' ? h('span', null, t('shareManual'), h('input', { readOnly: true, value: text, 'aria-label': t('shareApp'), onfocus: (e) => e.target.select() })) : null);
-  } }, t('shareApp'));
-  return h('div', { class: 'about' }, h('a', { class: 'btn ghost', id: 'upd-apk', href: APK_URL, rel: 'noopener noreferrer' }, t('updApk')), h('p', { class: 'note' }, t('updApkHint')), share, shareOut);
+  const share = h('button', { type: 'button', class: 'btn ghost', id: 'share-app', onclick: openShareApp }, t('shareApp'));
+  return h('div', { class: 'about' }, h('a', { class: 'btn ghost', id: 'upd-apk', href: APK_URL, rel: 'noopener noreferrer' }, t('updApk')), h('p', { class: 'note' }, t('updApkHint')), h('div', { class: 'row' }, share, h('button', { type: 'button', class: 'btn ghost', id: 'whats-new', onclick: openWhatsNew }, t('wnOpen'))));
 }
