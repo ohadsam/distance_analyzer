@@ -26,7 +26,8 @@ async function audit(page, name) {
     for (const e of inter) { const b = e.getBoundingClientRect(); if (Math.min(b.width, b.height) < 40 && !e.closest('p, label.check, .sr-only') && !(e.tagName === 'INPUT' && e.type === 'checkbox')) small.push(`${e.tagName.toLowerCase()}${e.id ? `#${e.id}` : e.className ? `.${String(e.className).split(' ')[0]}` : ''} ${Math.round(b.width)}x${Math.round(b.height)}`); }
     for (const e of document.querySelectorAll('body *')) { if (!vis(e)) continue; const cs = getComputedStyle(e); if (parseFloat(cs.fontSize) < 11 && [...e.childNodes].some((c) => c.nodeType === 3 && c.textContent.trim().length > 1) && !e.closest('svg')) tiny.push(`${e.tagName.toLowerCase()}.${String(e.className).split(' ')[0]} ${cs.fontSize}`); }
     for (const i of document.images) if (i.complete && i.naturalWidth === 0 && i.getAttribute('src')) broken.push(i.getAttribute('src'));
-    const above = inter.filter((e) => e.getBoundingClientRect().top < innerHeight && e.getBoundingClientRect().bottom > 0).length;
+    const seen = new Map(); // a list is ONE kind of choice ("which entry"): only its first 3 entries count, so a long history does not look like 20 competing actions
+    const above = inter.filter((e) => e.getBoundingClientRect().top < innerHeight && e.getBoundingClientRect().bottom > 0).filter((e) => !!e.closest('#app')).filter((e) => { const l = e.closest('.list'); if (!l) return true; const n = (seen.get(l) || 0) + 1; seen.set(l, n); return n <= 3; }).length;
     return { overflow: document.documentElement.scrollWidth > innerWidth + 1, h1: document.querySelectorAll('h1').length, small: small.slice(0, 6), tiny: [...new Set(tiny)].slice(0, 4), broken, choices: above, height: document.documentElement.scrollHeight };
   });
   await page.evaluate(axe.source); const ax = await page.evaluate(async () => (await axe.run(document, { resultTypes: ['violations'] })).violations.map((v) => `${v.id}(${v.nodes.length})`));

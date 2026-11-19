@@ -105,7 +105,16 @@ object Widgets {
     }
 }
 
-class StepsWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { StepStore.sample(context) { Widgets.updateAll(context, StepsWidget::class.java) } } }
+class StepsWidget : AppWidgetProvider() {
+    override fun onEnabled(context: Context) { StepStore.arm(context) } // the first steps widget: start the regular readings
+    /** Redraws at once, then takes a fresh reading and redraws again (goAsync keeps the process alive until the reading arrives). */
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != AppWidgetManager.ACTION_APPWIDGET_UPDATE) { super.onReceive(context, intent); return }
+        val pending = goAsync()
+        Widgets.updateAll(context, StepsWidget::class.java)
+        StepStore.sample(context) { Widgets.updateAll(context, StepsWidget::class.java); pending.finish() }
+    }
+}
 class EffortWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, EffortWidget::class.java) } }
 class QuickWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, QuickWidget::class.java) } }
 class LastWidget : AppWidgetProvider() { override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) { Widgets.updateAll(context, LastWidget::class.java) } }

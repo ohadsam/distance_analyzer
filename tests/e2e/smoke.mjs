@@ -547,15 +547,16 @@ await step('training plan: an in-app reminder fires at the chosen hour on the da
   await page.clock.runFor(45000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Planned workout today/);
 });
 await step('share sheet (WhatsApp / e-mail / more / copy) and what-is-new: once after an update, never on a first install, reachable from About, axe clean in he and en', async () => {
+  const VERSION = JSON.parse((await import('node:fs')).readFileSync('web/version.json', 'utf8')).version;
   for (const lang of ['en', 'he']) {
     const { page, ctx } = await newPage({ lang }); await ctx.addInitScript(() => { try { localStorage.setItem('da.welcomed', '1'); if (localStorage.getItem('da.seenVersion') === null) localStorage.setItem('da.seenVersion', '0.20.0'); } catch { /* blocked */ } });
-    await page.goto(base); await page.waitForSelector('#wn-sheet[open]'); assert.match(await page.textContent('#wn-title'), /0\.25\.0/); assert.ok(await page.locator('#wn-sheet li').count() >= 2); assert.deepEqual(await axeViolations(page), [], `${lang} what-is-new`); await shot(page, `whatsnew-${lang}`);
+    await page.goto(base); await page.waitForSelector('#wn-sheet[open]'); assert.ok((await page.textContent('#wn-title')).includes(VERSION)); assert.ok(await page.locator('#wn-sheet li').count() >= 2); assert.deepEqual(await axeViolations(page), [], `${lang} what-is-new`); await shot(page, `whatsnew-${lang}`);
     await page.click('#wn-close'); await page.reload(); await page.waitForSelector('h1'); assert.equal(await page.locator('#wn-sheet').count(), 0, 'shown once per version');
     await page.goto(base + '#/settings/s-about'); await page.waitForSelector('#whats-new'); await page.click('#whats-new'); await page.waitForSelector('#wn-sheet[open]'); await page.click('#wn-close');
     await page.click('#share-app'); await page.waitForSelector('#share-sheet[open]'); assert.deepEqual(await axeViolations(page), [], `${lang} share sheet`); await shot(page, `share-sheet-${lang}`);
     assert.match(await page.getAttribute('#share-wa', 'href'), /^https:\/\/wa\.me\/\?text=/); assert.equal(await page.getAttribute('#share-wa', 'target'), '_blank'); await page.click('#share-close'); assert.equal(await page.locator('#share-sheet').count(), 0);
   }
-  const fresh = await newPage({ lang: 'en' }); await fresh.page.goto(base); await fresh.page.waitForSelector('h1'); assert.equal(await fresh.page.locator('#wn-sheet').count(), 0, 'a first install has nothing new'); assert.equal(await fresh.page.evaluate(() => localStorage.getItem('da.seenVersion')), '0.25.0');
+  const fresh = await newPage({ lang: 'en' }); await fresh.page.goto(base); await fresh.page.waitForSelector('h1'); assert.equal(await fresh.page.locator('#wn-sheet').count(), 0, 'a first install has nothing new'); assert.equal(await fresh.page.evaluate(() => localStorage.getItem('da.seenVersion')), VERSION);
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

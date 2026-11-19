@@ -70,7 +70,10 @@ class NotifyReceiver : BroadcastReceiver() {
 /** Alarms do not survive a reboot or an app update: arm them again. */
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        val pending = goAsync()
         NotifyStore.fireDue(context) // shows what came due while the phone was off, then arms the next one
         StepStore.arm(context)
+        Widgets.updateAll(context) // the widgets are blank after a restart or an update until something redraws them
+        StepStore.sample(context) { pending.finish() }
     }
 }

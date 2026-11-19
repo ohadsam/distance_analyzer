@@ -50,7 +50,7 @@ object StepStore {
 
     fun days(ctx: Context): String = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString("days", "{}") ?: "{}"
 
-    /** Reads the sensor once (it only reports on change, so wait up to 2.5 s) and records it. [done] runs on the main thread when finished. */
+    /** Reads the sensor once (it may report only on change, so wait up to 4 s) and records it. [done] runs on the main thread when finished. */
     fun sample(ctx: Context, done: () -> Unit = {}) {
         val app = ctx.applicationContext
         val sm = app.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -64,16 +64,17 @@ object StepStore {
             override fun onSensorChanged(e: SensorEvent) { if (e.values.isNotEmpty()) record(app, e.values[0].toLong()); finish() }
             override fun onAccuracyChanged(s: Sensor?, accuracy: Int) {}
         }
-        sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL, handler)
-        handler.postDelayed({ finish() }, 2500)
+        sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL, 0, handler) // no batching delay
+        sm.flush(listener) // ask for the latest value now (the counter otherwise reports only when it changes)
+        handler.postDelayed({ finish() }, 4000)
     }
 
-    /** A sample about every hour while the phone is on (inexact alarm: no extra permission). Re-armed after a reboot by BootReceiver. */
+    /** A sample about every 15 minutes while the phone is on (inexact non-waking alarm: no extra permission; it fires as soon as the phone wakes). Re-armed after a reboot or an update by BootReceiver, and when a steps widget is added. */
     fun arm(ctx: Context) {
         if (!available(ctx)) { disarm(ctx); return } // no sensor or no permission: no alarm
         val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val pi = PendingIntent.getBroadcast(ctx, 11, Intent(ctx, StepReceiver::class.java).setAction(StepReceiver.ACTION), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + 60_000, AlarmManager.INTERVAL_HOUR, pi)
+        am.setInexactRepeating(AlarmManager.RTC, System.currentTimeMillis() + 60_000, AlarmManager.INTERVAL_FIFTEEN_MINUTES, pi)
     }
 
     fun disarm(ctx: Context) {
@@ -82,7 +83,7 @@ object StepStore {
     }
 }
 
-/** Fires about every hour: takes one step reading, then lets the system go back to sleep. */
+/** Fires about every 15 minutes: takes one step reading, then lets the system go back to sleep. */
 class StepReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION) return

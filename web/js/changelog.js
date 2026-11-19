@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.25.1',
+    en: ['The steps widget on the home screen now keeps itself up to date: a new reading every 15 minutes, when you leave the app, after a restart or an update.', 'The map credit link is easier to tap.'],
+    he: ['ווידג׳ט הצעדים במסך הבית מתעדכן עכשיו מעצמו: קריאה חדשה כל 15 דקות, כשיוצאים מהאפליקציה, אחרי הפעלה מחדש ואחרי עדכון.', 'קל יותר ללחוץ על קישור הקרדיט של המפה.'] },
   { v: '0.25.0',
     en: ['Share StepUp by WhatsApp, e-mail, your phone\'s share menu or a copied link, from Settings > About.', 'This "What is new" page: it opens once after an update and is always in Settings > About.'],
     he: ['שיתוף StepUp בוואטסאפ, במייל, בתפריט השיתוף של הטלפון או בהעתקת קישור: בהגדרות > אודות.', 'דף "מה חדש": נפתח פעם אחת אחרי עדכון, ותמיד זמין בהגדרות > אודות.'] },

@@ -230,7 +230,7 @@ body[data-sun="1"][data-view="workout"] .val { font-weight: 900; } body[data-sun
 .profile { inline-size: 100%; block-size: 44px; } .profile .prof-area { fill: var(--primary); opacity: .18; } .profile .prof-line { fill: none; stroke: var(--primary); stroke-width: 2; }
 .rpwhy { font-size: .9rem; color: var(--muted); } .quick-two { display: contents; }
 /* svg maps keep their own left-to-right geometry (scale-bar text anchors at the left edge in Hebrew too); the OpenStreetMap credit gets a comfortable target */
-.bigmap, .livemap { direction: ltr; } .mapwrap .credit { min-block-size: 24px; display: inline-flex; align-items: center; }
+.bigmap, .livemap { direction: ltr; } .mapwrap .credit { min-block-size: 40px; display: inline-flex; align-items: center; padding-inline: 10px; } /* a real touch target (the audit's minimum) */
 
 /* ---- motion (round 8): icons, characters, gauges. Nothing moves unless an ancestor has .anim-on (start cards, the running workout screen, the bell while alerts are unread). ---- */
 /* StepUp Tier 1 motion. SVG must be inline for external CSS to affect inner groups. */

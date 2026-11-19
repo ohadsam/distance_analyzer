@@ -250,7 +250,7 @@ class MainActivity : ComponentActivity() {
     override fun onSaveInstanceState(outState: Bundle) { super.onSaveInstanceState(outState); web.saveState(outState) }
     override fun onNewIntent(intent: Intent) { super.onNewIntent(intent); setIntent(intent); readHref(intent); if (pendingHref.isNotEmpty()) deliver(JSONObject().put("type", "href")) } // the app is already in front: tell the page now
     override fun onResume() { super.onResume(); Voice.foreground = true; web.onResume(); permissionsChanged() } // (back from a settings screen)
-    override fun onPause() { keysOn = false; Voice.foreground = false; web.onPause(); super.onPause() }
+    override fun onPause() { keysOn = false; Voice.foreground = false; web.onPause(); if (StepStore.available(this)) StepStore.sample(this); super.onPause() } // leaving the app: the home-screen widget shows the newest count
     override fun onDestroy() { Updater.sink = null; web.destroy(); super.onDestroy() }
 
     /** Keeps the screen on during a workout (the web Wake Lock API is not reliable in every WebView). */

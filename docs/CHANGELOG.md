@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.1
+- **Fix: the steps widget stayed stuck.** The count was refreshed only about once an hour, and the reading could be cut short because the widget's update did not keep the app alive until the sensor answered. Now: a reading every 15 minutes (it fires as soon as the phone wakes), a reading when you leave the app, after a restart or an app update (the widgets were blank until something redrew them), and each time the widget itself updates (every 30 minutes); the sensor is asked for its latest value at once. *Needs a phone to confirm: Android decides exactly when background alarms run, especially in battery saver.*
+- **Fix: the map credit link is a real touch target** (40 px) on the map screen and the route planner.
+- The guided tour's "too many choices" check counts a list as one kind of choice (only its first three entries), so a long history no longer looks like 20 competing actions.
+
 ## 0.25.0
 - **Share StepUp** (Settings > About > Share): a sheet with **WhatsApp**, **e-mail**, **More...** (Android's / the browser's share menu) and **Copy link**. Only the two app links are sent (the web app and the newest Android APK), never data about you. Built from the sister app SonRise's pattern; `appShare.js` (pure links, tested), `ui/shareApp.js`.
 - **What is new**: a window that opens once after an update (never on a first install, never over a workout, never together with the permissions sheet) and a **What is new** button in About. Bullets live in `changelog.js` in both languages; a unit test keeps them in step with this file.
