@@ -20,6 +20,7 @@ Per-app facts live in that repo's `CLAUDE.md` + `docs/CONTEXT.md`; this skill is
 | Android shell, bridge, permissions, in-app update, background, widgets, signing | `references/android-webview-shell.md` |
 | Fully native Kotlin/Compose app | `references/native-kotlin.md` (+ the `android-native-dev` skill in `ohadsam/special_events`) |
 | Icons, logo, illustrations, characters, animations, backgrounds | `references/design-assets.md` |
+| Share the app (WhatsApp), version, About, What's New, updates box | `references/sharing-about-whatsnew.md` |
 | Tests, quality gates, the full regression at the end of a stage, a11y | `references/testing-quality.md` |
 | UI/UX rules, the user guide (in-app + docs), screenshots generated from the tests | `references/ui-ux-and-guide.md` |
 | Working with the owner in chat, reports, ledger | `references/working-with-owner.md` |
@@ -42,7 +43,8 @@ Kotlin cannot be compiled in the sandbox (no Android SDK): CI is the only gate -
 * **Permissions UX** - one Settings section listing every permission with state + Allow / Open-settings, a start-up sheet for missing required ones (once per session, never over an activity in progress, "don't ask again"), state model `granted | ask | blocked | unsupported`. -> `references/android-webview-shell.md` §3.
 * **Update button** - browser: refresh the service worker + reload; Android: verified download + `PackageInstaller` UPDATE (same applicationId/key, data stays). -> §4 and `references/pwa-pages-actions.md` §3 (a new version must really reach the phone).
 * **Background work** (foreground service, alarms, boot re-arm, step sensor), **widgets**, **notifications**. -> §5-§7.
-* **Backup/restore, share cards, guide + search, What's New** -> `references/lessons-learned.md` "feature checklist".
+* **Share the app (WhatsApp / e-mail / share sheet / copy), version + About, What's New after an update, the updates box** -> `references/sharing-about-whatsnew.md`.
+* **Backup/restore, share cards, guide + search** -> `references/lessons-learned.md` "feature checklist".
 * **Design assets** (icons, logo, characters, animations) come from ChatGPT through exact, versioned prompts, then are validated and integrated. -> `references/design-assets.md`.
 
 ## 4. Non-negotiables (the owner's standing rules, condensed - the full list is in `references/release-checklist.md` §0)
