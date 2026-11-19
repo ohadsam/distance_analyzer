@@ -1,6 +1,6 @@
 // Entry point: language/look, tiny hash router with per-view cleanup, service worker. UI modules live in js/ui/.
 import { setLang, t } from './i18n.js';
-import { getPref } from './store.js';
+import { getPref, active } from './store.js';
 import { icon } from './icons.js';
 import { brandMark, brandWordmark } from './brand.js';
 import { renderDashboard, renderDrill } from './ui/dashboard.js';
@@ -65,4 +65,9 @@ route();
 const autoLocate = (list) => { if (list.find((p) => p.id === 'location')?.state === 'granted') ensureLocation(); };
 permissionList().then((list) => { autoLocate(list); maybeShowPermissionSheet(list); }); // one reading: the position, and, if something we ask for is missing, one sheet that asks for it (once per session)
 onPermissionsChanged(() => permissionList().then(autoLocate));
-if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  const hadWorker = !!navigator.serviceWorker.controller; // a first visit has nothing to replace
+  // a new version took over: the page in front of you still runs the old files, so load the new ones once (never over a workout in progress)
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadWorker && !active.load() && !sessionStorage.getItem('da.swReload')) { try { sessionStorage.setItem('da.swReload', '1'); } catch { /* ignore */ } location.reload(); } });
+  navigator.serviceWorker.register('sw.js').catch(() => { /* offline-first is a bonus, never a blocker */ });
+}

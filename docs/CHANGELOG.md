@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.24.1
+- **Fix: the installed web app kept showing the old version.** A new service worker could store files from the browser's HTTP cache (GitHub Pages keeps them for 10 minutes), and the page in front of you kept running the old files until the next visit. The worker now always fetches fresh files when it installs, and when a new version takes over the app reloads itself once (never while a workout is in progress).
+
 ## 0.24.0
 - **Permissions in one place**: Settings opens with a Permissions section listing location, notifications, steps and (Android) running in the background, each with its state (Allowed / Not allowed yet / Blocked) and an **Allow** button. When Android will not ask again the button becomes **Open settings**; the list redraws by itself when you come back. In a browser the same section covers location and notifications. A toggle chooses whether the app asks at start-up.
 - **A sheet at start-up** when something is missing: one dialog (once per session, never over a workout, with "Allow all", "Not now" and "Do not ask again") that asks for the permissions right there.

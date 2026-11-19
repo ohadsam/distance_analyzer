@@ -72,3 +72,6 @@ GPS: 1 s fixes, 4 s after 15 slow fixes in a row (`TrackingMath`); service stops
 - **Design data:** `design/momentum/` (ChatGPT kit, source of truth) -> `scripts/build-design.mjs` -> `css/packs.css`, `js/iconData.js` (generated, checked by a test).
 - **Rhythm coach state machine:** off -> learning (silent, >= 20 s and steady >= 8 s: steps within 7 % variation, 100-230 spm) -> locked (clicks at the measured cadence). Stop > 5 s or pause -> learning. A different steady cadence (> 6 % away) for 16 s re-locks. Manual rhythm (no sensor / ± buttons) is never replaced by the sensor.
 
+
+### Service worker updates (0.24.1)
+`sw.js` installs with `new Request(url, { cache: 'reload' })` so a new worker never stores files from the browser's HTTP cache (Pages: 10 min). `app.js` reloads once on `controllerchange` when a worker already controlled the page and no workout is in progress (`da.swReload` guards a loop).
