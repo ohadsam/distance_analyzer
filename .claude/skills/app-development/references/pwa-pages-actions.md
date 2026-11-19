@@ -10,7 +10,7 @@ Generated data (icons, sprites) is produced by a script in `scripts/` (committed
 * **install**: `caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))` then `skipWaiting()`. The `cache: 'reload'` is essential: GitHub Pages serves files with `max-age=600`, so a plain `addAll` can store OLD files inside the NEW cache (0.24.1 incident: the PWA kept showing 0.23.1).
 * **activate**: delete other caches, `clients.claim()`.
 * **fetch**: same-origin GET only (never touch cross-origin); `version.json` network-first; everything else cache-first with background refresh; fall back to `index.html`.
-* **Page side** (`app.js`): register `sw.js`; on `controllerchange`, if there was already a controller and no activity (workout) is in progress and `sessionStorage` guard not set, `location.reload()` once, so the open page really runs the new files.
+* **Page side** (`app.js`): register `sw.js`; on `controllerchange`, if there was already a controller and no activity of the core flow (a recording, a timer run, an editor session) is in progress and `sessionStorage` guard not set, `location.reload()` once, so the open page really runs the new files.
 * **"Check for updates" button** (browser): `reg.update()` -> wait for `controllerchange` (<= 10 s) -> reload.
 * After every deploy: curl-equivalent check of the live `version.json` and `sw.js` (the sandbox proxy may block github.io - then use the Pages workflow result + the release, and say so).
 

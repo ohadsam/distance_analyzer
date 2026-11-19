@@ -1,6 +1,6 @@
 # Lessons learned (check before touching the same area)
 
-## Feature checklist for a new app of this kind
+## Feature checklist for a new app of this kind (any domain; drop what does not apply)
 Welcome/empty states with art · Settings (collapsed sections, one-line summaries) · Permissions section + start-up sheet · Update button · Backup/restore (versioned, sanitised, SKIP list for volatile keys like location timestamps) · Share picture/card · In-app guide with screenshots + global search (actions, data, guide) · What's New from CHANGELOG · Calm-animations switch · Light/dark/sunlight (high-contrast) look · Hebrew/English + RTL · Reminders/notifications (Android native, browser while open) · Widgets · Records/celebrations · Weekly challenge/summary.
 
 ## Incidents
@@ -13,7 +13,7 @@ Welcome/empty states with art · Settings (collapsed sections, one-line summarie
 | axe | `aria-required-children`, contrast on chips | `role=listitem` rows, tinted chip background |
 | e2e | init script re-seeded prefs each navigation | seed only when null |
 | Geolocation | retry storm when position fails | failure backoff (30 min), freshness 6 h, rounded coordinates |
-| Async UI | sheet appeared over a workout after an async read; listener leaks | re-check state after awaits; remove listeners |
+| Async UI | sheet appeared over the core activity after an async read; listener leaks | re-check state after awaits; remove listeners |
 | Native events | `ask()` never answered when already granted | always emit `permissions-changed` |
 | Update UI | progress lost leaving Settings | native `updateRunning` + re-attach |
 | Images | halos/skin-colour mask from ChatGPT PNGs | key colour background; restrict detection area |

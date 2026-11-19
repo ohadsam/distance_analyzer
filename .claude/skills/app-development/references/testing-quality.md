@@ -4,7 +4,7 @@
 `npm run check` (syntax, banned APIs, CSP/SW consistency) · `npm test` (node:test unit tests: logic, i18n parity, version sync, changelog, docs file map, guide titles he/en) · `npm run e2e` (Playwright smoke: boot, RTL, flows, axe-core over every screen/dialog in he+light and en+dark, 320 px no horizontal scroll; `ONLY="step name"` runs one step) · `tests/e2e/journey.mjs` (screenshots of ~90 screens + audit; `GUIDE_DIR=...` regenerates guide images) · Kotlin: JVM unit tests only in CI.
 Run long jobs in the background, wait with `until grep ... log`; never edit served web files during a run; Playwright is preinstalled (do not `playwright install`).
 
-## Rules
+## Rules (domain-independent; the step names below are examples)
 * New logic => unit test written with it; new flow => e2e step; every fixed bug => regression test; axe stays at ZERO; look at screenshots of every changed screen in he **and** en.
 * Native features cannot be exercised in the sandbox: use a **fake bridge stand-in** (`fakeAndroid` in e2e: stubs `NativeBridge` methods + dispatches `permissions-changed`/update events) to test the web side of native flows; say clearly what remains phone-only.
 * Layout sweep / text-fit (from SonRise: `tests/e2e/layout.mjs`, `textfit.mjs`, 320-1366 px, big text) once the UI grows.

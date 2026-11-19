@@ -1,5 +1,7 @@
 # Android WebView shell (reference implementation: StepUp `android/`, `web/js/native.js`, `permissions.js`)
 
+Generic for any app: §1-4 and §7-8 apply to every app with an Android shell; §5 (background) and §6 (widgets) are optional modules - include them only if the product needs them. Names like `trackStart`, `StepStore`, `TrackingService` are StepUp's instance of "a user-started activity that must keep running"; rename for your domain. Permission names in `PermMath.NAMES` are the app's own list (location/notifications/activity/battery/install in StepUp; contacts/calendar/SMS/exact-alarms/camera/storage elsewhere).
+
 ## 1. Layout and the one door
 `MainActivity` hosts the WebView (assets via `WebViewAssetLoader` on an in-app origin; only that origin loads in the WebView, others open in the browser; file/content access off; no cleartext). `NativeBridge` is the **only** JS interface: every argument validated, sizes capped (`BridgeLimits`). Web code reaches it only through `web/js/native.js` (wrappers that are no-ops/`false` in a browser, `native.available` gate). Native events go back through one `deliver(json)` channel (`onNativeEvent`). Anything unit-testable is a pure Kotlin `object` with no Android types (`*Math.kt`) + a JVM test in `src/test` (StepMath, TrackingMath, NotifyMath, WidgetMath, BackupMath, PhotoMath, PermMath, UpdateMath, BridgeLimits, FixBuffer, SplitTracker).
 Gotcha: after deleting "dead" bridge methods, grep each helper name (`trackStart` still used `notificationPermission()`; CI caught it).

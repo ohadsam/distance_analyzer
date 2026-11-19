@@ -1,9 +1,11 @@
 ---
 name: app-development
-description: How the owner (ohadsam) builds apps with Claude - a vanilla-JS PWA on GitHub Pages plus a thin Android WebView shell (or a fully native Kotlin app), shipped through GitHub Actions, with Hebrew-first/RTL UI, in-app permissions, in-app update-over-install, background tracking, widgets, ChatGPT-generated design assets and a release checklist that gates every change. Use when starting a new app, continuing one (StepUp, SonRise/morning_organizer, Special Events, Smart Alarm Clock, Kodesh), setting up CI/Pages/APK release, adding permissions/updates/widgets/background work, asking ChatGPT for icons/logo/characters/animations, or finishing a change ("run the release checklist"). Distilled from ohadsam/distance_analyzer (StepUp), morning_organizer, special_events, smart_alarm_clock, kodesh-app, Tehilim_Daily.
+description: Domain-independent method for building and shipping ANY new app the owner (ohadsam) asks for, in any field (fitness, family/routines, events, alarms, religious texts, tools...) - a vanilla-JS PWA on GitHub Pages plus a thin Android WebView shell (or a fully native Kotlin app), shipped through GitHub Actions, Hebrew-first/RTL, with in-app permissions, in-app update-over-install, share-the-app/WhatsApp, What's New/About, optional background work and widgets, ChatGPT-generated design assets, tests with screenshots, and a release checklist that gates every change. Use when starting a new app (run the intake in references/domain-adaptation.md), continuing one, setting up CI/Pages/APK release, adding permissions/updates/sharing/widgets/background work, commissioning icons/logo/characters/animations from ChatGPT, or finishing a change ("run the release checklist"). Distilled from StepUp (ohadsam/distance_analyzer), SonRise (morning_organizer), Special Events, Smart Alarm Clock, Kodesh, Tehilim Daily.
 ---
 
-# App development the owner's way
+# App development the owner's way (any domain)
+
+**Domain-independent.** Examples in the references (workout, GPS, steps, routines, alarms...) are illustrations of "the app's core activity"; for a new app in a new field, first run the intake in `references/domain-adaptation.md` (audience, core activity, data, platform, capabilities, online services, owner-confirmed domain rules, design language), then apply everything below unchanged.
 
 One skill, four jobs: **start** an app, **build** features in the established patterns, **commission design assets** from ChatGPT, **ship** through CI (release checklist included - it is part of the work, not an afterthought).
 Per-app facts live in that repo's `CLAUDE.md` + `docs/CONTEXT.md`; this skill is the reusable way of working. If an app's own rule conflicts with this file, the app wins; if you learn something that applies to every app, put it here (§7).
@@ -15,6 +17,7 @@ Per-app facts live in that repo's `CLAUDE.md` + `docs/CONTEXT.md`; this skill is
 
 | Task | Read |
 |---|---|
+| **New app in any field: intake + capability menu** | `references/domain-adaptation.md` |
 | New app / bootstrap | `references/bootstrap.md`, then `templates/` |
 | Web app, PWA, service worker, GitHub Pages, Actions | `references/pwa-pages-actions.md` |
 | Android shell, bridge, permissions, in-app update, background, widgets, signing | `references/android-webview-shell.md` |
@@ -33,13 +36,13 @@ Per-app facts live in that repo's `CLAUDE.md` + `docs/CONTEXT.md`; this skill is
 * **No server, no account**; data stays on the device; anything online is opt-out-able, named in the UI and allow-listed in the CSP.
 * **Hebrew first (RTL) and English equal** from the first commit: i18n parity test, logical CSS only, number + space + unit.
 * **Audience first**: few things per screen, big targets, short kind wording, grouped toolbars on one row, collapsed settings with one-line summaries, one primary action. Health or legal guidance is general, never advice.
-* **Safe defaults**: quiet, private; but the owner decided (StepUp 0.24) that map, weather and planner online services are ON by default and clearly switchable - record such decisions in `REQUESTS.md`.
+* **Safe defaults**: quiet, private, nothing leaves the device unless the person chooses - unless the owner decides otherwise for that app (e.g. StepUp 0.24: map/weather/planner ON by default, clearly switchable). Record such decisions in `REQUESTS.md`.
 
 ## 2. Pipeline in one picture
 `feature branch (claude/* or ccr-*)` -> push -> **CI** (`ci.yml`: web static+security checks, unit tests, Playwright e2e + axe; android: JVM unit tests, lint, signed release APK + sha256) -> merge/push to **`main`** -> **release job** (GitHub Release `build-N` with `app.apk` + `.sha256`, notes cut from `docs/CHANGELOG.md`, newest 10 kept) and **`pages.yml`** (deploys `web/` when it changed) -> verify the **live** result (release asset, Pages `version.json`). Templates: `templates/workflows/`. Details: `references/pwa-pages-actions.md`.
 Kotlin cannot be compiled in the sandbox (no Android SDK): CI is the only gate - push and read the log (`get_job_logs`), never claim success from eyeballing.
 
-## 3. Features that every app of this kind needs (patterns, with reference implementations in StepUp)
+## 3. Building blocks (pick what the app needs - menu in `references/domain-adaptation.md` §2; reference implementations in StepUp and SonRise)
 * **Permissions UX** - one Settings section listing every permission with state + Allow / Open-settings, a start-up sheet for missing required ones (once per session, never over an activity in progress, "don't ask again"), state model `granted | ask | blocked | unsupported`. -> `references/android-webview-shell.md` §3.
 * **Update button** - browser: refresh the service worker + reload; Android: verified download + `PackageInstaller` UPDATE (same applicationId/key, data stays). -> §4 and `references/pwa-pages-actions.md` §3 (a new version must really reach the phone).
 * **Background work** (foreground service, alarms, boot re-arm, step sensor), **widgets**, **notifications**. -> §5-§7.
