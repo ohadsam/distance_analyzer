@@ -60,6 +60,7 @@ Gotcha (real, from the sister project): untrusted keys must be checked with `Obj
 Gotcha (real): `page.addInitScript` only applies on the next document load - `reload()` first. e2e starts in Hebrew/RTL (the default): `newPage({ lang: 'en' })` starts in English.
 Gotcha (real): glyphs like ‹ › in Android layouts do not mirror in RTL - put them in `values/` and `values-he/` strings. Native-only features cannot be exercised here: say so in the report and rely on CI compile/lint.
 Gotcha (real): grid/flex children default to `min-width:auto` - a time input or long word makes sheets wider than the screen; keep `min-width:0` on form controls.
+Gotcha (real): the CSP forbids inline style ATTRIBUTES, also on SVG elements made with `setAttribute('style', ...)`: use `el.style.setProperty(...)` (CSSOM). The tour (`journey.mjs`) runs with reduced motion so animated pictures are steady.
 Gotcha (real): `el.replaceChildren(null)` renders the text "null" - use `setChildren()` from `util.js` or `h()` which flatten and skip null.
 
 ## 6b. Updates, PWA and permissions - verify every release (owner's request, from 0.24.x)

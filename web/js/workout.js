@@ -4,9 +4,37 @@ import { clamp } from './util.js';
 
 export const LIMITS = { maxAccuracyM: 35, maxSpeedMps: 12, movingMps: 0.5, paceWindowMs: 30000, maxPoints: 20000, kinds: ['walk', 'run'] };
 
-export function newWorkout(kind, now) {
-  return { kind: LIMITS.kinds.includes(kind) ? kind : 'walk', startedAt: now, endedAt: 0, pausedMs: 0, pausedAt: 0, distanceM: 0, movingMs: 0, splits: [], points: [], last: null, recent: [] };
+/** How the real start of an activity is recognised (from the GPS fixes alone): a steady stretch of at least `minDistM` metres at no less than `minSpeedMps`, in a window of 4-20 s. A run needs a quicker, longer stretch than a walk. */
+export const START = { walk: { minDistM: 12, minSpeedMps: 0.9 }, run: { minDistM: 18, minSpeedMps: 1.8 }, minWindowMs: 4000, maxWindowMs: 20000, maxAccM: 25, straight: 0.6 };
+
+/**
+ * waitForMotion = the person pressed Start, but measuring only begins when they really start moving (`waiting` until then; time, distance and the route stay empty).
+ * Without it the workout is measuring from `now` (the older behaviour, and what a restored workout does).
+ */
+export function newWorkout(kind, now, { waitForMotion = false } = {}) {
+  return { kind: LIMITS.kinds.includes(kind) ? kind : 'walk', startedAt: now, waiting: !!waitForMotion, endedAt: 0, pausedMs: 0, pausedAt: 0, distanceM: 0, movingMs: 0, splits: [], points: [], last: null, recent: [], warm: [] };
 }
+/** True while the workout waits for the real start of the activity. */
+export const isWaiting = (w) => w.waiting === true;
+
+/**
+ * Index in `fixes` (oldest first, objects { lat, lon, t, acc }) where steady movement began, or -1. Pure: a standing person's GPS jitter (wandering, not travelling) never qualifies.
+ * The EARLIEST qualifying start is returned, so the first steps of the run are not lost.
+ */
+export function detectStart(fixes, kind) {
+  const need = START[kind === 'run' ? 'run' : 'walk'], f = fixes.filter((x) => validPoint(x) && Number.isFinite(x.t) && !(Number.isFinite(x.acc) && x.acc > START.maxAccM));
+  if (f.length < 2) return -1;
+  const last = f[f.length - 1];
+  for (let i = 0; i < f.length - 1; i++) {
+    const dt = last.t - f[i].t; if (dt < START.minWindowMs || dt > START.maxWindowMs) continue;
+    const d = haversine(f[i], last); if (d < need.minDistM || d / (dt / 1000) < need.minSpeedMps) continue;
+    let path = 0; for (let j = i; j < f.length - 1; j++) path += haversine(f[j], f[j + 1]);
+    if (d >= START.straight * path) return fixes.indexOf(f[i]); // travelled, not wandered
+  }
+  return -1;
+}
+/** Measuring begins now (the person said so, or there is no GPS to tell): everything before this moment is not part of the workout. */
+export function startNow(w, now) { if (w.waiting) { w.waiting = false; w.startedAt = now; w.pausedMs = 0; w.warm = []; } return w; }
 
 export const isPaused = (w) => w.pausedAt > 0;
 export const isFinished = (w) => w.endedAt > 0;
@@ -17,14 +45,25 @@ export function finish(w, now) { if (isPaused(w)) { w.pausedMs += now - w.paused
 
 /** Wall-clock time of the workout without paused time. */
 export function elapsedMs(w, now) {
+  if (isWaiting(w)) return 0;
   const end = w.endedAt || (w.pausedAt || now);
   return Math.max(0, end - w.startedAt - w.pausedMs);
+}
+
+/** While waiting for the start: keeps the last ~25 s of fixes and, when they show steady movement, begins measuring from where it began (back-dated) and replays those fixes. */
+function waitFix(w, fix) {
+  const warm = w.warm || (w.warm = []); if (warm.length && fix.t <= warm[warm.length - 1].t) return false;
+  warm.push({ lat: fix.lat, lon: fix.lon, t: fix.t, acc: fix.acc }); while (warm.length > 2 && fix.t - warm[0].t > START.maxWindowMs + 5000) warm.shift();
+  const i = detectStart(warm, w.kind); if (i < 0) return true; // accepted, still waiting
+  const run = warm.slice(i); startNow(w, run[0].t); for (const f of run) addFix(w, f);
+  return true;
 }
 
 /** Adds one GPS fix {lat, lon, t, acc}. Returns true when it was accepted (rejected: inaccurate, impossible jump, out of order, paused). */
 export function addFix(w, fix) {
   if (isPaused(w) || isFinished(w) || !validPoint(fix) || !Number.isFinite(fix.t)) return false;
   if (Number.isFinite(fix.acc) && fix.acc > LIMITS.maxAccuracyM) return false;
+  if (isWaiting(w)) return waitFix(w, fix);
   const prev = w.last;
   if (prev) {
     const dt = fix.t - prev.t;
@@ -96,6 +135,7 @@ export function sanitizeActive(r) {
   const rec = sanitizeWorkout({ ...r, endedAt: 0 }); if (!rec) return null;
   const w = newWorkout(rec.kind, rec.startedAt);
   const n = (v, hi) => (Number.isFinite(v) ? clamp(v, 0, hi) : 0);
+  w.waiting = r.waiting === true; // an older saved workout was measuring from its start
   Object.assign(w, { pausedMs: n(r.pausedMs, 1e9), pausedAt: n(r.pausedAt, 4e12), distanceM: rec.distanceM, movingMs: rec.movingMs, splits: rec.splits, points: rec.points });
   const lp = rec.points[rec.points.length - 1]; w.last = lp && !w.pausedAt ? { lat: lp[0], lon: lp[1], t: lp[2] } : null;
   return w;

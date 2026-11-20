@@ -12,8 +12,8 @@ const server = await serve('web', 0), base = `http://localhost:${server.address(
 const findings = [], shotsList = []; let n = 0, curLang = 'he'; const LANGS = ['he', 'en']; // Hebrew (the default) first, then English
 
 async function ctxPage({ lang = 'he', width = 390, height = 800, scheme = 'light', geo = true, sheet = false } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
-  await ctx.addInitScript(({ l, ask }) => { try { localStorage.setItem('da.lang', l); const once = (k, v) => { if (localStorage.getItem(`da.${k}`) === null) localStorage.setItem(`da.${k}`, v); }; once('mapTiles', '0'); once('onlineWx', '0'); once('planNet', '0'); if (!ask) once('permAsk', '0'); } catch { /* blocked */ } }, { l: lang, ask: sheet }); // the map and the weather are on by default in the app; the tour keeps them off (no network here) except where a flow mocks them
+  const ctx = await browser.newContext({ viewport: { width, height }, locale: 'en-US', colorScheme: scheme, reducedMotion: 'reduce', /* steady pictures: the charts grow in and the pictures loop, so a screenshot must not catch them half way */ serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
+  await ctx.addInitScript(({ l, ask }) => { try { localStorage.setItem('da.lang', l); const once = (k, v) => { if (localStorage.getItem(`da.${k}`) === null) localStorage.setItem(`da.${k}`, v); }; once('mapTiles', '0'); once('onlineWx', '0'); once('planNet', '0'); if (!ask) once('permAsk', '0'); once('autoStart', '0'); } catch { /* blocked */ } }, { l: lang, ask: sheet }); // the map and the weather are on by default in the app; the tour keeps them off (no network here) except where a flow mocks them
   const page = await ctx.newPage(); const errors = []; page.on('pageerror', (e) => errors.push(e.message)); page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
   return { ctx, page, errors };
 }
@@ -80,6 +80,8 @@ async function flowB(lang) { curLang = lang; const { ctx, page, errors } = await
   await page.goto(base + '#/routes'); await page.waitForSelector('.routesbox, .list, .empty'); await shot(page, 'B', 'routes');
   await page.goto(base + '#/plan'); await page.waitForSelector('#plan-create'); await shot(page, 'B', 'plan-builder'); await page.click('#plan-create'); await page.waitForSelector('.planbox [data-session]'); await shot(page, 'B', 'plan-week');
   await page.goto(base + '#/reco'); await page.waitForSelector('h1'); await shot(page, 'B', 'recommendations');
+  await page.goto(base + '#/weather'); await page.waitForSelector('#wx-on'); await shot(page, 'B', 'weather-off');
+  await page.evaluate(() => localStorage.setItem('da.autoStart', '1')); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn'); await page.waitForSelector('.waitstart:not([hidden])'); await shot(page, 'B', 'run-waiting-for-movement'); await page.goto(base + '#/'); await page.evaluate(() => { localStorage.setItem('da.autoStart', '0'); localStorage.removeItem('da.active'); });
   await page.goto(base + '#/alerts'); await page.waitForSelector('h1'); await shot(page, 'B', 'alerts');
   await page.goto(base + '#/search'); await page.waitForSelector('input[type=search]'); await page.fill('input[type=search]', 'run'); await page.waitForTimeout(400); await shot(page, 'B', 'search-run');
   await page.goto(base + '#/settings'); await page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await shot(page, 'B', 'settings-all-open', { full: true });

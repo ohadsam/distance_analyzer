@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.27.0',
+    en: ['Measuring now begins when you really start walking or running: after Start the app waits for steady movement (a run needs a quicker pace) and counts from there. "Start measuring now" begins at once.', 'New weather screen: tap the sky picture for the weather hour by hour - temperature, humidity, rain, wind - for your place, a saved route or any place you search.', 'Charts and progress bars now animate when they appear.'],
+    he: ['המדידה מתחילה עכשיו כשבאמת מתחילים ללכת או לרוץ: אחרי לחיצה על התחלה האפליקציה ממתינה לתנועה יציבה (ריצה דורשת קצב מהיר יותר) וסופרת משם. "התחל למדוד עכשיו" מתחיל מיד.', 'מסך מזג אוויר חדש: לחיצה על תמונת השמיים פותחת את מזג האוויר שעה אחר שעה - טמפרטורה, לחות, גשם, רוח - למקום שלכם, למסלול שמור או לכל מקום שתחפשו.', 'גרפים ופסי התקדמות מונפשים עכשיו כשהם מופיעים.'] },
   { v: '0.26.0',
     en: ['New animated weather pictures: Home and Recommendations show the sky now (sunny, cloudy, rain, snow, thunderstorm...) with the temperature. They stay still in calm mode.'],
     he: ['תמונות מזג אוויר מונפשות חדשות: במסך הבית ובהמלצות מוצג מצב השמיים עכשיו (שמשי, מעונן, גשם, שלג, סופת רעמים...) עם הטמפרטורה. במצב רגוע הן נשארות דוממות.'] },

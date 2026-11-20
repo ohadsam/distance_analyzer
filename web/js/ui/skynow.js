@@ -9,7 +9,7 @@ import { conditionOf, weatherIcon } from '../weatherAnim.js';
 export function skyNow(size = 64, now = Date.now()) {
   if (!onlineOn()) return null;
   const f = cachedForecast(now), sky = f?.length ? skyAt(f, now) : null, cond = sky ? conditionOf(sky.code, sky.day) : null, icon = cond ? weatherIcon(cond, size) : null;
-  return icon ? h('div', { class: 'skynow', role: 'group', 'aria-label': `${t('skyNow')}: ${sky.tempC}°, ${t(`sky_${cond}`)}` }, icon, h('div', null, h('b', { class: 'skytemp' }, `${sky.tempC}°`), h('span', { class: 'skytext' }, t(`sky_${cond}`)))) : null;
+  return icon ? h('a', { class: 'skynow', href: '#/weather', 'aria-label': `${t('skyNow')}: ${sky.tempC}°, ${t(`sky_${cond}`)}. ${t('wxOpen')}` }, icon, h('div', null, h('b', { class: 'skytemp' }, `${sky.tempC}°`), h('span', { class: 'skytext' }, t(`sky_${cond}`)))) : null;
 }
 
 /** A place for the sky row that fills itself: at once from the cache, else after the forecast arrives (one cached request an hour, only with online weather on and a known position). */

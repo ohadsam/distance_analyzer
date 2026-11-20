@@ -293,3 +293,21 @@ html[data-calm="1"] .char-cycle img { animation: none !important; } @media (pref
 .wxa.anim-on img { animation: wxa-strip var(--ms, 1800ms) steps(12) infinite; } @keyframes wxa-strip { to { transform: translateX(-100%); } }
 html[data-calm="1"] .wxa img { animation: none !important; } @media (prefers-reduced-motion: reduce) { .wxa img { animation: none !important; } }
 .skynow { display: flex; align-items: center; gap: 12px; margin-block: 6px; } .skynow .skytemp { font-size: 1.5rem; margin-inline-end: 8px; } .skynow .skytext { color: var(--muted); }
+
+.waitstart { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-block: 8px; padding: 10px 12px; border: 1px dashed var(--outline); border-radius: var(--radius); background: var(--surface, transparent); }
+
+/* the weather screen */
+.weather .wxplace { display: grid; gap: 8px; } .weather .wxplace select, .weather .wxplace input { inline-size: 100%; min-inline-size: 0; } .weather .wxplace .row { display: flex; gap: 8px; } .wxresults { display: grid; gap: 6px; } .wxres { text-align: start; }
+.wxhours { display: flex; gap: 6px; overflow-x: auto; padding-block: 6px; scroll-snap-type: x proximity; } .wxhour { flex: none; min-inline-size: 52px; min-block-size: 56px; display: grid; place-items: center; gap: 2px; border: 1px solid var(--outline); border-radius: 12px; background: var(--surface, transparent); color: inherit; font: inherit; scroll-snap-align: start; } .wxhour[aria-pressed="true"] { background: var(--primary); color: var(--on-primary, #fff); border-color: var(--primary); }
+.wxdetail .wxhead { display: flex; align-items: center; gap: 14px; } .wxtemp { font-size: 2rem; margin-inline-end: 8px; } .wxrows { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin: 12px 0 0; } .wxrow { display: flex; justify-content: space-between; gap: 8px; border-block-end: 1px solid var(--outline); padding-block: 4px; } .wxrow dt { color: var(--muted); } .wxrow dd { margin: 0; font-weight: 700; }
+.wxcharts h2 { font-size: 1rem; margin-block: 14px 4px; } .wxcharts .chart { inline-size: 100%; block-size: auto; direction: ltr; }
+a.skynow { color: inherit; text-decoration: none; }
+
+/* charts come alive when they are drawn: bars grow from the baseline one after another, the line draws itself and its dots fade in, progress meters fill. Calm mode and reduced motion keep everything still. */
+.chart .bar { transform-box: fill-box; transform-origin: 50% 100%; animation: chart-bar .7s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(min(var(--i, 0), 30) * 40ms); } @keyframes chart-bar { from { transform: scaleY(0); opacity: .3; } to { transform: scaleY(1); opacity: 1; } }
+.chart .line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: chart-line 1s ease-out .1s forwards; } @keyframes chart-line { to { stroke-dashoffset: 0; } }
+.chart .dot, .chart .nowdot { animation: chart-pop .35s ease-out both; animation-delay: calc(.5s + min(var(--i, 0), 30) * 25ms); } .chart .nowdot { animation-delay: .6s; } @keyframes chart-pop { from { opacity: 0; } to { opacity: 1; } }
+.chart .target { animation: chart-pop .5s ease-out .5s both; }
+.meter > span { animation: meter-fill .9s cubic-bezier(.2, .8, .2, 1) both; transform-origin: inline-start; } @keyframes meter-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+html[data-calm="1"] .chart *, html[data-calm="1"] .meter > span { animation: none !important; } html[data-calm="1"] .chart .line { stroke-dasharray: none; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: reduce) { .chart *, .meter > span { animation: none !important; } .chart .line { stroke-dasharray: none; stroke-dashoffset: 0; } }

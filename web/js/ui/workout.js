@@ -10,7 +10,7 @@ import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon, setNeedle } from '../icons.js';
 import { pose } from './character.js';
-import { stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
+import { isWaiting, startNow, stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
 import { active, saveWorkout, getNum, getPref, setPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
 import { checkWorkout } from '../effort.js';
@@ -48,6 +48,9 @@ export function renderWorkout(kind, go, routeId) {
   const cardA = h('button', { type: 'button', class: 'metric tap', id: 'wk-a', onclick: () => cycle(0) }, capA, vA), cardB = h('button', { type: 'button', class: 'metric tap', id: 'wk-b', onclick: () => cycle(1) }, capB, vB);
   const voiceBtn = h('button', { type: 'button', class: 'tool', id: 'wk-voice', 'aria-pressed': String(getPref('voice', '0') === '1'), onclick: () => { const on = getPref('voice', '0') !== '1'; setPref('voice', on ? '1' : '0'); voiceBtn.setAttribute('aria-pressed', String(on)); if (on) say(t('wkVoiceOn')); syncVoice(); } }, icon('volume', 22), t('wkVoice'));
   const gpsCard = h('div', { class: 'gps-card', role: 'status' });
+  // "Waiting for you to start moving": Start was pressed, the position is being found, and measuring begins by itself when real movement is detected (a run needs a quicker stretch than a walk)
+  const waitEl = h('div', { class: 'waitstart', role: 'status', hidden: true }, h('span', { id: 'wk-wait-text' }, t('wkWaiting')), h('button', { type: 'button', class: 'btn ghost', id: 'wk-startnow', onclick: () => { if (w && isWaiting(w)) { startNow(w, Date.now()); paint(); } } }, t('wkStartNow')));
+  let wasWaiting = false; const autoStart = () => getPref('autoStart', '1') !== '0' && gps !== 'denied' && gps !== 'missing';
   const sunBtn = h('button', { type: 'button', class: 'tool', id: 'wk-sun', 'aria-pressed': String(getPref('sun', '0') === '1'), onclick: () => { const on = getPref('sun', '0') !== '1'; setPref('sun', on ? '1' : '0'); sunBtn.setAttribute('aria-pressed', String(on)); applySun(); } }, icon('sun', 22), t('wkSun'));
   const applySun = () => { if (getPref('sun', '0') === '1') document.body.dataset.sun = '1'; else delete document.body.dataset.sun; };
   // "It looks like you stopped": offered after ~30 s without moving (never paused automatically), then quiet for 3 minutes
@@ -156,7 +159,7 @@ export function renderWorkout(kind, go, routeId) {
   function onMain(instant = false) {
     const n = Date.now();
     if (phase === 'ready' && !instant && Number(getPref('countdown', '0')) > 0) return startCountdown(Number(getPref('countdown', '0')));
-    if (phase === 'ready') { w = newWorkout(kind, n); fired = new Set(); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
+    if (phase === 'ready') { w = newWorkout(kind, n, { waitForMotion: autoStart() }); fired = new Set(); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
     else if (phase === 'running') { drainNative(); pause(w, n); phase = 'paused'; rhythm.setRunning(false); trackOff(); persist(); }
     else if (phase === 'paused') { native.trackDrain(); resume(w, n); phase = 'running'; keepAwake(true); rhythm.setRunning(true); trackOn(); }
     paint();
@@ -212,6 +215,10 @@ export function renderWorkout(kind, go, routeId) {
     vDist.textContent = w ? (w.distanceM / 1000).toFixed(2) : '0.00';
     const ctx = { now: n, weightKg: getNum('weight', 70, 30, 250), bpm: Number(rhythm.el.dataset.bpm) || 0 }, [a, b] = pair();
     for (const [id, cap, v] of [[a, capA, vA], [b, capB, vB]]) { const m = metricValue(id, w, ctx); v.textContent = m.text; const label = m.unit ? `${t(m.cap)} (${t(m.unit)})` : t(m.cap); if (cap.dataset.m !== id + label) { cap.dataset.m = id + label; setChildren(cap, icon(METRIC_ICON[id] || 'gauge-pace', 16), label); } const dg = gaugeDeg(id, w); if (dg != null) setNeedle(cap.firstChild, dg); }
+    const waiting = !!w && isWaiting(w) && (phase === 'running' || phase === 'paused'); waitEl.hidden = !waiting;
+    if (waiting) { const txt = t(kind === 'run' ? 'wkWaitingRun' : 'wkWaiting'); if (waitEl.firstChild.textContent !== txt) waitEl.firstChild.textContent = txt; }
+    if (wasWaiting && !waiting && w && !isWaiting(w) && phase === 'running') { sr.textContent = t('wkMeasuring'); if (getPref('cueVibrate', '1') !== '0') try { navigator.vibrate?.(80); } catch { /* not supported */ } }
+    wasWaiting = waiting;
     el.dataset.phase = phase; el.classList.toggle('anim-on', phase === 'running'); paintBody(); syncKeys();
   }
   let bodyPhase = '';
@@ -221,7 +228,7 @@ export function renderWorkout(kind, go, routeId) {
     const main = phase === 'ready' ? [icon('play', 36), t('start')] : phase === 'running' ? [icon('pause', 36), t('pause')] : [icon('play', 36), t('resume')];
     setChildren(mainBtn, main); mainBtn.classList.toggle('is-pause', phase === 'running');
     const stats = h('div', { class: 'wk-stats' }, h('div', { class: 'metric hero' }, h('div', { class: 'cap' }, `${t('distance')} (${t('km')})`), vDist), h('div', { class: 'wk-two' }, cardA, cardB));
-    setChildren(body, phase === 'ready' ? gpsCard : stats, mapBox, rhythm.el,
+    setChildren(body, phase === 'ready' ? gpsCard : stats, waitEl, mapBox, rhythm.el,
       phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn),
       phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn));
   }
@@ -246,7 +253,7 @@ export function renderWorkout(kind, go, routeId) {
   let ticks = 0;
   paintMap();
   if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(true); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
-  tickId = setInterval(() => { drainNative(); ++ticks; if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); checkStopped(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
+  tickId = setInterval(() => { drainNative(); ++ticks; if (phase === 'running' && w && isWaiting(w) && (gps === 'denied' || gps === 'missing')) { startNow(w, Date.now()); paint(); } /* no position to tell the start from: measure from now */ if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); checkStopped(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
   const onHide = () => { keysSent = null; syncKeys(); if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { delete document.body.dataset.sun; clearTimeout(cdTimer); removeEventListener('stepup-native', onKey); native.handsFree(false); clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };

@@ -15,9 +15,9 @@ const step = async (name, fn) => { if (process.env.ONLY && !name.includes(proces
 
 // Hebrew/RTL is the default; pass {lang:'en'} to start in English. Collects console/page errors.
 // legacy: the map, the weather and the planner start OFF (the older steps test the consent flows); fresh: the real defaults (all ON). sheet: allow the start-up permission sheet.
-async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null, scheme = 'light', fresh = false, sheet = false } = {}) {
+async function newPage({ lang = 'he', width = 390, geo = true, clock = false, clockAt = null, signalGapMs = 0, native = null, scheme = 'light', fresh = false, sheet = false, auto = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, locale: 'en-US', colorScheme: scheme, serviceWorkers: 'block', ...(geo ? { permissions: ['geolocation'], geolocation: { latitude: 32, longitude: 34.8, accuracy: 5 } } : {}) });
-  await ctx.addInitScript(({ l, legacy, ask }) => { try { if (l !== 'he') localStorage.setItem('da.lang', l); const once = (k, v) => { if (localStorage.getItem(`da.${k}`) === null) localStorage.setItem(`da.${k}`, v); }; /* only when unset: a step may change them and reload */ if (legacy) for (const k of ['mapTiles', 'onlineWx', 'planNet']) once(k, '0'); if (!ask) once('permAsk', '0'); } catch { /* blocked */ } }, { l: lang, legacy: !fresh, ask: sheet });
+  await ctx.addInitScript(({ l, legacy, ask, auto }) => { try { if (l !== 'he') localStorage.setItem('da.lang', l); const once = (k, v) => { if (localStorage.getItem(`da.${k}`) === null) localStorage.setItem(`da.${k}`, v); }; /* only when unset: a step may change them and reload */ if (legacy) for (const k of ['mapTiles', 'onlineWx', 'planNet']) once(k, '0'); if (!ask) once('permAsk', '0'); once('autoStart', auto ? '1' : '0'); /* most steps measure from the tap; the auto-start step switches it on */ } catch { /* blocked */ } }, { l: lang, legacy: !fresh, ask: sheet, auto });
   const page = await ctx.newPage(); const errors = [];
   if (clock) await page.clock.install(clockAt ? { time: clockAt } : undefined);
   if (signalGapMs) await page.addInitScript(fakeFootsteps, signalGapMs);
@@ -41,10 +41,10 @@ const weeks = (n, per = 3) => Array.from({ length: n * per }, (_, i) => ({ daysA
 
 // A synthetic Open-Meteo answer for a hot summer day (cool dawn, 38 degrees in the afternoon) for the local days of `base`, today and tomorrow.
 function hotForecast(base, over = {}) {
-  const time = [], T = [], A = [], P = [], R = [], W = [], U = [], D = [], C = [];
+  const time = [], T = [], A = [], P = [], R = [], W = [], U = [], D = [], C = [], HU = [];
   for (let i = 0; i < 48; i++) { const d = new Date(base.getFullYear(), base.getMonth(), base.getDate(), i, 0), h = i % 24, feels = Math.round(24 + 14 * Math.exp(-((h - 15) ** 2) / 18));
-    time.push(d.getTime() / 1000); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); C.push(over.code ?? 2); }
-  return { hourly: { time, temperature_2m: T, apparent_temperature: A, precipitation_probability: P, precipitation: R, wind_speed_10m: W, uv_index: U, is_day: D, weather_code: C } };
+    time.push(d.getTime() / 1000); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); C.push(over.code ?? 2); HU.push(40 + (h % 24)); }
+  return { hourly: { time, temperature_2m: T, apparent_temperature: A, precipitation_probability: P, precipitation: R, wind_speed_10m: W, uv_index: U, is_day: D, weather_code: C, relative_humidity_2m: HU } };
 }
 const SUMMER = new Date(2026, 6, 15, 5, 30);
 // Routes the weather service in a page to the synthetic answer and counts the requests (the privacy check: none before consent).
@@ -570,6 +570,37 @@ await step('weather pictures: the animated sky (from the forecast code) shows on
     assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
   }
   const off = await newPage({ lang: 'en', clock: true, clockAt: noon }); await mockWeather(off.page, hotForecast(noon)); await off.page.goto(base); await seed(off.page, weeks(2)); await off.page.reload(); await off.page.waitForSelector('.daycard'); assert.equal(await off.page.locator('.skynow').count(), 0, 'online weather is off in the legacy setup: no sky, no request');
+});
+await step('auto start: after Start nothing is measured while you stand; real movement starts the clock (back-dated), "Start now" and no-GPS start at once, the setting turns it off', async () => {
+  const { page, ctx, errors } = await newPage({ lang: 'en', auto: true }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.click('.big-btn');
+  await page.waitForSelector('.waitstart:not([hidden])'); assert.match(await page.textContent('#wk-wait-text'), /start running/);
+  for (let i = 0; i < 4; i++) { await ctx.setGeolocation({ latitude: 32 + (i % 2) * 0.00002, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } // standing, GPS wander of ~2 m
+  assert.equal(await page.textContent('.v-dist'), '0.00', 'standing: no distance'); assert.equal(await page.locator('.waitstart:not([hidden])').count(), 1, 'still waiting'); await shot(page, 'wait-start-en'); assert.deepEqual(await axeViolations(page), []);
+  for (let i = 1; i <= 9; i++) { await ctx.setGeolocation({ latitude: 32.0001 + i * 0.00003, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); } // running at ~3 m/s
+  await page.waitForSelector('.waitstart', { state: 'hidden' }); assert.ok(parseFloat(await page.textContent('.v-dist')) > 0.01, 'measuring began by itself and the first strides count'); await page.click('.big-btn');
+  const w2 = await newPage({ lang: 'en', auto: true }); await w2.page.goto(base + '#/workout/walk'); await w2.page.waitForSelector('.big-btn'); await w2.page.click('.big-btn'); await w2.page.waitForSelector('#wk-startnow'); await w2.page.click('#wk-startnow'); await w2.page.waitForSelector('.waitstart', { state: 'hidden' });
+  const none = await newPage({ lang: 'en', auto: true, geo: false }); await none.page.addInitScript(() => { try { delete Object.getPrototypeOf(navigator).geolocation; } catch { /* ignore */ } }); await none.page.goto(base + '#/workout/walk'); await none.page.waitForSelector('.big-btn'); await none.page.waitForTimeout(500); await none.page.click('.big-btn'); await none.page.waitForTimeout(1500); assert.equal(await none.page.locator('.waitstart:not([hidden])').count(), 0, 'no GPS: nothing to wait for');
+  const off = await newPage({ lang: 'en' }); await off.page.goto(base + '#/settings'); await off.page.evaluate(() => document.querySelectorAll('details.sec').forEach((d) => { d.open = true; })); await off.page.waitForSelector('#s-autostart'); assert.equal(await off.page.isChecked('#s-autostart'), false, 'the test setup measures from the tap'); await off.page.check('#s-autostart'); assert.equal(await off.page.evaluate(() => localStorage.getItem('da.autoStart')), '1');
+  assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+});
+await step('weather screen: hour by hour for the day (temperature, feels like, humidity, rain), pick an hour, other days, a saved route, a searched place; opens from the sky row; axe clean', async () => {
+  const noon = new Date(2026, 6, 15, 12, 30);
+  for (const lang of ['en', 'he']) {
+    const { page, errors } = await newPage({ lang, fresh: true, clock: true, clockAt: noon }); const calls = await mockWeather(page, hotForecast(noon, { code: 61 })); const pl = await mockPlanner(page);
+    await page.goto(base); await seed(page, weeks(2)); await page.reload(); await page.waitForFunction(() => localStorage.getItem('da.loc'));
+    await page.goto(base + '#/reco'); await page.click('a.skynow'); await page.waitForSelector('#wx-hours .wxhour'); assert.equal(await page.locator('#wx-hours .wxhour').count(), 24); assert.equal(await page.getAttribute('#wx-hours .wxhour[aria-pressed=true]', 'data-hour'), '12', 'the current hour is selected');
+    for (const k of ['feels', 'hum', 'rainp', 'rain', 'wind', 'uv']) assert.equal(await page.locator(`#wx-detail [data-k=${k}]`).count(), 1, k);
+    assert.match(await page.textContent('#wx-detail [data-k=hum]'), /52%/, 'humidity at 12:00 from the forecast'); assert.equal(await page.locator('#wx-detail .wxa').count(), 1, 'the animated sky of that hour');
+    await page.click('#wx-hours .wxhour[data-hour="15"]'); assert.match(await page.textContent('#wx-detail [data-k=hum]'), /55%/); assert.match(await page.textContent('#wx-detail .wxhead small'), /15:00/);
+    assert.equal(await page.locator('.wxcharts svg.chart').count(), 2, 'temperature line and rain bars'); assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.wxcharts .bar')).animationName), 'chart-bar', 'bars grow in'); assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.wxcharts .line')).animationName), 'chart-line', 'the line draws itself'); assert.deepEqual(await axeViolations(page), [], `${lang} weather`); await shot(page, `weather-${lang}`); await page.evaluate(() => { document.documentElement.dataset.calm = '1'; }); assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.wxcharts .bar')).animationName), 'none', 'calm: the charts stand still'); await page.evaluate(() => { delete document.documentElement.dataset.calm; });
+    await page.click('.chip[data-day="1"]'); assert.equal(await page.getAttribute('#wx-hours .wxhour[aria-pressed=true]', 'data-hour'), '12', 'another day starts at midday');
+    const before = calls.length; await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/route.js'); await S.saveRoute(R.makeRoute([[32.1, 34.8, 1], [32.11, 34.81, 2], [32.12, 34.82, 3]], { id: 'rwx1', name: 'Park loop' })); }); await page.reload(); await page.waitForSelector('#wx-place option[value="r:rwx1"]', { state: 'attached' });
+    await page.selectOption('#wx-place', 'r:rwx1'); await page.waitForFunction((n) => document.querySelector('#wx-hours .wxhour'), 0); await page.waitForTimeout(500); assert.ok(calls.length > before, 'another place is another request'); assert.ok(calls.at(-1).includes('latitude=32.1'), 'the start of the route');
+    await page.fill('#wx-q', 'dizengoff'); await page.click('#wx-find'); await page.waitForSelector('.wxres'); await page.click('.wxres'); await page.waitForTimeout(500); assert.ok(calls.at(-1).includes('latitude=32.08'), 'the searched place'); assert.equal(await page.inputValue('#wx-place'), 'p');
+    await page.reload(); await page.waitForSelector('#wx-hours .wxhour'); assert.equal(await page.inputValue('#wx-place'), 'p', 'the chosen place is remembered');
+    assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+  }
+  const off = await newPage({ lang: 'en' }); await off.page.addInitScript(() => localStorage.setItem('da.onlineWx', '0')); await off.page.goto(base + '#/weather'); await off.page.waitForSelector('#wx-on'); assert.equal(await off.page.locator('#wx-hours').count(), 0, 'off: no forecast, no request, a button to turn it on');
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

@@ -14,6 +14,7 @@ import { maybeShowWhatsNew } from './ui/whatsnew.js';
 import { ensureLocation } from './weatherApi.js';
 import { renderRoutePlan } from './ui/planner.js';
 import { renderReco } from './ui/reco.js';
+import { renderWeather } from './ui/weather.js';
 import { renderRoutes, renderRoute } from './ui/routes.js';
 import { renderPlan } from './ui/plan.js';
 import { alertStore, unreadCount } from './alerts.js';
@@ -26,7 +27,7 @@ import { renderWorkout } from './ui/workout.js';
 import { setChildren, h } from './util.js';
 
 // route table: pattern -> view(param). Anything unknown falls back to Home.
-const ROUTES = [[/^settings(?:\/([\w-]{1,30}))?$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)(?:\/(go))?(?:\/r\/(r[a-z0-9]{3,24}))?$/, renderWorkout], [/^routes$/, renderRoutes], [/^map$/, renderMap], [/^routeplan$/, renderRoutePlan], [/^plan$/, renderPlan], [/^r\/(r[a-z0-9]{3,24})$/, renderRoute], [/^d\/([a-z]{3,20})$/, renderDrill], [/^alerts$/, renderAlerts], [/^search$/, renderSearch], [/^guide(?:\/([a-z]{3,20}))?$/, renderGuide], [/^reco$/, renderReco], [/^$/, renderDashboard]];
+const ROUTES = [[/^weather$/, renderWeather], [/^settings(?:\/([\w-]{1,30}))?$/, renderSettings], [/^history$/, renderHistory], [/^w\/(\d{1,15})$/, renderDetail], [/^workout\/(walk|run)(?:\/(go))?(?:\/r\/(r[a-z0-9]{3,24}))?$/, renderWorkout], [/^routes$/, renderRoutes], [/^map$/, renderMap], [/^routeplan$/, renderRoutePlan], [/^plan$/, renderPlan], [/^r\/(r[a-z0-9]{3,24})$/, renderRoute], [/^d\/([a-z]{3,20})$/, renderDrill], [/^alerts$/, renderAlerts], [/^search$/, renderSearch], [/^guide(?:\/([a-z]{3,20}))?$/, renderGuide], [/^reco$/, renderReco], [/^$/, renderDashboard]];
 let current = null;
 
 function route() {

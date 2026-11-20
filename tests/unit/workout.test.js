@@ -69,3 +69,37 @@ test('the Android kilometre counter uses the same limits as the page (so spoken 
   const kt = readFileSync('android/app/src/main/java/com/stepup/app/SplitTracker.kt', 'utf8');
   assert.ok(kt.includes(`acc > ${LIMITS.maxAccuracyM}f`), 'accuracy limit'); assert.ok(kt.includes(`v <= ${LIMITS.maxSpeedMps}.0`), 'speed limit'); assert.ok(kt.includes(`v >= ${LIMITS.movingMps}`), 'moving limit');
 });
+
+// ---- the real start of an activity: measuring begins when steady movement is detected ----
+import { detectStart, startNow, isWaiting, sanitizeActive, START } from '../../web/js/workout.js';
+const east = (m, lat0 = 32) => ({ lat: lat0, lon: 34.8 + m / (111195 * Math.cos(lat0 * Math.PI / 180)) });
+const still = (n, t0 = 0) => Array.from({ length: n }, (_, i) => ({ lat: 32 + ((i * 7919) % 5 - 2) / 111195 * 2, lon: 34.8 + (((i * 104729) % 5) - 2) / 94000 * 2, t: t0 + i * 1000, acc: 8 })); // +-4 m of GPS wander, standing
+
+test('detectStart: standing with GPS wander never starts; steady walking and running do; a run needs more speed than a walk', () => {
+  assert.equal(detectStart(still(40), 'walk'), -1); assert.equal(detectStart(still(40), 'run'), -1);
+  const walk = Array.from({ length: 14 }, (_, i) => ({ ...fix(1.3 * i, i * 1000) })); assert.ok(detectStart(walk, 'walk') >= 0, 'walking at 1.3 m/s');
+  assert.equal(detectStart(walk, 'run'), -1, 'a walk is not the start of a run');
+  const run = Array.from({ length: 10 }, (_, i) => fix(3 * i, i * 1000)); assert.ok(detectStart(run, 'run') >= 0, 'running at 3 m/s');
+  const slow = Array.from({ length: 20 }, (_, i) => fix(0.4 * i, i * 1000)); assert.equal(detectStart(slow, 'walk'), -1, 'shuffling at 0.4 m/s');
+  const bad = Array.from({ length: 10 }, (_, i) => fix(3 * i, i * 1000, 60)); assert.equal(detectStart(bad, 'run'), -1, 'inaccurate fixes never start it');
+  assert.equal(detectStart([], 'walk'), -1); assert.equal(detectStart([fix(0, 0)], 'walk'), -1);
+});
+
+test('a workout that waits for motion: nothing is measured until the run really starts, then it is back-dated to where it began', () => {
+  const w = newWorkout('run', 1000, { waitForMotion: true }); assert.ok(isWaiting(w));
+  for (let s = 0; s < 20; s++) assert.ok(addFix(w, { ...still(1, 1000 + s * 1000)[0], t: 1000 + s * 1000 })); // standing at the start line for 20 s
+  assert.ok(isWaiting(w)); assert.equal(w.distanceM, 0); assert.equal(elapsedMs(w, 60000), 0); assert.equal(w.points.length, 0);
+  const t0 = 21000; for (let s = 0; s <= 15; s++) addFix(w, fix(3 * s, t0 + s * 1000)); // then runs at 3 m/s
+  assert.ok(!isWaiting(w), 'the run was recognised'); assert.ok(w.startedAt >= t0 - 6000 && w.startedAt <= t0 + 2000, `started at ${w.startedAt}, movement began at ${t0} (a few seconds of standing may be included, never more than the detection window)`);
+  assert.ok(w.distanceM > 35, `the first strides count: ${w.distanceM}`); assert.ok(w.points.length >= 10);
+  assert.ok(elapsedMs(w, t0 + 15000) <= 21500 && elapsedMs(w, t0 + 15000) >= 12000, 'the clock starts with the movement, not with the button (20 s of standing before were not counted)');
+});
+
+test('startNow (the person says so, or no GPS) begins at once; pause while waiting is harmless; old saved workouts keep measuring', () => {
+  const w = newWorkout('walk', 5000, { waitForMotion: true }); pause(w, 6000); resume(w, 9000); assert.ok(isWaiting(w)); startNow(w, 10000);
+  assert.ok(!isWaiting(w)); assert.equal(w.startedAt, 10000); assert.equal(w.pausedMs, 0); assert.ok(addFix(w, fix(0, 11000)) && addFix(w, fix(5, 12000))); assert.ok(w.distanceM > 4);
+  const old = sanitizeActive({ kind: 'walk', startedAt: 1.7e12, distanceM: 100, movingMs: 60000, points: [] }); assert.ok(!isWaiting(old), 'a workout saved before this feature was measuring');
+  const waiting = sanitizeActive({ kind: 'run', startedAt: 1.7e12, waiting: true, points: [] }); assert.ok(isWaiting(waiting));
+  const finished = newWorkout('run', 0, { waitForMotion: true }); finish(finished, 5000); assert.equal(finished.distanceM, 0);
+  assert.ok(START.run.minSpeedMps > START.walk.minSpeedMps && START.run.minDistM > START.walk.minDistM);
+});

@@ -10,6 +10,7 @@ Run all: `npm run check && npm test && npm run e2e` (CI runs the same plus Andro
 | Android | CI only | `gradle testDebugUnitTest`, `lintDebug`, `assembleRelease` (no Android SDK in the sandbox) |
 
 ## Unit tests (tests/unit)
+- `workout.test.js` (auto start): standing with GPS wander never starts; steady walking / running do; a run needs more speed than a walk; slow shuffling and inaccurate fixes do not; the start is back-dated; `startNow`, pause while waiting, old saved workouts. `weather-anim.test.js`: `groupDays` / `startHour`, humidity.
 - `weather-anim.test.js`: every documented WMO code maps to one of the 15 pictures (night only for clear / mostly clear / partly cloudy), every strip exists with names in both languages and stays under 600 KB in total, the forecast carries the clamped weather code, `skyAt`.
 - `share-whatsnew.test.js`: WhatsApp / e-mail links carry the whole encoded text (and are capped); `changelog.js` has the running version first, equal bullet counts in en and he, and every version also in `docs/CHANGELOG.md`.
 - `workout.test.js`: haversine, distance/moving time/pace/splits from a 3 m/s run, rejected fixes, pause gaps, finish, sanitising hostile records, regressions (pace after pause, finishing while paused).

@@ -32,3 +32,16 @@ test('forecast carries the weather code (clamped, -1 when missing) and skyAt fin
   assert.deepEqual(sanitizeHours([{ t: t0 * 1000, temp: 20, code: 61 }, { t: t0 * 1000 + 3600000, temp: 20, code: 'bad' }]).map((h) => h.code), [61, -1]);
   assert.deepEqual(skyAt(f, t0 * 1000 + 100), { tempC: 20, code: 3, day: true }); assert.equal(skyAt(f, t0 * 1000 + 7300000), null, 'an hour without a code has no sky'); assert.equal(skyAt(f, 5), null);
 });
+
+import { groupDays, startHour } from '../../web/js/ui/weather.js';
+test('weather screen: hours group into local days (max 3) and the first hour shown is the current one, else midday', () => {
+  const t0 = new Date(2026, 6, 15, 0, 0).getTime(), list = Array.from({ length: 72 }, (_, i) => ({ t: t0 + i * 3600000, temp: 20, code: 0, day: true, hum: 50, rain: 0, rainP: 0, wind: 5, uv: 1, feels: 20 }));
+  const days = groupDays(list); assert.equal(days.length, 3); assert.equal(days[0].hours.length, 24);
+  assert.equal(startHour(days[0], t0 + 9 * 3600000 + 5), 9, 'today: the current hour'); assert.equal(new Date(days[1].hours[startHour(days[1], t0 + 9 * 3600000)].t).getHours(), 12, 'another day: midday');
+  assert.deepEqual(groupDays([]), []); assert.equal(groupDays(list.concat(list.map((x) => ({ ...x, t: x.t + 72 * 3600000 })))).length, 3, 'never more than three days');
+});
+test('forecast carries humidity (clamped, -1 when missing)', () => {
+  assert.match(forecastUrl(32.08, 34.79), /relative_humidity_2m/);
+  const t0 = 1784084400, f = normalizeForecast({ hourly: { time: [t0, t0 + 3600, t0 + 7200], temperature_2m: [20, 21, 22], relative_humidity_2m: [55, 140, null] } });
+  assert.deepEqual(f.map((h) => h.hum), [55, 100, -1]); assert.deepEqual(sanitizeHours([{ t: t0 * 1000, temp: 20, hum: 'x' }, { t: t0 * 1000 + 3600000, temp: 20, hum: 61 }]).map((h) => h.hum), [-1, 61]);
+});

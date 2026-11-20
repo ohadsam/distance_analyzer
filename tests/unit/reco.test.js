@@ -15,7 +15,7 @@ test('forecast: URL has only rounded coordinates; hostile answers are normalised
   const f = normalizeForecast({ hourly: { time: [1784084400, 'garbage', 1784088000], temperature_2m: [20, 21, 'x'], apparent_temperature: [22, 0, 0], precipitation_probability: [500, 0, 0], precipitation: [0, 0, 0], wind_speed_10m: [10, 0, 0], uv_index: [3, 0, 0], is_day: [1, 1, 1] } });
   assert.equal(f.length, 1); assert.equal(f[0].feels, 22); assert.equal(f[0].rainP, 100, 'clamped'); assert.equal(f[0].day, true);
   assert.deepEqual(normalizeForecast(null), []); assert.deepEqual(normalizeForecast({ hourly: { time: 'x' } }), []); assert.equal(normalizeForecast({ hourly: { time: new Array(500).fill(1784084400), temperature_2m: new Array(500).fill(20) } }).length, 72);
-  assert.equal(f[0].t % 3600000, 0, 'aligned to the hour'); assert.deepEqual(sanitizeHours([{ t: 1.8e12, temp: 70, feels: 'x', rainP: 500, rain: 0, wind: 0, uv: 0, day: 1 }, { t: 5, temp: 1 }, null]), [{ t: 1.8e12, temp: 60, feels: 0, rainP: 100, rain: 0, wind: 0, uv: 0, day: false, code: -1 }]);
+  assert.equal(f[0].t % 3600000, 0, 'aligned to the hour'); assert.deepEqual(sanitizeHours([{ t: 1.8e12, temp: 70, feels: 'x', rainP: 500, rain: 0, wind: 0, uv: 0, day: 1 }, { t: 5, temp: 1 }, null]), [{ t: 1.8e12, temp: 60, feels: 0, rainP: 100, rain: 0, wind: 0, uv: 0, day: false, code: -1, hum: -1 }]);
 });
 test('comfort: cool dry calm daylight is great; heat, rain, wind, darkness and UV reduce it, and the worst problem is named first', () => {
   const ok = { feels: 14, rainP: 0, rain: 0, wind: 6, uv: 2, day: true };

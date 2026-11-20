@@ -104,3 +104,6 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 87 | The steps widget must refresh by itself, not stay stuck; fix the small credit target and the noisy usability check | ✅ 0.25.1 (widget needs a phone to confirm) |
 | 88 | Steps / the steps widget must update with the app closed (0.25.1 did not: Android 9+ gives a background app no step events) | ✅ 0.25.2 StepService + a Settings switch (needs a phone to confirm) |
 | 89 | Use the weather animations (ClockWise motion, 5 parts) in StepUp to show the weather | ✅ 0.26.0 (15 animated pictures on the day card and Recommendations) |
+| 90 | Animate the charts when they load | ✅ 0.27.0 |
+| 91 | Weather drill-down: the weather at a chosen hour with rain, humidity and temperature, for the current location, another place or a chosen route | ✅ 0.27.0 (`#/weather`) |
+| 92 | After Start: location, distance and route are automatic and measuring begins only when the activity really starts (by pace and movement, especially for a run) | ✅ 0.27.0 (needs a real walk / run to tune the thresholds) |
