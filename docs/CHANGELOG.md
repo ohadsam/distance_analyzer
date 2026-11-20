@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.27.3
+- **Five more weather pictures come alive**: drizzle, rain, heavy rain, freezing rain and overcast now use the illustrator's new loops (falling drops in two sizes, ice crystals mixed into the freezing rain, two clouds drifting in the overcast). Checked: clean magenta borders in every frame, 12 distinct frames, loops that close, motion of 4-9 per frame (it was under 1).
+- **Not replaced yet** (they failed the check, the earlier pictures stay): *snow* (the flakes are broken fragments and nearly invisible on the light theme), *hail* (the stones are cut in half, D-shaped) and *fog* (dark smears on the bands in the dark theme). A correction prompt is in `docs/prompts/ROUND14_WEATHER_FIX_PROMPT.md`.
+- A second upload with the same names ("corrections") was byte-for-byte identical to the first; nothing differed.
+
 ## 0.27.2
 - **Thunderstorm picture fixed**: the corrected set replaces the 0.27.1 one - eight raindrops fall in a loop, the cloud pulses twice per loop like distant flashes, the bolt stays steady (no more flicker) and the keyed background is exactly magenta, so the edges are clean (0 magenta-ish edge pixels). The corrected sheet is kept in `design/stepup/weather-motion/thunderstorm_day_fixed_sheet.jpg`. Known from the illustrator's notes: the drops jump back to the top at the end of their fall (no fade).
 
