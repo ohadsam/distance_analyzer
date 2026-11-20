@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.27.2
+- **Thunderstorm picture fixed**: the corrected set replaces the 0.27.1 one - eight raindrops fall in a loop, the cloud pulses twice per loop like distant flashes, the bolt stays steady (no more flicker) and the keyed background is exactly magenta, so the edges are clean (0 magenta-ish edge pixels). The corrected sheet is kept in `design/stepup/weather-motion/thunderstorm_day_fixed_sheet.jpg`. Known from the illustrator's notes: the drops jump back to the top at the end of their fall (no fade).
+
 ## 0.27.1
 - **Livelier weather pictures.** Seven of the 15 animations are replaced by the illustrator's reworked set with real motion (sun rays and sparkle, drifting clouds, a moving moon glow, lightning and rain in the storm): sunny, clear night, mostly sunny / clear (day and night), partly cloudy (day and night) and thunderstorm. The loop is now 1.5 s for all (12 frames at 8 fps). No magenta fringe is left on the edges (checked: 0 of 716 343 edge pixels). The other eight stay as before. The reworked sheets are kept in `design/stepup/weather-motion/*_rework_sheet.jpg`; `scripts/make-weather-sprites.py` now lets a later directory replace a condition of an earlier one.
 

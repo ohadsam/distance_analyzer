@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.27.2',
+    en: ['The thunderstorm picture is fixed: steady lightning, falling rain and a cloud that flashes.'],
+    he: ['תמונת סופת הרעמים תוקנה: ברק יציב, גשם יורד וענן שמהבהב.'] },
   { v: '0.27.1',
     en: ['Livelier weather pictures: sun rays and sparkle, drifting clouds, a moving moon and a stormy sky now really move.'],
     he: ['תמונות מזג האוויר חיות יותר: קרני השמש והנצנוץ, עננים נעים, ירח זז ושמיים סוערים באמת זזים עכשיו.'] },
