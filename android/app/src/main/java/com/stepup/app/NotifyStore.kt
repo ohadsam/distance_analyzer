@@ -73,6 +73,7 @@ class BootReceiver : BroadcastReceiver() {
         val pending = goAsync()
         NotifyStore.fireDue(context) // shows what came due while the phone was off, then arms the next one
         StepStore.arm(context)
+        StepStore.ensureService(context) // boot / update: Android lets this start the steps service
         Widgets.updateAll(context) // the widgets are blank after a restart or an update until something redraws them
         StepStore.sample(context) { pending.finish() }
     }

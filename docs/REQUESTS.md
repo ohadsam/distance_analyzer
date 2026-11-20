@@ -102,3 +102,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 85 | The skill must be generic for building new apps in other fields (intake, capability menu, domain-neutral wording, template CLAUDE.md) | ✅ app-development/references/domain-adaptation.md |
 | 86 | StepUp itself: a WhatsApp / e-mail / share sheet and a What-is-new window (as in SonRise) | ✅ 0.25.0 |
 | 87 | The steps widget must refresh by itself, not stay stuck; fix the small credit target and the noisy usability check | ✅ 0.25.1 (widget needs a phone to confirm) |
+| 88 | Steps / the steps widget must update with the app closed (0.25.1 did not: Android 9+ gives a background app no step events) | ✅ 0.25.2 StepService + a Settings switch (needs a phone to confirm) |

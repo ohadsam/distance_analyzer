@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.25.2
+- **Fix: steps (and the steps widget) now update with the app closed.** Root cause: since Android 9 an app in the background receives **no** events from the step counter, so the alarm / widget-update readings of 0.25.1 could never succeed - the count moved only when the app was opened. Now a small foreground service of type *health* (`StepService`) keeps one step-counter listener alive; the sensor batches its readings in hardware (up to ten minutes), so the battery cost is tiny, and the newest value is folded into the day (and the widget redrawn) at most once a minute. It starts with the app, at boot and after an update, and shows one quiet, minimised notification ("Counting your steps").
+- A new switch **Settings > Count my steps all day** (on by default, Android only) turns it off; then steps are counted only while the app is open, as before.
+- New Android permission `FOREGROUND_SERVICE_HEALTH` (needs the steps permission to start). *Needs a phone to confirm.*
+
 ## 0.25.1
 - **Fix: the steps widget stayed stuck.** The count was refreshed only about once an hour, and the reading could be cut short because the widget's update did not keep the app alive until the sensor answered. Now: a reading every 15 minutes (it fires as soon as the phone wakes), a reading when you leave the app, after a restart or an app update (the widgets were blank until something redrew them), and each time the widget itself updates (every 30 minutes); the sensor is asked for its latest value at once. *Needs a phone to confirm: Android decides exactly when background alarms run, especially in battery saver.*
 - **Fix: the map credit link is a real touch target** (40 px) on the map screen and the route planner.

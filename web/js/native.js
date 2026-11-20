@@ -18,6 +18,9 @@ export const native = {
   /** All-day steps from the phone's step sensor. */
   stepsAvailable: () => call('stepsAvailable') === true,
   stepsSample: () => call('stepsSample'),
+  /** The "count my steps all day" switch (a quiet foreground service: Android gives a background app no step events). */
+  stepsKeepOn: () => call('stepsKeepOn') === true,
+  stepsKeep: (on) => call('stepsKeep', !!on),
   stepsDays: () => { try { const o = JSON.parse(call('stepsDays') || '{}'); return o && typeof o === 'object' ? o : {}; } catch { return {}; } },
   /** Notifications that fire while the app is closed: replaces the whole schedule [{id, at(ms), title, body, href}]. */
   /** Goals and texts for the home-screen widgets (the steps themselves come from the phone's sensor). */

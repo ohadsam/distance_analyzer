@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">StepUp</string>
+    <string name="steps_channel">Counting steps</string>
+    <string name="steps_service_text">Counting your steps</string>
     <string name="widget_steps_label">Steps today</string>
     <string name="widget_steps_desc">Your steps today and your goal</string>
     <string name="widget_effort_label">Weekly effort</string>

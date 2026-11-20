@@ -12,6 +12,8 @@
     <!-- Keep recording a workout with the screen off: a foreground service of type location, started only while the app is in front, with a visible notification. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <!-- All-day steps: a quiet foreground service of type health keeps the step counter listener alive (Android gives a background app no step events). Needs the steps permission; can be switched off in Settings. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
     <!-- Reminders / recommendations while the app is closed, and the tracking notification (Android 13+ asks at runtime). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <!-- All-day steps from the step counter (asked at runtime, only when the person turns it on in Settings). -->
@@ -54,6 +56,7 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".StepService" android:exported="false" android:foregroundServiceType="health"/>
         <service android:name=".TrackingService" android:exported="false" android:foregroundServiceType="location"/>
         <receiver android:name=".StepsWidget" android:exported="false" android:label="@string/widget_steps_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>

@@ -68,7 +68,10 @@ class NativeBridge(private val activity: MainActivity) {
 
     // ---- all-day steps from the step counter ----
     @JavascriptInterface fun stepsAvailable(): Boolean = StepStore.available(ctx)
-    @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.sample(ctx) } } }
+    @JavascriptInterface fun stepsSample() { activity.runOnUiThread { if (StepStore.available(ctx)) { StepStore.arm(ctx); StepStore.ensureService(ctx); StepStore.sample(ctx) } } }
+    /** The all-day counting switch (Settings): read and set. */
+    @JavascriptInterface fun stepsKeepOn(): Boolean = StepStore.keepOn(ctx)
+    @JavascriptInterface fun stepsKeep(on: Boolean) { activity.runOnUiThread { StepStore.setKeep(ctx, on) } }
     @JavascriptInterface fun stepsDays(): String = StepStore.days(ctx)
 
     /** Goals and texts for the home-screen widgets (validated in WidgetMath). */

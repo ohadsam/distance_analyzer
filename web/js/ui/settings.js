@@ -8,6 +8,7 @@ import { t, setLang } from '../i18n.js';
 import { getPref, setPref, getNum, getJson, setJson, flag } from '../store.js';
 import { aboutBlock, updateBox } from './about.js';
 import { permissionsBlock } from './permissions.js';
+import { native } from '../native.js';
 import { backupBlock } from './backup.js';
 import { sanitizeReminders, sanitizeSmart, MAX_REMINDERS } from '../reminders.js';
 import { notifyState, askNotify } from './notify.js';
@@ -57,6 +58,7 @@ export function renderSettings(focusId) {
   const el = h('section', { class: 'settings' }, h('h1', null, t('settings')), h('a', { class: 'btn ghost', id: 'open-guide', href: '#/guide' }, icon('help', 20), t('guideOpen')),
     updateBox(),
     h('h2', { id: 'f-s-perms' }, t('permTitle')), permissionsBlock(),
+    native.available && native.stepsAvailable() ? check('s-steps-keep', t('setStepsKeep'), native.stepsKeepOn(), (on) => native.stepsKeep(on)) : null, native.available && native.stepsAvailable() ? h('p', { class: 'note' }, t('setStepsKeepHint')) : null,
     h('h2', null, t('look')),
     field(t('language'), select('s-lang', getPref('lang', 'he'), [['he', 'עברית'], ['en', 'English']], (v) => { setPref('lang', v); setLang(v); syncNative(); redraw(); }), 's-lang'),
     field(t('theme'), select('s-theme', getPref('theme', 'auto'), [['auto', t('themeAuto')], ['light', t('themeLight')], ['dark', t('themeDark')]], (v) => { setPref('theme', v); applyLook(); }), 's-theme'),

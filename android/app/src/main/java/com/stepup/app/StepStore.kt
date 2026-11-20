@@ -45,6 +45,18 @@ object StepStore {
         Widgets.updateAll(ctx, StepsWidget::class.java) // only the steps widget follows a new reading
     }
 
+    /** The "count my steps all day" switch (Settings). On by default; it only does anything once the steps permission is granted. */
+    fun keepOn(ctx: Context): Boolean = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("keep", true)
+    fun setKeep(ctx: Context, on: Boolean) { ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("keep", on).apply(); ensureService(ctx) }
+
+    /** Starts or stops the all-day counting service to match the switch and the permission. Only called from places Android allows it (the app in front, boot, an update). */
+    fun ensureService(ctx: Context) {
+        try {
+            val i = Intent(ctx, StepService::class.java)
+            if (available(ctx) && keepOn(ctx)) androidx.core.content.ContextCompat.startForegroundService(ctx, i) else ctx.stopService(i)
+        } catch (_: RuntimeException) { /* not allowed right now (background start): the next time the app is opened */ }
+    }
+
     /** Steps counted today so far (0 when there is no reading yet). */
     fun today(ctx: Context): Long { val p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE); return if (p.getString("day", "") == today()) p.getLong("steps", 0) else 0 }
 

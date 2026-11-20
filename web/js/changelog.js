@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.25.2',
+    en: ['Steps and the steps widget now update with the app closed. A small, quiet notification keeps the step counter running; turn it off in Settings > Count my steps all day.'],
+    he: ['הצעדים וווידג׳ט הצעדים מתעדכנים עכשיו גם כשהאפליקציה סגורה. התראה קטנה ושקטה שומרת על ספירת הצעדים; אפשר לכבות בהגדרות > ספירת צעדים כל היום.'] },
   { v: '0.25.1',
     en: ['The steps widget on the home screen now keeps itself up to date: a new reading every 15 minutes, when you leave the app, after a restart or an update.', 'The map credit link is easier to tap.'],
     he: ['ווידג׳ט הצעדים במסך הבית מתעדכן עכשיו מעצמו: קריאה חדשה כל 15 דקות, כשיוצאים מהאפליקציה, אחרי הפעלה מחדש ואחרי עדכון.', 'קל יותר ללחוץ על קישור הקרדיט של המפה.'] },
