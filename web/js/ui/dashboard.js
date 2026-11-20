@@ -132,10 +132,11 @@ function filterBar(c, redraw) {
 }
 
 /** A calm line at the top: a greeting and a nudge in the morning and afternoon, the day's numbers in the evening (or once you have exercised today). Not for a brand-new install. */
+import { skySlot } from './skynow.js';
 function dayCard(c) {
   if (!c.all.length) return null;
   const part = dayPart(c.now), today = todaySummary(c.all, c.now), st = challengeStatus(c.all, c.now, challengeTarget(getPref('challengeN', '3')));
-  return h('div', { class: 'card daycard', 'data-part': part }, art('workout', `banner-${part}`, 'daybanner'), h('h2', null, t(`greet_${part}`)),
+  return h('div', { class: 'card daycard', 'data-part': part }, art('workout', `banner-${part}`, 'daybanner'), h('h2', null, t(`greet_${part}`)), skySlot(56, c.now),
     leadsWithSummary(part, today) ? h('p', null, today.n ? [t('todayN', { n: today.n }), h('br'), t('todayKm', { km: today.km, min: today.minutes })] : t('todayNone')) : h('p', null, t(`hint_${part}`)),
     st.target ? h('p', { class: 'note' }, st.complete ? t('chDone') : t('chProgress', { done: st.done, target: st.target })) : null);
 }

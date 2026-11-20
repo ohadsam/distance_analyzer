@@ -3,7 +3,7 @@
 import { clamp } from './util.js';
 
 export const API = 'https://api.open-meteo.com/v1/forecast';
-export const HOURLY = ['temperature_2m', 'apparent_temperature', 'precipitation_probability', 'precipitation', 'wind_speed_10m', 'uv_index', 'is_day'];
+export const HOURLY = ['temperature_2m', 'apparent_temperature', 'precipitation_probability', 'precipitation', 'wind_speed_10m', 'uv_index', 'is_day', 'weather_code'];
 export const MAX_HOURS = 72;
 
 /** Rounds a coordinate to 2 decimals (about 1 km): enough for weather, too coarse to identify a home. */
@@ -15,7 +15,7 @@ export function forecastUrl(lat, lon) {
   return `${API}?latitude=${roundCoord(lat)}&longitude=${roundCoord(lon)}&hourly=${HOURLY.join(',')}&forecast_days=3&timezone=GMT&timeformat=unixtime`; // GMT + epoch seconds: no timezone or DST confusion between the place and the phone
 }
 
-/** json -> [{ t (ms, hour start), temp, feels (deg C), rainP (0-100), rain (mm), wind (km/h), uv, day (bool) }], oldest first, bounded. */
+/** json -> [{ t (ms, hour start), temp, feels (deg C), rainP (0-100), rain (mm), wind (km/h), uv, day (bool), code (WMO weather code 0-99, -1 = unknown) }], oldest first, bounded. */
 export function normalizeForecast(json) {
   const h = json && typeof json === 'object' ? json.hourly : null;
   if (!h || !Array.isArray(h.time)) return [];
@@ -24,7 +24,7 @@ export function normalizeForecast(json) {
   for (let i = 0; i < Math.min(h.time.length, MAX_HOURS); i++) {
     const t = Number.isFinite(h.time[i]) ? Math.floor(h.time[i] / 3600) * 3600000 : NaN; if (!(t > 1e12 && t < 4e12)) continue; // epoch seconds -> the start of that hour
     const temp = num(h.temperature_2m, i, -60, 60, NaN); if (!Number.isFinite(temp)) continue;
-    out.push({ t, temp, feels: num(h.apparent_temperature, i, -70, 70, temp), rainP: num(h.precipitation_probability, i, 0, 100), rain: num(h.precipitation, i, 0, 200), wind: num(h.wind_speed_10m, i, 0, 250), uv: num(h.uv_index, i, 0, 20), day: Number(h.is_day?.[i]) === 1 });
+    out.push({ t, temp, feels: num(h.apparent_temperature, i, -70, 70, temp), rainP: num(h.precipitation_probability, i, 0, 100), rain: num(h.precipitation, i, 0, 200), wind: num(h.wind_speed_10m, i, 0, 250), uv: num(h.uv_index, i, 0, 20), day: Number(h.is_day?.[i]) === 1, code: Number.isInteger(h.weather_code?.[i]) ? clamp(h.weather_code[i], 0, 99) : -1 });
   }
   return out;
 }
@@ -33,7 +33,7 @@ export function normalizeForecast(json) {
 export function sanitizeHours(list) {
   if (!Array.isArray(list)) return [];
   const n = (v, lo, hi) => (Number.isFinite(v) ? clamp(v, lo, hi) : 0);
-  return list.slice(0, MAX_HOURS).filter((h) => h && Number.isFinite(h.t) && h.t > 1e12 && h.t < 4e12 && Number.isFinite(h.temp)).map((h) => ({ t: h.t, temp: clamp(h.temp, -60, 60), feels: n(h.feels, -70, 70), rainP: n(h.rainP, 0, 100), rain: n(h.rain, 0, 200), wind: n(h.wind, 0, 250), uv: n(h.uv, 0, 20), day: h.day === true }));
+  return list.slice(0, MAX_HOURS).filter((h) => h && Number.isFinite(h.t) && h.t > 1e12 && h.t < 4e12 && Number.isFinite(h.temp)).map((h) => ({ t: h.t, temp: clamp(h.temp, -60, 60), feels: n(h.feels, -70, 70), rainP: n(h.rainP, 0, 100), rain: n(h.rain, 0, 200), wind: n(h.wind, 0, 250), uv: n(h.uv, 0, 20), day: h.day === true, code: Number.isInteger(h.code) ? clamp(h.code, -1, 99) : -1 }));
 }
 
 /** The weather during a workout from a forecast list: { tempC, cond } of the hour containing `ts`, or null when the list does not cover it. */
@@ -42,3 +42,8 @@ export function weatherAt(list, ts) {
 }
 /** One forecast hour as the weather record of a workout: { tempC, cond }. */
 export const weatherOfHour = (h) => ({ tempC: Math.round(h.temp), cond: h.rain > 0.2 || h.rainP >= 60 ? 'rain' : h.wind >= 30 ? 'windy' : 'clear' });
+
+/** The sky now: { tempC, code, day } of the hour containing `ts`, or null when the list does not cover it or has no weather code. */
+export function skyAt(list, ts) {
+  const h = list.find((x) => ts >= x.t && ts < x.t + 3600000); return h && h.code >= 0 ? { tempC: Math.round(h.temp), code: h.code, day: h.day } : null;
+}

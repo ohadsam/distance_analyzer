@@ -1,6 +1,7 @@
 // Recommendations: the best times to walk/run from the forecast + the person's routine, and recommendations from the effort bar, steps and streak.
 // Screen (#/reco), dashboard widget summary and the shared body used by the drill-down. Logic lives in reco.js (pure); the network in weatherApi.js.
 import { weatherBanner } from '../art.js';
+import { skyNow, skySlot } from './skynow.js';
 import { weatherAt } from '../forecast.js';
 import { h, setChildren } from '../util.js';
 import { t } from '../i18n.js';
@@ -91,7 +92,7 @@ export function renderReco() {
   const draw = () => { box.alive = true; mountReco(box, area, { redraw: draw }); chips(); };
   const bar = h('div', { class: 'chips', role: 'group', 'aria-label': t('recoTitle') });
   const chips = () => setChildren(bar, AREAS.map((a) => h('button', { type: 'button', class: 'chip', 'data-area': a, 'aria-pressed': String(a === area), onclick: () => { area = a; draw(); } }, t(AREA_KEY[a]))));
-  const f = onlineOn() ? cachedForecast(Date.now()) : null, banner = f?.length ? weatherBanner(weatherAt(f, Date.now())) : null;
+  const f = onlineOn() ? cachedForecast(Date.now()) : null, banner = f?.length ? skyNow(96) || weatherBanner(weatherAt(f, Date.now())) : onlineOn() ? skySlot(96) : null; // the animated sky when the forecast knows it, else the picture of the kit
   setChildren(el, h('h1', null, t('recoTitle')), banner, bar, box); draw();
   el.cleanup = () => { box.alive = false; };
   return el;

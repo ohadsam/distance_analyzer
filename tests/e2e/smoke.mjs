@@ -41,10 +41,10 @@ const weeks = (n, per = 3) => Array.from({ length: n * per }, (_, i) => ({ daysA
 
 // A synthetic Open-Meteo answer for a hot summer day (cool dawn, 38 degrees in the afternoon) for the local days of `base`, today and tomorrow.
 function hotForecast(base, over = {}) {
-  const time = [], T = [], A = [], P = [], R = [], W = [], U = [], D = [];
+  const time = [], T = [], A = [], P = [], R = [], W = [], U = [], D = [], C = [];
   for (let i = 0; i < 48; i++) { const d = new Date(base.getFullYear(), base.getMonth(), base.getDate(), i, 0), h = i % 24, feels = Math.round(24 + 14 * Math.exp(-((h - 15) ** 2) / 18));
-    time.push(d.getTime() / 1000); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); }
-  return { hourly: { time, temperature_2m: T, apparent_temperature: A, precipitation_probability: P, precipitation: R, wind_speed_10m: W, uv_index: U, is_day: D } };
+    time.push(d.getTime() / 1000); T.push(feels - 1); A.push(over.feels ?? feels); P.push(0); R.push(0); W.push(8); U.push(h >= 10 && h <= 16 ? 9 : 2); D.push(h >= 6 && h < 19 ? 1 : 0); C.push(over.code ?? 2); }
+  return { hourly: { time, temperature_2m: T, apparent_temperature: A, precipitation_probability: P, precipitation: R, wind_speed_10m: W, uv_index: U, is_day: D, weather_code: C } };
 }
 const SUMMER = new Date(2026, 6, 15, 5, 30);
 // Routes the weather service in a page to the synthetic answer and counts the requests (the privacy check: none before consent).
@@ -558,6 +558,18 @@ await step('share sheet (WhatsApp / e-mail / more / copy) and what-is-new: once 
     assert.match(await page.getAttribute('#share-wa', 'href'), /^https:\/\/wa\.me\/\?text=/); assert.equal(await page.getAttribute('#share-wa', 'target'), '_blank'); await page.click('#share-close'); assert.equal(await page.locator('#share-sheet').count(), 0);
   }
   const fresh = await newPage({ lang: 'en' }); await fresh.page.goto(base); await fresh.page.waitForSelector('h1'); assert.equal(await fresh.page.locator('#wn-sheet').count(), 0, 'a first install has nothing new'); assert.equal(await fresh.page.evaluate(() => localStorage.getItem('da.seenVersion')), VERSION);
+});
+await step('weather pictures: the animated sky (from the forecast code) shows on the day card and the recommendations, follows the code, stops when calm, axe clean', async () => {
+  const noon = new Date(2026, 6, 15, 12, 30);
+  for (const [code, cond, lang] of [[2, 'partly_cloudy_day', 'en'], [65, 'heavy_rain_day', 'he']]) {
+    const { page, errors } = await newPage({ lang, fresh: true, clock: true, clockAt: noon }); await mockWeather(page, hotForecast(noon, { code })); await page.goto(base); await seed(page, weeks(2)); await page.reload();
+    await page.waitForFunction(() => localStorage.getItem('da.loc')); await page.goto(base + '#/reco'); await page.waitForSelector('.skynow .wxa'); assert.equal(await page.getAttribute('.skynow .wxa', 'data-cond'), cond);
+    assert.match(await page.textContent('.skynow'), /\d+°/); assert.equal(await page.locator('.wxa.anim-on').count(), 1); assert.deepEqual(await axeViolations(page), [], `${lang} reco with the sky`); await shot(page, `sky-reco-${lang}`);
+    await page.goto(base + '#/'); await page.waitForSelector('.daycard .skyslot .wxa'); assert.equal(await page.getAttribute('.daycard .wxa', 'data-cond'), cond); assert.deepEqual(await axeViolations(page), [], `${lang} home with the sky`); await shot(page, `sky-home-${lang}`);
+    await page.evaluate(() => { document.documentElement.dataset.calm = '1'; }); assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('.wxa img')).animationName), 'none', 'calm: the picture stands still');
+    assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+  }
+  const off = await newPage({ lang: 'en', clock: true, clockAt: noon }); await mockWeather(off.page, hotForecast(noon)); await off.page.goto(base); await seed(off.page, weeks(2)); await off.page.reload(); await off.page.waitForSelector('.daycard'); assert.equal(await off.page.locator('.skynow').count(), 0, 'online weather is off in the legacy setup: no sky, no request');
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

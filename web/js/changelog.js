@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.26.0',
+    en: ['New animated weather pictures: Home and Recommendations show the sky now (sunny, cloudy, rain, snow, thunderstorm...) with the temperature. They stay still in calm mode.'],
+    he: ['תמונות מזג אוויר מונפשות חדשות: במסך הבית ובהמלצות מוצג מצב השמיים עכשיו (שמשי, מעונן, גשם, שלג, סופת רעמים...) עם הטמפרטורה. במצב רגוע הן נשארות דוממות.'] },
   { v: '0.25.2',
     en: ['Steps and the steps widget now update with the app closed. A small, quiet notification keeps the step counter running; turn it off in Settings > Count my steps all day.'],
     he: ['הצעדים וווידג׳ט הצעדים מתעדכנים עכשיו גם כשהאפליקציה סגורה. התראה קטנה ושקטה שומרת על ספירת הצעדים; אפשר לכבות בהגדרות > ספירת צעדים כל היום.'] },

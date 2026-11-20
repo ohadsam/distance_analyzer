@@ -287,3 +287,9 @@ html[data-calm="1"] .char-cycle img { animation: none !important; } @media (pref
 .updbox { display: grid; gap: 8px; margin-block: 10px; } .updbox .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; } .updbox .note:empty, .updbox .upd-extra:empty { display: none; } .updbox progress { inline-size: 100%; block-size: 10px; accent-color: var(--primary); }
 
 .sheetbtns { display: flex; flex-wrap: wrap; gap: 10px; margin-block: 12px; } .permsheet details { margin-block: 12px; } .permsheet ul { padding-inline-start: 20px; }
+
+/* the animated weather pictures: a strip of 12 frames played with steps(); only while .anim-on (calm switch and reduced motion stop it) */
+.wxa { direction: ltr; overflow: hidden; position: relative; display: inline-block; flex: none; } .wxa img { display: block; block-size: 100%; inline-size: calc(var(--n) * 100%); max-inline-size: none; }
+.wxa.anim-on img { animation: wxa-strip var(--ms, 1800ms) steps(12) infinite; } @keyframes wxa-strip { to { transform: translateX(-100%); } }
+html[data-calm="1"] .wxa img { animation: none !important; } @media (prefers-reduced-motion: reduce) { .wxa img { animation: none !important; } }
+.skynow { display: flex; align-items: center; gap: 12px; margin-block: 6px; } .skynow .skytemp { font-size: 1.5rem; margin-inline-end: 8px; } .skynow .skytext { color: var(--muted); }
