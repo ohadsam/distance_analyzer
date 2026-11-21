@@ -48,3 +48,28 @@ export function tilesOf(view) {
     return out;
   }
 }
+
+/**
+ * Where to put distance markers along a path: [{ km (the distance in km, may be 0.2, 0.5 ...), m (metres), lat, lon }]. The step follows the length - every 200 m on a very short path,
+ * 500 m up to 3 km, then every kilometre (every 2 / 5 / 10 km when there would be more than ~40 markers). Pure; the end of the path is never marked twice.
+ */
+export function kmMarkers(path, lengthOf) {
+  if (!Array.isArray(path) || path.length < 2) return [];
+  const seg = [0]; for (let i = 1; i < path.length; i++) seg.push(seg[i - 1] + lengthOf(path[i - 1], path[i]));
+  const total = seg[seg.length - 1]; if (!(total > 100)) return [];
+  let step = total < 1200 ? 200 : total < 3000 ? 500 : 1000; for (const s of [2000, 5000, 10000, 20000]) if (total / step > 40) step = s;
+  const out = []; let i = 1;
+  for (let m = step; m <= total - 30; m += step) {
+    while (i < path.length - 1 && seg[i] < m) i++;
+    const a = path[i - 1], b = path[i], span = seg[i] - seg[i - 1] || 1, f = Math.min(1, Math.max(0, (m - seg[i - 1]) / span));
+    out.push({ km: m / 1000, m, lat: a[0] + (b[0] - a[0]) * f, lon: a[1] + (b[1] - a[1]) * f });
+  }
+  return out;
+}
+/** Pure: a "nice" scale-bar length (1, 2, 5 x 10^n metres) that fits in `maxM`. */
+export function niceLength(maxM) { const p = 10 ** Math.floor(Math.log10(Math.max(1, maxM))); for (const m of [5, 2, 1]) if (m * p <= maxM) return m * p; return p; }
+/** The zoom level (fractional) at which `points` fit a w x h box, and the centre: { lat, lon, z }. */
+export function fitZoom(points, w, h, pad = 24) {
+  const v = fitView(points, w, h, pad); const [lat, lon] = unworld(v.cx, v.cy);
+  return { lat, lon, z: Math.max(MIN_Z, Math.min(MAX_Z, Math.log2(v.scale / TILE_PX))) };
+}

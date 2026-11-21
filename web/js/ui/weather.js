@@ -9,6 +9,7 @@ import { roundCoord, validCoords } from '../forecast.js';
 import { conditionOf, weatherIcon } from '../weatherAnim.js';
 import { barChart, lineChart } from '../charts.js';
 import { hourDetail, hourLine } from './hourdetail.js';
+import { progressBar } from './progress.js';
 
 const dayKey = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
 /** Forecast hours -> [{ key, ms, hours }] one entry per local day, oldest first (at most 3). */
@@ -57,7 +58,7 @@ export function renderWeather() {
 
   function paint() {
     const parts = [placeBox()];
-    if (status === 'loading') parts.push(h('p', { class: 'note', id: 'wx-loading' }, t('wxLoading')));
+    if (status === 'loading') parts.push(h('div', { id: 'wx-loading' }, progressBar(t('wxLoading')).el));
     else if (status === 'off') parts.push(h('div', { class: 'card' }, h('p', null, t('wxOff')), h('button', { type: 'button', class: 'btn', id: 'wx-on', onclick: () => { setPref('onlineWx', '1'); load(); } }, t('wxTurnOn'))));
     else if (status === 'noloc') parts.push(h('div', { class: 'card' }, h('p', null, t('wxNoLoc')), h('a', { class: 'btn', href: '#/settings/s-perms' }, t('permTitle'))));
     else if (status === 'noplace') parts.push(h('p', { class: 'note', id: 'wx-noplace' }, t('wxNoPlace')));

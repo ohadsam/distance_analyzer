@@ -606,6 +606,33 @@ await step('weather screen: hour by hour for the day (temperature, feels like, h
   }
   const off = await newPage({ lang: 'en' }); await off.page.addInitScript(() => localStorage.setItem('da.onlineWx', '0')); await off.page.goto(base + '#/weather'); await off.page.waitForSelector('#wx-on'); assert.equal(await off.page.locator('#wx-hours').count(), 0, 'off: no forecast, no request, a button to turn it on');
 });
+await step('mark points: a coloured button marks where you are and keeps measuring; the summary and the history show the points and their numbers; the full map opens during the workout', async () => {
+  const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.waitForSelector('.gps-card[data-gps="good"]');
+  assert.equal(await page.locator('#wk-mark').count(), 0, 'not before Start'); await page.click('.big-btn'); await page.waitForSelector('#wk-mark');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('wk-mark')).backgroundColor), 'rgb(217, 72, 15)', 'a colour nothing else on the screen has');
+  for (let i = 1; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  await page.click('#wk-mark'); await page.waitForFunction(() => /Point 1:/.test(document.querySelector('.cue')?.textContent || '')); assert.deepEqual(await axeViolations(page), [], 'mark button axe');
+  await page.click('#wk-openmap'); await page.waitForSelector('#mapviewer[open] svg.imapsvg'); assert.equal(await page.locator('#mapviewer .markdot').count(), 1, 'the marked point is on the full map'); assert.deepEqual(await axeViolations(page), [], 'viewer axe'); await page.click('#mv-close'); await page.waitForSelector('#mapviewer', { state: 'detached' });
+  for (let i = 5; i <= 9; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  await page.waitForFunction(() => document.getElementById('wk-mark') && !document.querySelector('.cue:not([hidden])'), null, { timeout: 12000 }); await page.click('#wk-mark'); const dist = Number(await page.textContent('.v-dist')); assert.ok(dist > 0.05, 'still measuring after the marks');
+  await page.click('.controls .btn.ghost'); await page.waitForSelector('.confirm'); await page.click('.confirm .btn >> nth=0'); await page.waitForSelector('.summary #marks-table');
+  assert.equal(await page.locator('#marks-table tbody tr').count(), 2); assert.ok(await page.locator('.summary .markdot').count() >= 2, 'the numbered points are on the picture'); assert.deepEqual(await axeViolations(page), [], 'summary axe'); await shot(page, 'marks-summary-en');
+  await page.goto(base + '#/history'); await page.waitForSelector('.item'); await page.click('.item'); await page.waitForSelector('#marks-table'); assert.equal(await page.locator('#marks-table tbody tr').count(), 2, 'saved with the workout');
+  await page.click('.mapexpand'); await page.waitForSelector('#mapviewer[open]'); assert.equal(await page.locator('#mapviewer .markdot').count(), 2); await page.click('#mv-close'); assert.deepEqual(errors, []);
+});
+await step('interactive map: wheel and pinch zoom, drag, find an address, measure, a distance marker every km (map screen and the full-screen map), tiles only with the opt-in', async () => {
+  const { page, errors } = await newPage({ lang: 'en' }); await mockPlanner(page); await page.goto(base + '#/map'); await page.waitForSelector('svg.imapsvg');
+  const zoomOf = () => page.evaluate(() => new Promise((r) => setTimeout(() => r(JSON.parse(localStorage.getItem('da.mapView') || '{}').z), 600)));
+  const z0 = await zoomOf(); const box = await page.locator('svg.imapsvg').boundingBox(); await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.wheel(0, -400); const z1 = await zoomOf(); assert.ok(z1 > z0 + 0.5, `wheel zoom ${z0} -> ${z1}`);
+  await page.evaluate(() => { const s = document.querySelector('svg.imapsvg'), r = s.getBoundingClientRect(), mk = (type, id, dx) => s.dispatchEvent(new PointerEvent(type, { pointerId: id, clientX: r.left + r.width / 2 + dx, clientY: r.top + r.height / 2, bubbles: true, isPrimary: id === 1 })); mk('pointerdown', 1, -20); mk('pointerdown', 2, 20); mk('pointermove', 1, -80); mk('pointermove', 2, 80); mk('pointerup', 1, -80); mk('pointerup', 2, 80); });
+  const z2 = await zoomOf(); assert.ok(z2 > z1 + 0.8, `pinch zoom ${z1} -> ${z2}`);
+  await page.fill('#map-q', 'dizengoff'); await page.click('#map-allow').catch(() => {}); await page.evaluate(() => localStorage.setItem('da.planNet', '1')); await page.click('#map-find'); await page.waitForSelector('.wxres'); await page.click('.wxres'); await page.waitForFunction(() => Math.abs(JSON.parse(localStorage.getItem('da.mapView') || '{}').lat - 32.078) < 0.01); assert.equal(await page.locator('svg.imapsvg .pindrop').count(), 1, 'the found address is marked');
+  await page.evaluate(() => { const l = []; for (let i = 0; i <= 64; i++) l.push([32 + i * 0.0005, 34.8]); return import('./js/ui/mapviewer.js').then((m) => m.openMapViewer({ title: 'Long', path: l })); }); await page.waitForSelector('#mapviewer .kmdot');
+  assert.equal(await page.locator('#mapviewer .kmdot').count(), 3, '3.5 km: markers at 1, 2 and 3 km'); assert.deepEqual(await page.locator('#mapviewer .kmtxt').allTextContents(), ['1', '2', '3']);
+  await page.click('#mv-measure'); const vb = await page.locator('#mapviewer svg.imapsvg').boundingBox(); await page.mouse.click(vb.x + 80, vb.y + 80); await page.mouse.click(vb.x + 200, vb.y + 200); assert.match(await page.textContent('#mv-info'), /Measured: \d/); assert.deepEqual(await axeViolations(page), [], 'full map axe');
+  await page.fill('#mv-q', 'herzl'); await page.click('#mv-find'); await page.waitForSelector('#mv-results .wxres'); await shot(page, 'map-viewer-en'); await page.click('#mv-close');
+  assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+});
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });

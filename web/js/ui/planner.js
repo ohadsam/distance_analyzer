@@ -12,6 +12,7 @@ import { makeRoute, MAX_ROUTES } from '../route.js';
 import { fmtKm } from '../format.js';
 import { locate } from '../weatherApi.js';
 import { trackPicture } from './maptiles.js';
+import { progressBar } from './progress.js';
 import { newRouteId } from './routes.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -64,16 +65,16 @@ export function renderRoutePlan() {
     const r = await geocode(q, getLang()); if (!r.length) return null; places[key] = r[0]; f.input.value = r[0].name; return r[0];
   }
   go.addEventListener('click', async () => {
-    go.disabled = true; setChildren(results); prog.textContent = t('planSearching');
+    go.disabled = true; setChildren(results); prog.textContent = t('planSearching'); const bar = progressBar(t('planSearching'), { id: 'rp-progress' }); prog.after(bar.el);
     try {
       const s = await resolve('start', startF); if (!s) { prog.textContent = t('planNeedStart'); return; }
       let e = null; if (!same.checked) { e = await resolve('end', endF); if (!e) { prog.textContent = t('planNeedEnd'); return; } }
       const targetM = Math.round(Math.min(MAX_TARGET_M, Math.max(MIN_TARGET_M, (Number(km.value) || 5) * 1000))); setPref('planKm', targetM / 1000); km.value = String(targetM / 1000); // what was really asked for is shown
-      const res = await planRoutes({ start: [s.lat, s.lon], end: e ? [e.lat, e.lon] : null, targetM, prefs }, api, (phase, n, total) => { prog.textContent = t(phase === 'routes' ? 'planProgRoutes' : 'planProgDetails', { n, total }); });
+      const res = await planRoutes({ start: [s.lat, s.lon], end: e ? [e.lat, e.lon] : null, targetM, prefs }, api, (phase, n, total) => { const txt = t(phase === 'routes' ? 'planProgRoutes' : 'planProgDetails', { n, total }); prog.textContent = txt; bar.set((phase === 'routes' ? 0 : 50) + (total ? n / total * 50 : 0), 100, txt); }); // two halves: the routes, then their details
       if (!alive) return; // left the screen meanwhile
       if (!res.routes.length) { prog.textContent = t('planNone'); return; }
       prog.textContent = t('planFound', { n: res.routes.length }); show(res, targetM);
-    } catch { prog.textContent = t('planNetFail'); } finally { go.disabled = false; }
+    } catch { prog.textContent = t('planNetFail'); } finally { go.disabled = false; bar.stop(); }
   });
 
   async function keep(r, name) {

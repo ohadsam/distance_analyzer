@@ -22,7 +22,7 @@ export function liveMap({ w = 300, h = 150 } = {}) {
   const layer = createTileLayer(), content = mk('g', {}); // the tile images stay; only the lines are redrawn
   svg.append(layer.g, content); const note = credit(); note.hidden = true; const legend = html('div', { class: 'maplegend', hidden: true }, html('span', { class: 'ld start' }), t('mapStart'), html('span', { class: 'ld me' }), t('mapYou')), hint = html('div', { class: 'maphint' }, t('mapHint')), el = html('div', { class: 'mapwrap' }, svg, note, legend, hint);
   /** points: [[lat, lon, t]] so far; route: [[lat, lon]] to follow (optional). Draws at most ~300 points of the track. */
-  function update(points, route = []) {
+  function update(points, route = [], marks = []) {
     content.replaceChildren();
     const step = Math.max(1, Math.ceil(points.length / 300)), track = points.filter((_, i) => i % step === 0 || i === points.length - 1);
     legend.hidden = track.length < 2; hint.hidden = track.length > 0; // what the dots mean once there is a path; what the empty map is for before that
@@ -36,16 +36,19 @@ export function liveMap({ w = 300, h = 150 } = {}) {
       line(route, 'route-line'); line(track, 'track-line');
       const s = view.toXY(track[0][0], track[0][1]), m = view.toXY(me[0], me[1]);
       mk('circle', { cx: s[0], cy: s[1], r: 5, class: 'track-start' }, content); mk('circle', { cx: m[0], cy: m[1], r: 7, class: 'me' }, content);
+      for (const k of marks) pin(view.toXY(k.lat, k.lon), k.n);
       return;
     }
-    const all = [...route, ...track];
+    const all = [...route, ...track, ...marks.map((k) => [k.lat, k.lon])];
     if (all.length < 2) { mk('circle', { cx: w / 2, cy: h / 2, r: 7, class: 'me' }, content); return; }
-    const xy = projectTrack(all, w, h, 14), r = xy.slice(0, route.length), tr = xy.slice(route.length);
+    const xy = projectTrack(all, w, h, 14), r = xy.slice(0, route.length), tr = xy.slice(route.length, route.length + track.length), mx = xy.slice(route.length + track.length);
     for (let k = 1; k < 6; k++) mk('line', { x1: (w * k) / 6, x2: (w * k) / 6, y1: 0, y2: h, class: 'gridline' }, content); for (let k = 1; k < 3; k++) mk('line', { x1: 0, x2: w, y1: (h * k) / 3, y2: (h * k) / 3, class: 'gridline' }, content); // a faint grid: a sense of space
     scaleBar(content, all, w, h);
     if (r.length > 1) mk('polyline', { points: r.map((p) => p.join(',')).join(' '), class: 'route-line' }, content);
     if (tr.length > 1) mk('polyline', { points: tr.map((p) => p.join(',')).join(' '), class: 'track-line' }, content);
     if (tr.length) { mk('circle', { cx: tr[0][0], cy: tr[0][1], r: 5, class: 'track-start' }, content); mk('circle', { cx: tr[tr.length - 1][0], cy: tr[tr.length - 1][1], r: 7, class: 'me' }, content); }
+    mx.forEach((p, i) => pin(p, marks[i].n));
   }
+  function pin(p, n) { mk('circle', { cx: p[0], cy: p[1], r: 9, class: 'markdot' }, content); mk('text', { x: p[0], y: p[1] + 3.5, class: 'marktxt', 'text-anchor': 'middle' }, content).append(String(n)); }
   update([]); return { el, update };
 }

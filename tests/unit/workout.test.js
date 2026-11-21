@@ -103,3 +103,21 @@ test('startNow (the person says so, or no GPS) begins at once; pause while waiti
   const finished = newWorkout('run', 0, { waitForMotion: true }); finish(finished, 5000); assert.equal(finished.distanceM, 0);
   assert.ok(START.run.minSpeedMps > START.walk.minSpeedMps && START.run.minDistM > START.walk.minDistM);
 });
+
+// ---- marked points ----
+import { addMark, markRows, sanitizeMarks, MAX_MARKS } from '../../web/js/workout.js';
+test('mark a point: position and totals so far, measuring goes on; not before a position, not while paused, not twice within 3 s', () => {
+  const w = newWorkout('run', 0); assert.equal(addMark(w, 1000), null, 'no position yet');
+  for (let s = 0; s <= 100; s++) addFix(w, fix(3 * s, s * 1000));
+  const m1 = addMark(w, 101000); assert.equal(m1.n, 1); assert.ok(Math.abs(m1.distM - 300) < 6); assert.ok(m1.elapsedMs > 99000 && m1.paceSec > 300 && m1.paceSec < 360, `pace ${m1.paceSec}`);
+  assert.equal(addMark(w, 102000), null, 'twice within 3 s'); for (let s = 101; s <= 200; s++) addFix(w, fix(3 * s, s * 1000)); assert.ok(w.distanceM > 590, 'still measuring');
+  const m2 = addMark(w, 201000); assert.equal(m2.n, 2); const rows = markRows(w.marks); assert.equal(rows.length, 2); assert.ok(Math.abs(rows[1].segM - (m2.distM - m1.distM)) < 2); assert.ok(rows[1].segPaceSec > 300 && rows[1].segPaceSec < 360);
+  pause(w, 202000); assert.equal(addMark(w, 210000), null, 'paused'); finish(w, 220000); assert.equal(addMark(w, 230000), null, 'finished');
+  w.startedAt = 1.7e12; const rec = sanitizeWorkout(summarize(w)); assert.equal(rec.marks.length, 2); assert.equal(rec.marks[1].n, 2);
+  const w2 = newWorkout('walk', 0, { waitForMotion: true }); assert.equal(addMark(w2, 1000), null, 'waiting for the start');
+});
+test('marks from storage are untrusted: bounded, valid positions, renumbered, clamped', () => {
+  const bad = [{ lat: 999, lon: 0 }, null, { lat: 32, lon: 34, distM: -5, movingMs: 'x', t: 1e30, paceSec: 99999 }, ...Array.from({ length: 80 }, () => ({ lat: 32.1, lon: 34.1, distM: 10 }))];
+  const ok = sanitizeMarks(bad); assert.equal(ok.length, MAX_MARKS); assert.deepEqual(ok.slice(0, 3).map((m) => m.n), [1, 2, 3]); assert.equal(ok[0].distM, 0); assert.ok(ok[0].t <= 4e12 && ok[0].paceSec <= 3600); assert.deepEqual(sanitizeMarks('x'), []);
+  assert.equal(sanitizeActive({ kind: 'run', startedAt: 1.7e12, marks: [{ lat: 32, lon: 34 }, { lat: 1000, lon: 0 }] }).marks.length, 1);
+});

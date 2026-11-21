@@ -111,3 +111,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 94 | The reworked precipitation animations integrated; fix prompt for snow, hail, fog | ✅ 0.27.3 (5 of 8) + docs/prompts/ROUND14_WEATHER_FIX_PROMPT.md |
 | 95 | The weather animations must be visible in the app (a Weather card on Home); tapping the weather chart bars shows that hour's precipitation, humidity and temperature | ✅ 0.28.0 |
 | 95 | The weather animations must be visible in the app (a Weather card on Home); tapping the weather chart bars shows that hour's precipitation, humidity and temperature | ✅ 0.28.0 |
+| 96 | A ChatGPT prompt for warm-up / cool-down / stretching animations with the same character | ✅ docs/prompts/ROUND15_EXERCISES_PROMPT.md |

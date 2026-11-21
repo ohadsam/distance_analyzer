@@ -3,6 +3,7 @@
 import { weatherBanner } from '../art.js';
 import { skyNow, skySlot } from './skynow.js';
 import { hourDetail, hourLine } from './hourdetail.js';
+import { progressBar } from './progress.js';
 import { weatherAt } from '../forecast.js';
 import { h, setChildren } from '../util.js';
 import { t } from '../i18n.js';
@@ -64,7 +65,7 @@ export async function mountReco(box, area = 'all', { redraw } = {}) {
 
 async function weatherPart(c, day, box, redraw) {
   if (!onlineOn() || !getLoc()) return [consentCard(redraw)];
-  if (!box.hasChildNodes()) setChildren(box, h('p', { class: 'note', role: 'status' }, t('recoLoading')));
+  if (!box.hasChildNodes()) setChildren(box, progressBar(t('recoLoading')).el);
   const res = await fetchForecast({ force: !!box.dataset.retry }); delete box.dataset.retry;
   if (!res) return [h('div', { class: 'card' }, h('p', null, t('recoFail')), h('button', { type: 'button', class: 'btn', id: 'reco-retry', onclick: () => { box.dataset.retry = '1'; redraw?.(); } }, t('recoRetry')))];
   const r = recommend(res.list, c.routine, c.kind, c.now, { tomorrow: true }), items = r.items.filter((i) => i.day === day);

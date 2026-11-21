@@ -1,6 +1,7 @@
 import { h, setChildren } from '../util.js';
 import { workoutShareBox } from './workoutShare.js';
 import { trackPicture } from './maptiles.js';
+import { marksTable } from './marks.js';
 import { emptyState } from '../art.js';
 import { t, getLang } from '../i18n.js';
 import { icon } from '../icons.js';
@@ -43,7 +44,7 @@ export function renderDetail(id) {
     const r = rows.find((x) => x.startedAt === Number(id));
     if (!r) { location.hash = '#/history'; return; }
     const w = { ...r, kind: r.kind }, row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
-    setChildren(box, h('h1', null, `${t(r.kind)} · ${fmtDate(r.startedAt, getLang())}`), trackPicture(r.points),
+    setChildren(box, h('h1', null, `${t(r.kind)} · ${fmtDate(r.startedAt, getLang())}`), trackPicture(r.points, 300, 180, { marks: r.marks || [], title: t(r.kind) }), marksTable(r.marks),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(r.distanceM)), row(t('time'), fmtClock(r.elapsedMs || r.movingMs)), row(t('movingTime'), fmtClock(r.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
       workoutShareBox(r), r.points.length >= 5 ? summaryBox(r) : null,
       weatherForm(r),

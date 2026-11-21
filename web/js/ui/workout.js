@@ -10,7 +10,7 @@ import { h, setChildren } from '../util.js';
 import { t, getLang } from '../i18n.js';
 import { icon, setNeedle } from '../icons.js';
 import { pose } from './character.js';
-import { isWaiting, startNow, stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
+import { addMark, isWaiting, startNow, stoppedFor, newWorkout, addFix, pause, resume, finish, elapsedMs, avgPaceSec, recentPaceSec, kcal, isPaused } from '../workout.js';
 import { fmtClock, fmtKm, fmtPace, fmtPaceUnit } from '../format.js';
 import { active, saveWorkout, getNum, getPref, setPref, getJson, listWorkouts, listRoutes, getWorkout, updateWorkout, profile } from '../store.js';
 import { checkWorkout } from '../effort.js';
@@ -28,6 +28,7 @@ import { references, indicators } from '../indicators.js';
 import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
 import { syncNative } from '../syncNative.js';
+import { marksTable } from './marks.js';
 
 const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not worth a history entry
 
@@ -63,6 +64,7 @@ export function renderWorkout(kind, go, routeId) {
   const lockBtn = h('button', { type: 'button', class: 'round', 'aria-label': t('lock'), onclick: () => setLocked(true) }, icon('lock'));
   const mainBtn = h('button', { type: 'button', class: 'big-btn', onclick: () => onMain() });
   const finishBtn = h('button', { type: 'button', class: 'btn ghost', onclick: askFinish }, icon('flag'), t('finish'));
+  const markBtn = h('button', { type: 'button', class: 'btn mark', id: 'wk-mark', onclick: () => mark() }, icon('pin', 22), t('wkMark')); // a point on the map: where you are and the totals so far; measuring goes on
   const metroBtn = h('button', { type: 'button', class: 'tool', id: 'wk-metro', 'aria-pressed': 'false', onclick: () => rhythm.toggle() }, icon('pace', 22), t('wkMetro'));
   const confirmBar = h('div', { class: 'confirm', role: 'group', 'aria-label': t('finishAsk') },
     h('p', null, t('finishAsk')),
@@ -73,7 +75,7 @@ export function renderWorkout(kind, go, routeId) {
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
   const body = h('div', { class: 'wk' }), cdEl = h('div', { class: 'countdown', hidden: true, role: 'status' });
   // Live map (no tiles) and, when following a saved route, the route line, its name and a "ghost" of the best earlier attempt.
-  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), mapBox = h('div', { class: 'mapbox' }, stopEl, lm.el, followEl, ghostEl);
+  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), openMapBtn = h('button', { type: 'button', class: 'mapexpand', id: 'wk-openmap', 'aria-label': t('mvOpen'), onclick: () => import('./mapviewer.js').then((m) => m.openMapViewer({ title: t(kind), path: w ? w.points : [], route: follow ? follow.route.path : [], marks: w ? w.marks : [], live: () => (w ? w.points : []) })) }, icon('plus', 22)), mapBox = h('div', { class: 'mapbox' }, stopEl, lm.el, openMapBtn, followEl, ghostEl);
   let follow = null, ghost = null, ghostSide = ''; // follow = { route, best }; ghost = (moving ms) -> metres of the best attempt
   if (routeId) (async () => {
     const route = (await listRoutes()).find((r) => r.id === routeId); if (!route) return;
@@ -103,7 +105,7 @@ export function renderWorkout(kind, go, routeId) {
     pumpCues();
   }
   let mapAt = 0;
-  function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : []); mapAt = Date.now(); }
+  function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : [], w ? w.marks : []); mapAt = Date.now(); }
   function paintGhost() {
     if (!ghost || !w || phase !== 'running' || (ghostIsLast && !cuesOn())) { ghostEl.hidden = true; return; }
     const d = Math.round(w.distanceM - ghost(elapsedMs(w, Date.now()))), m = Math.abs(d), side = m < 10 ? 'on' : d > 0 ? 'ahead' : 'behind';
@@ -154,6 +156,12 @@ export function renderWorkout(kind, go, routeId) {
     const tick = () => { const label = left > 0 ? String(left) : t('wkGo'); setChildren(cdEl, h('div', { class: 'cdwrap' }, art('workout', `count-${left > 0 ? left : 'go'}`, 'cd-img'), pose(left > 0 ? 'idle' : 'jump', 130)), h('span', { class: 'sr-only' }, label)); sr.textContent = label; if (getPref('voice', '0') === '1') speak(label, getLang());
       if (left <= 0) { cdTimer = setTimeout(() => { stop(); onMain(true); }, 600); return; } left--; cdTimer = setTimeout(tick, 1000); };
     tick();
+  }
+  function mark() {
+    if (!w || phase !== 'running') return; const m = addMark(w, Date.now());
+    if (!m) { sr.textContent = t('wkMarkNone'); return; }
+    const text = t('wkMarked', { n: m.n, km: (m.distM / 1000).toFixed(2), time: fmtClock(m.elapsedMs), pace: m.paceSec > 0 ? fmtPace(m.paceSec) : '–' });
+    cueQueue.push({ text, key: '' }); pumpCues(); if (getPref('cueVibrate', '1') !== '0') try { navigator.vibrate?.([40, 40, 40]); } catch { /* not supported */ } persist(); paintMap(); paint();
   }
   function announceNow() { if (!w) return; const text = t('announceNow', { km: (w.distanceM / 1000).toFixed(2), min: Math.floor(elapsedMs(w, Date.now()) / 60000) }); cueQueue.length = 0; clearTimeout(cueTimer); cueEl.hidden = true; cueQueue.push({ text, key: '' }); pumpCues(); /* shown at once, spoken when the voice is on (say() is in pumpCues) */ }
   function onMain(instant = false) {
@@ -230,12 +238,12 @@ export function renderWorkout(kind, go, routeId) {
     const stats = h('div', { class: 'wk-stats' }, h('div', { class: 'metric hero' }, h('div', { class: 'cap' }, `${t('distance')} (${t('km')})`), vDist), h('div', { class: 'wk-two' }, cardA, cardB));
     setChildren(body, phase === 'ready' ? gpsCard : stats, waitEl, mapBox, rhythm.el,
       phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn),
-      phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn));
+      phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, phase === 'running' ? markBtn : null));
   }
   function summary() {
     const n = w.endedAt, mins = elapsedMs(w, n);
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
-    return h('div', { class: 'summary' }, pose('cheer', 120), h('h2', null, t('summary')), trackPicture(w.points),
+    return h('div', { class: 'summary' }, pose('cheer', 120), h('h2', null, t('summary')), trackPicture(w.points, 300, 180, { marks: w.marks, title: t('summary') }), marksTable(w.marks),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
       workoutShareBox(w), recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));

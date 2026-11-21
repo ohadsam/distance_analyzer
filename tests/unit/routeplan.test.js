@@ -111,3 +111,15 @@ test('unworld inverts world and wraps longitude past the antimeridian', () => {
   for (const [la, lo] of [[32.08, 34.78], [-33.9, 151.2], [0, -179.5]]) { const [x, y] = world(la, lo), [a, b] = unworld(x, y); assert.ok(Math.abs(a - la) < 1e-6 && Math.abs(b - lo) < 1e-6, `${la},${lo} -> ${a},${b}`); }
   assert.ok(Math.abs(unworld(1.05, 0.5)[1] - (-162)) < 1e-6); assert.ok(Math.abs(unworld(-0.05, 0.5)[1] - 162) < 1e-6);
 });
+
+import { kmMarkers, fitZoom } from '../../web/js/mapView.js';
+import { dist as distM } from '../../web/js/routePlan.js';
+test('km markers: every 200 m on a very short path, 500 m up to 3 km, then every km; none at the end; spaced by the real distance', () => {
+  const line = (m) => Array.from({ length: Math.round(m / 50) + 1 }, (_, i) => bearingPoint(S, 90, i * 50));
+  assert.deepEqual(kmMarkers(line(80), distM), []); assert.deepEqual(kmMarkers([S], distM), []);
+  const a = kmMarkers(line(1000), distM); assert.deepEqual(a.map((x) => x.m), [200, 400, 600, 800]);
+  const b = kmMarkers(line(2500), distM); assert.deepEqual(b.map((x) => x.m), [500, 1000, 1500, 2000]);
+  const c = kmMarkers(line(5200), distM); assert.deepEqual(c.map((x) => x.km), [1, 2, 3, 4, 5]); assert.ok(Math.abs(distM(S, [c[0].lat, c[0].lon]) - 1000) < 10, 'the first marker is 1 km from the start');
+  assert.equal(kmMarkers(line(60000), distM).length <= 40, true, 'never a crowd of markers');
+  const z = fitZoom([[32, 34.8], [32.01, 34.81]], 320, 360); assert.ok(z.z > 13 && z.z < 17 && Math.abs(z.lat - 32.005) < 0.002);
+});
