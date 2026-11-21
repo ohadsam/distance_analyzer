@@ -394,10 +394,10 @@ await step('settings: the online forecast is off by default, opt-in stores only 
   await page.uncheck('#s-online'); await page.waitForFunction(() => !document.getElementById('loc-saved')); assert.equal(await page.evaluate(() => [localStorage.getItem('da.loc'), localStorage.getItem('da.recoNotify')].join()), 'null,0');
 });
 await step('recommendation notification: shortly before the usual time and good weather, once', async () => {
-  const at = new Date(2026, 6, 15, 6, 20); const { page } = await newPage({ lang: 'en', clock: true, clockAt: at }); await mockWeather(page, hotForecast(at, { feels: 20 })); await page.goto(base);
+  const at = new Date(2026, 6, 15, 6, 20); const { page } = await newPage({ lang: 'en', clock: true, clockAt: at }); await mockWeather(page, hotForecast(at, { feels: 20 })); await page.goto(base + '#/history'); /* not Home: its Weather card would start its own forecast request while this step drives the fake clock */
   await seedHours(page, Array.from({ length: 30 }, (_, i) => ({ daysAgo: i + 1, hour: 7, min: 30 })));
   await page.evaluate(() => { for (const [k, v] of Object.entries({ onlineWx: '1', recoNotify: '1', loc: JSON.stringify({ lat: 32, lon: 34.8 }) })) localStorage.setItem('da.' + k, v); });
-  await page.clock.runFor(31000); await page.waitForTimeout(800); /* the mocked network answers in real time; the fake clock must not run past the 8 s timeout meanwhile */ await page.clock.runFor(2000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Good time for a walk soon/); assert.equal(await page.locator('.alert').count(), 1, 'only once');
+  await page.clock.runFor(31000); await page.waitForFunction(() => localStorage.getItem('da.wxc'), null, { timeout: 25000 }); /* the mocked network answers in real time (a slow machine needs longer than any fixed wait); the fake clock must not run past the 8 s timeout meanwhile */ await page.clock.runFor(2000); await page.goto(base + '#/alerts'); await page.waitForSelector('.alert'); assert.match(await page.textContent('.alert'), /Good time for a walk soon/); assert.equal(await page.locator('.alert').count(), 1, 'only once');
 });
 
 await step('routes: save a path as a route, link earlier workouts, progress, best context, one-time, rename, delete', async () => {

@@ -38,6 +38,7 @@ New steps (0.8.1-0.12): welcome card + bottom navigation + collapsed settings, a
 `fakeAndroid(init)` (option `native: {}`) stands in for `window.StepUpNative`: counts service start/stop, serves fixes/steps, records the notification schedule, serves a pending href; its fix buffer survives a reload through sessionStorage like the native file. Helpers: `newPage({lang, clock, clockAt, signalGapMs, geo})`, `seed(page, rows)` saves workouts through the app's own store, `fakeFootsteps` injects `devicemotion` events (desktop Chromium has no `DeviceMotionEvent` constructor: use a plain `Event`).
 
 ## Gotchas learned
+A step that drives the fake clock (`runFor`) must not start on Home: the Weather card makes its own forecast request there, and the clock's jump fires the request's 8 s timeout (the request fails and the 15 minute pause begins). Start such steps on another screen (`#/history`). A fixed real-time wait for a mocked network is fragile: wait for the effect (`waitForFunction`) instead.
 Install the Playwright fake clock BEFORE page init scripts that use timers; `page.clock.install()` keeps time flowing; the page CSP forbids `addScriptTag` (use `page.evaluate`); wait for the settled DOM after async redraws (dashboard redraws are async, newest draw wins); Chromium exposes `DeviceMotionEvent.requestPermission` but the app must not gate listening on it.
 
 ## Not covered (needs a real device or CI)
