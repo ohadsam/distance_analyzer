@@ -112,3 +112,12 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 95 | The weather animations must be visible in the app (a Weather card on Home); tapping the weather chart bars shows that hour's precipitation, humidity and temperature | ✅ 0.28.0 |
 | 95 | The weather animations must be visible in the app (a Weather card on Home); tapping the weather chart bars shows that hour's precipitation, humidity and temperature | ✅ 0.28.0 |
 | 96 | A ChatGPT prompt for warm-up / cool-down / stretching animations with the same character | ✅ docs/prompts/ROUND15_EXERCISES_PROMPT.md |
+| 97 | A mark-point button on the workout screen (distinct colour): save position and totals, keep measuring, show the points in the summary | ✅ 0.29.0 |
+| 98 | Interactive maps everywhere: zoom, measuring, address search, automatic km markers | ✅ 0.29.0 (full-screen viewer from every map + the map screen) |
+| 99 | Route planner: written directions and an interactive zoomable map | ✅ 0.29.0 |
+| 100 | In-app navigation along a route with voice and a visual banner (next turn, distance, remaining) | ✅ 0.29.0 (geometry-based turns, no street names; speaks with the screen on) |
+| 101 | Progress bars wherever something loads (route planning first) | ✅ 0.29.0 (planner, weather, Recommendations) |
+| 102 | Post-run recommendation (cool-down walk by distance), stretches and warm-up exercises with the character, also from Recommendations | ✅ 0.29.0 (pose stand-in until the animations arrive: ROUND15 prompt) |
+| 103 | Effort bar as a chart with recommendations by the person's training | ✅ 0.29.0 |
+| 104 | Fix the planner's horizontal scrolling | ✅ 0.29.0 |
+| 105 | Global search over capabilities and things saved by the user | ✅ 0.29.0 |

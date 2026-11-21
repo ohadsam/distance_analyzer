@@ -2,6 +2,12 @@
 
 StepUp works in the browser (installable PWA) and as an Android app with the same screens.
 
+## Marking points, maps and navigation
+During a run or walk the orange **Mark point** button saves where you are and the totals so far, and measuring goes on; the summary and the history show the numbered points. Every small map has an **Open the map** button: zoom with the buttons, the mouse wheel or two fingers, drag, **find an address**, **measure** a distance by tapping points; numbers on the line are kilometres. A planned or saved route has **written directions**. When you follow a route, a banner shows the next turn and the distance left, and the phone says "turn right" and so on (switch **Voice directions** in the workout tools).
+
+## Warm-up, cool-down and stretches
+Before a run or walk tap **Warm up first**; after a run the summary suggests how long to walk it off and the stretches. Both are also in Recommendations. Each exercise shows how to do it with the character and a timer that moves to the next one by itself.
+
 ## Settings
 Choose the language (Hebrew or English) and the look (automatic, light or dark). The version number is shown at the bottom.
 

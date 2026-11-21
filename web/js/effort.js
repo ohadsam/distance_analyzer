@@ -83,3 +83,28 @@ export function weekStatus(rows, age, now, override = null) {
   const share = done / plan.minutes;
   return { plan, done: Math.round(done), share, status: share >= 1 ? 'ahead' : done >= expected * 0.8 ? 'on' : 'behind' };
 }
+
+/**
+ * What to aim for next week, from how the person really trains (pure). Returns { trend, band: [lo, hi] (effort minutes), tips: [{ key, params? }] } where trend is one of
+ * 'new' (no history), 'restart' (missed most of the last weeks), 'recover' (last week far above the usual), 'hold' (three rising weeks: consolidate), 'build' (steady: the gentle +10 %).
+ * `plan` is weeklyTarget(...); `rows` the workouts; the tips look at the habit: sessions per week, one session carrying the week, runs without an easy day.
+ */
+export function effortAdvice(rows, plan, now) {
+  const weeks = weeklySeries(rows, now, 5).slice(0, 4), last = weeks[weeks.length - 1], active = weeks.filter((x) => x.min > 0), typical = plan.typical || 0, tips = [];
+  const r = (a, b) => [Math.max(0, Math.round(a)), Math.max(1, Math.round(b))];
+  let trend = 'build', band = r(Math.max(typical, plan.minutes * 0.9), plan.minutes * 1.1);
+  const lastThree = weeks.slice(-3);
+  if (!active.length) { trend = 'new'; band = r(plan.minutes * 0.8, plan.minutes * 1.2); }
+  else if (lastThree.filter((x) => x.min === 0).length >= 2) { trend = 'restart'; band = r(typical * 0.5, typical * 0.7); }
+  else if (typical > 0 && last.min > typical * 1.3) { trend = 'recover'; band = r(typical * 0.6, typical * 0.9); }
+  else if (lastThree.length === 3 && lastThree[1].min > lastThree[0].min * 1.1 && lastThree[2].min > lastThree[1].min * 1.1 && lastThree[0].min > 0) { trend = 'hold'; band = r(last.min * 0.95, last.min * 1.05); }
+  const recent = rows.filter((w) => w.startedAt >= weekStart(now) - 28 * 86400000 && w.startedAt < weekStart(now));
+  if (recent.length) {
+    const perWeek = recent.length / 4, runs = recent.filter((w) => w.kind === 'run'), longest = Math.max(...recent.map((w) => w.movingMs)), total = recent.reduce((s, w) => s + w.movingMs, 0);
+    if (perWeek < 2) tips.push({ key: 'effTipMoreDays' });
+    if (recent.length >= 4 && longest > total * 0.4) tips.push({ key: 'effTipSpread' });
+    if (runs.length >= 8 && runs.length / recent.length > 0.8) tips.push({ key: 'effTipEasyDay' });
+  }
+  if (trend === 'build' && plan.longestMin) tips.push({ key: 'effTipLong', params: { min: Math.round(plan.longestMin * 1.1) } });
+  return { trend, band, tips: tips.slice(0, 3) };
+}

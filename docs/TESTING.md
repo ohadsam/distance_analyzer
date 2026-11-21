@@ -10,6 +10,7 @@ Run all: `npm run check && npm test && npm run e2e` (CI runs the same plus Andro
 | Android | CI only | `gradle testDebugUnitTest`, `lintDebug`, `assembleRelease` (no Android SDK in the sandbox) |
 
 ## Unit tests (tests/unit)
+- 0.29.0: `nav.test.js` (turns, steps, following, off route, loops, cues), `exercises.test.js`, `workout.test.js` (marks), `routeplan.test.js` (km markers), `core.test.js` (effort advice). e2e: mark points, interactive map (wheel, pinch, address, measure, km markers), navigation (banner, speech stub), exercises, effort chart + global search (he / en), planner at 320 / 360 px with the progress bar.
 - e2e (0.28.0): the Home weather card is there with weather off (placeholder -> weather screen) and before the first workout; tapping / keyboard-picking a bar of the weather charts and of the Recommendations chart shows the hour's humidity and rain and marks the bar; picking does not rebuild the charts.
 - `workout.test.js` (auto start): standing with GPS wander never starts; steady walking / running do; a run needs more speed than a walk; slow shuffling and inaccurate fixes do not; the start is back-dated; `startNow`, pause while waiting, old saved workouts. `weather-anim.test.js`: `groupDays` / `startHour`, humidity.
 - `weather-anim.test.js`: every documented WMO code maps to one of the 15 pictures (night only for clear / mostly clear / partly cloudy), every strip exists with names in both languages and stays under 600 KB in total, the forecast carries the clamped weather code, `skyAt`.

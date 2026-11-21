@@ -100,7 +100,7 @@ export function renderWorkout(kind, go, routeId) {
     const cue = cueOf(st, navSaid, Date.now()); if (!cue) return;
     const text = t(`navSay_${cue.key}`, { d: cue.distM ? dText(cue.distM) : '', turn: cue.dir ? turnText(cue.dir).toLowerCase() : '' }); sr.textContent = text; if (navVoiceOn()) speak(text, getLang()); // the navigation voice has its own switch (the kilometre voice does not decide it)
   }
-  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), openMapBtn = h('button', { type: 'button', class: 'mapexpand', id: 'wk-openmap', 'aria-label': t('mvOpen'), onclick: () => import('./mapviewer.js').then((m) => m.openMapViewer({ title: t(kind), path: w ? w.points : [], route: follow ? follow.route.path : [], marks: w ? w.marks : [], live: () => (w ? w.points : []) })) }, icon('plus', 22)), mapBox = h('div', { class: 'mapbox' }, navEl, stopEl, lm.el, openMapBtn, followEl, ghostEl);
+  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), openMapBtn = h('button', { type: 'button', class: 'mapexpand', id: 'wk-openmap', 'aria-label': t('mvOpen'), onclick: () => import('./mapviewer.js').then((m) => m.openMapViewer({ title: t(kind), path: w ? w.points : [], route: follow ? follow.route.path : [], marks: w ? w.marks : [], live: () => (w ? w.points : []) })) }, icon('plus', 22)), mapBox = h('div', { class: 'mapbox' }, navEl, stopEl, h('div', { class: 'livewrap' }, lm.el, openMapBtn), followEl, ghostEl);
   let follow = null, ghost = null, ghostSide = ''; // follow = { route, best }; ghost = (moving ms) -> metres of the best attempt
   if (routeId) (async () => {
     const route = (await listRoutes()).find((r) => r.id === routeId); if (!route) return;
@@ -263,7 +263,7 @@ export function renderWorkout(kind, go, routeId) {
     const stats = h('div', { class: 'wk-stats' }, h('div', { class: 'metric hero' }, h('div', { class: 'cap' }, `${t('distance')} (${t('km')})`), vDist), h('div', { class: 'wk-two' }, cardA, cardB));
     setChildren(body, phase === 'ready' ? gpsCard : stats, waitEl, mapBox, rhythm.el,
       phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn, navBtn),
-      phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, phase === 'running' ? markBtn : null));
+      phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn), phase === 'running' ? markBtn : null);
   }
   /** After a run: how long to walk it off and a link to the stretches (after a long walk: the stretches). */
   function coolCard(x) {

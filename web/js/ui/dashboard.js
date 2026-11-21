@@ -12,7 +12,7 @@ import { dayPart, todaySummary, leadsWithSummary } from '../daypart.js';
 import { challengeStatus, challengeWeeks, challengeStreak, challengeTarget } from '../challenge.js';
 import { monthSeries, monthToDate, filterWorkouts, totals, bucketize, streak, personalBests, paceByWeather, paceSec, weatherBucket, WEATHER_BUCKETS, DAY, dayStart } from '../stats.js';
 import { stepSeries, recommendedSteps } from '../steps.js';
-import { weeklyTarget, weekStatus, weeklySeries } from '../effort.js';
+import { weeklyTarget, weekStatus, weeklySeries, effortAdvice } from '../effort.js';
 import { barChart, lineChart } from '../charts.js';
 import { native } from '../native.js';
 import { workoutRow } from './home.js';
@@ -54,10 +54,16 @@ const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null
 const weekLabel = (ts) => new Date(ts).toLocaleDateString(getLang() === 'he' ? 'he-IL' : 'en-GB', { day: 'numeric', month: 'numeric' });
 const dayLabel = (ts) => String(new Date(ts).getDate());
 
+/** The recommendation for next week: the range in effort minutes, why, and tips from the person's own habit. */
+function adviceCard(adv) {
+  return h('div', { class: 'card advice', id: 'effort-advice', 'data-trend': adv.trend }, h('h2', null, t('effAdviceTitle')), h('b', { class: 'adv-band' }, t('effNextBand', { lo: adv.band[0], hi: adv.band[1] })), h('p', null, t(`effTrend_${adv.trend}`)),
+    adv.tips.length ? h('ul', null, adv.tips.map((x) => h('li', null, t(x.key, x.params)))) : null, h('small', { class: 'note' }, t('effAdviceNote')));
+}
 export const W = {
   effort: {
-    summary: (c) => h('div', null, stat(t('effortOf', { done: c.status.done, plan: c.plan.minutes }), t(c.status.status === 'ahead' ? 'effAhead' : c.status.status === 'on' ? 'effOn' : 'effBehind')), meter(c.status.share, t('effortOf', { done: c.status.done, plan: c.plan.minutes }))),
-    detail: (c) => [barChart(weeklySeries(c.all, c.now, 8).map((x, i, a) => ({ v: x.min, label: weekLabel(x.t), cls: i === a.length - 1 ? 'now' : '' })), { target: c.plan.minutes }),
+    summary: (c) => { const adv = effortAdvice(c.all, c.plan, c.now); return h('div', null, stat(t('effortOf', { done: c.status.done, plan: c.plan.minutes }), t(c.status.status === 'ahead' ? 'effAhead' : c.status.status === 'on' ? 'effOn' : 'effBehind')), meter(c.status.share, t('effortOf', { done: c.status.done, plan: c.plan.minutes })),
+      barChart(weeklySeries(c.all, c.now, 6).map((x, i, a) => ({ v: x.min, label: '', cls: i === a.length - 1 ? 'now' : '' })), { band: adv.band, h: 54 }), h('p', { class: 'note effadv' }, t('effNextBand', { lo: adv.band[0], hi: adv.band[1] }))); },
+    detail: (c) => [barChart(weeklySeries(c.all, c.now, 8).map((x, i, a) => ({ v: x.min, label: weekLabel(x.t), cls: i === a.length - 1 ? 'now' : '' })), { target: c.plan.minutes, band: effortAdvice(c.all, c.plan, c.now).band }), adviceCard(effortAdvice(c.all, c.plan, c.now)),
       h('div', { class: 'rows' }, row(t('thisWeek'), t('effortOf', { done: c.status.done, plan: c.plan.minutes })), row(t('effTypical', { n: c.plan.typical }), ''), c.plan.overridden ? row(t('barOverride', { n: c.plan.minutes }), '') : null),
       h('p', { class: 'note' }, t('effRange', { floor: c.plan.floor, ceiling: c.plan.ceiling })), h('p', { class: 'note' }, t('effHow', { pct: c.plan.raisePct }))],
   },

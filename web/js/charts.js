@@ -21,11 +21,12 @@ function picking(svg, count, area, { onPick, labels, sel, title }) {
 }
 
 /** bars: [{ v, label, cls }]; opts: { target, w, h, onPick, labels, sel, title }. */
-export function barChart(bars, { target = 0, w = 300, h = 110, onPick, labels, sel, title } = {}) {
+export function barChart(bars, { target = 0, band = null, w = 300, h = 110, onPick, labels, sel, title } = {}) {
   const svg = mk('svg', { viewBox: `0 0 ${w} ${h}`, class: 'chart', 'aria-hidden': 'true', focusable: 'false' }), rects = [];
-  const max = Math.max(1, target, ...bars.map((b) => b.v)), pad = 14, bw = (w - pad * 2) / Math.max(1, bars.length), top = 8, base = h - 18;
+  const max = Math.max(1, target, ...(band || []), ...bars.map((b) => b.v)), pad = 14, bw = (w - pad * 2) / Math.max(1, bars.length), top = 8, base = h - 18;
   for (const f of [0.33, 0.66]) mk('line', { x1: pad, x2: w - pad, y1: (base - f * (base - top)).toFixed(1), y2: (base - f * (base - top)).toFixed(1), class: 'grid' }, svg); // faint guides (design kit: grid at 22 % outline)
   mk('line', { x1: pad, x2: w - pad, y1: base, y2: base, class: 'axis' }, svg);
+  if (band) { const y0 = base - (band[1] / max) * (base - top), y1 = base - (band[0] / max) * (base - top); mk('rect', { x: pad, y: y0.toFixed(1), width: w - pad * 2, height: Math.max(2, y1 - y0).toFixed(1), class: 'band' }, svg); } // the recommended range
   bars.forEach((b, i) => {
     const bh = (b.v / max) * (base - top), x = pad + i * bw + bw * 0.15;
     rects.push(mk('rect', { x: x.toFixed(1), y: (base - bh).toFixed(1), width: (bw * 0.7).toFixed(1), height: Math.max(b.v > 0 ? 2 : 0, bh).toFixed(1), rx: 5, class: `bar ${b.cls || ''}`, idx: i }, svg));

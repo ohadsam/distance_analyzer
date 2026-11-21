@@ -347,3 +347,11 @@ html[data-calm="1"] .pbar.indeterminate .pbtrack i, html[data-calm="1"] .pbar .p
 /* exercises */
 .exlist { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; } .exitem { display: flex; gap: 12px; align-items: center; } .exitem small { color: var(--muted); display: block; } .exitem p { margin: 4px 0 0; }
 .exnow { display: grid; justify-items: center; text-align: center; gap: 6px; } .excount { font-size: 3rem; line-height: 1; } .coolcard { margin-block: 10px; } .exhub { margin-block: 10px; } .exhub .maptools { margin-block-end: 0; }
+
+.chart .band { fill: color-mix(in srgb, var(--good, #2b7a3b) 22%, transparent); stroke: color-mix(in srgb, var(--good, #2b7a3b) 55%, transparent); stroke-width: 1; stroke-dasharray: 4 3; }
+.advice { display: grid; gap: 6px; } .advice ul { margin: 0; padding-inline-start: 20px; } .advice .adv-band { font-size: 1.3rem; font-weight: 800; }
+
+.workout .btn.mark { inline-size: 100%; justify-content: center; min-block-size: 52px; margin-block-start: 8px; display: inline-flex; align-items: center; gap: 8px; font-size: 1.05rem; }
+.dirs > summary { min-block-size: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+
+.livewrap { position: relative; }
