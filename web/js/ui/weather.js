@@ -8,6 +8,7 @@ import { planNetOn, setPlanNet, geocode } from '../planApi.js';
 import { roundCoord, validCoords } from '../forecast.js';
 import { conditionOf, weatherIcon } from '../weatherAnim.js';
 import { barChart, lineChart } from '../charts.js';
+import { hourDetail, hourLine } from './hourdetail.js';
 
 const dayKey = (ms) => { const d = new Date(ms); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
 /** Forecast hours -> [{ key, ms, hours }] one entry per local day, oldest first (at most 3). */
@@ -54,13 +55,6 @@ export function renderWeather() {
     return h('div', { class: 'card wxplace' }, h('label', { for: 'wx-place' }, t('wxPlace')), sel, h('div', { class: 'row' }, q, h('button', { type: 'button', class: 'btn', id: 'wx-find', onclick: find }, t('wxFind'))), results);
   }
 
-  function detail(x) {
-    const cond = x.code >= 0 ? conditionOf(x.code, x.day) : null, icon = cond ? weatherIcon(cond, 88) : null;
-    const row = (k, v, id) => h('div', { class: 'wxrow', 'data-k': id }, h('dt', null, k), h('dd', null, v));
-    return h('div', { class: 'card wxdetail', id: 'wx-detail', 'aria-live': 'polite' }, h('div', { class: 'wxhead' }, icon, h('div', null, h('b', { class: 'wxtemp' }, `${Math.round(x.temp)}°`), cond ? h('span', { class: 'skytext' }, t(`sky_${cond}`)) : null, h('small', null, `${hh(x.t)}:00`))),
-      h('dl', { class: 'wxrows' }, row(t('wxFeels'), `${Math.round(x.feels)}°`, 'feels'), row(t('wxHumidity'), x.hum >= 0 ? `${Math.round(x.hum)}%` : '–', 'hum'), row(t('wxRainP'), `${Math.round(x.rainP)}%`, 'rainp'), row(t('wxRain'), `${x.rain.toFixed(1)} ${t('wxMm')}`, 'rain'), row(t('wxWind'), `${Math.round(x.wind)} ${t('wxKmh')}`, 'wind'), row(t('wxUv'), String(Math.round(x.uv)), 'uv')));
-  }
-
   function paint() {
     const parts = [placeBox()];
     if (status === 'loading') parts.push(h('p', { class: 'note', id: 'wx-loading' }, t('wxLoading')));
@@ -69,16 +63,22 @@ export function renderWeather() {
     else if (status === 'noplace') parts.push(h('p', { class: 'note', id: 'wx-noplace' }, t('wxNoPlace')));
     else if (status === 'error') parts.push(h('div', { class: 'card' }, h('p', null, t('wxError')), h('button', { type: 'button', class: 'btn', id: 'wx-retry', onclick: () => load(true) }, t('wxRetry'))));
     else {
-      const days = groupDays(list), d = days[Math.min(day, days.length - 1)], x = d.hours[Math.min(hour, d.hours.length - 1)];
+      const days = groupDays(list), d = days[Math.min(day, days.length - 1)], hr = Math.min(hour, d.hours.length - 1);
       const temps = d.hours.map((z) => z.temp), lo = Math.round(Math.min(...temps)), hi = Math.round(Math.max(...temps)), total = d.hours.reduce((s, z) => s + z.rain, 0);
       parts.push(h('div', { class: 'chips', role: 'group', 'aria-label': t('wxDays') }, days.map((z, i) => h('button', { type: 'button', class: 'chip', 'data-day': i, 'aria-pressed': String(i === day), onclick: () => { day = i; hour = startHour(days[i]); paint(); } }, dayName(z, i)))));
       parts.push(h('p', { class: 'note', id: 'wx-summary' }, t('wxSummary', { lo, hi, mm: total.toFixed(1) }), stale ? ` ${t('wxStale')}` : ''));
-      parts.push(h('div', { class: 'wxhours', role: 'group', 'aria-label': t('wxHourly'), id: 'wx-hours' }, d.hours.map((z, i) => h('button', { type: 'button', class: 'wxhour', 'data-hour': i, 'aria-pressed': String(i === hour), onclick: () => { hour = i; paint(); } }, h('span', null, hh(z.t)), h('b', null, `${Math.round(z.temp)}°`)))));
-      parts.push(detail(x));
-      const ch = h('div', { class: 'wxcharts' }, h('h2', null, t('wxTempChart')), lineChart(temps, { h: 90 }), h('h2', null, t('wxRainChart')), barChart(d.hours.map((z, i) => ({ v: z.rain, label: i % 3 === 0 ? hh(z.t) : '', cls: i === hour ? 'now' : '' })), { h: 90 }));
-      parts.push(ch);
+      // picking an hour (a button, or a bar / point of a chart) updates the numbers in place: nothing is rebuilt, so the charts do not grow in again
+      const holder = h('div', { id: 'wx-detail-holder' }), pickEl = h('p', { class: 'wxpick', id: 'wx-pick', role: 'status' }), labels = d.hours.map(hourLine);
+      const buttons = d.hours.map((z, i) => h('button', { type: 'button', class: 'wxhour', 'data-hour': i, 'aria-pressed': String(i === hr), onclick: () => select(i) }, h('span', null, hh(z.t)), h('b', null, `${Math.round(z.temp)}°`)));
+      const tempChart = lineChart(temps, { h: 90, onPick: (i) => select(i, true), labels, title: t('wxTempChart') }), rainChart = barChart(d.hours.map((z, i) => ({ v: z.rain, label: i % 3 === 0 ? hh(z.t) : '' })), { h: 90, onPick: (i) => select(i, true), labels, title: t('wxRainChart') });
+      function select(i, fromChart = false) {
+        hour = i; buttons.forEach((b, k) => b.setAttribute('aria-pressed', String(k === i))); setChildren(holder, hourDetail(d.hours[i])); pickEl.textContent = labels[i]; tempChart.select(i); rainChart.select(i);
+        if (!fromChart) buttons[i].scrollIntoView({ inline: 'center', block: 'nearest' });
+      }
+      parts.push(h('div', { class: 'wxhours', role: 'group', 'aria-label': t('wxHourly'), id: 'wx-hours' }, buttons), holder, h('div', { class: 'wxcharts' }, h('h2', null, t('wxTempChart')), tempChart, h('h2', null, t('wxRainChart')), rainChart, pickEl, h('p', { class: 'note' }, t('wxChartHint'))));
+      queueMicrotask(() => select(hr));
     }
-    setChildren(body, parts); document.querySelector('#wx-hours .wxhour[aria-pressed="true"]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
+    setChildren(body, parts);
   }
   setChildren(el, h('h1', null, t('wxTitle')), body, h('p', { class: 'note' }, t('wxNote')), msg);
   listRoutes().then((r) => { routes = r.filter((x) => Array.isArray(x.path) && x.path.length); paint(); }).catch(() => {});

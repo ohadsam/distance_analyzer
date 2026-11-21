@@ -136,7 +136,7 @@ import { skySlot } from './skynow.js';
 function dayCard(c) {
   if (!c.all.length) return null;
   const part = dayPart(c.now), today = todaySummary(c.all, c.now), st = challengeStatus(c.all, c.now, challengeTarget(getPref('challengeN', '3')));
-  return h('div', { class: 'card daycard', 'data-part': part }, art('workout', `banner-${part}`, 'daybanner'), h('h2', null, t(`greet_${part}`)), skySlot(56, c.now),
+  return h('div', { class: 'card daycard', 'data-part': part }, art('workout', `banner-${part}`, 'daybanner'), h('h2', null, t(`greet_${part}`)),
     leadsWithSummary(part, today) ? h('p', null, today.n ? [t('todayN', { n: today.n }), h('br'), t('todayKm', { km: today.km, min: today.minutes })] : t('todayNone')) : h('p', null, t(`hint_${part}`)),
     st.target ? h('p', { class: 'note' }, st.complete ? t('chDone') : t('chProgress', { done: st.done, target: st.target })) : null);
 }
@@ -177,6 +177,7 @@ export function renderDashboard() {
       resume ? h('div', { class: 'card resume' }, icon(resume.kind, 28), h('span', { class: 'grow' }, h('b', null, t('resumeTitle')), h('small', null, fmtKm(resume.distanceM))), h('button', { type: 'button', class: 'btn ghost', onclick: () => { if (confirm(t('discardAsk'))) { active.clear(); draw(); } } }, t('discard')), h('a', { class: 'btn', href: `#/workout/${resume.kind}` }, t('resumeBtn'))) : null,
       quickActions(suggest(c.routes, c.all)[0]?.route || null),
       h('div', { class: 'starts' }, startLink('walk'), startLink('run')),
+      h('div', { class: 'card wxentry' }, skySlot(64, c.now)), // the weather: always one tap away (the animated sky when it is known)
       welcome(c, draw), dayCard(c),
       fresh ? emptyState('no-workouts', t('dashEmpty')) : [filterBar(c, draw), h('div', { class: 'wgrid' }, visible.map(card)),
       h('a', { class: 'link', href: '#/history' }, t('allWorkouts'))]);

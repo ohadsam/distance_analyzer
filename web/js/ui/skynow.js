@@ -1,5 +1,6 @@
 // "The sky now": the animated weather picture with the temperature and a short word, from the forecast already in the cache (never a request of its own).
 import { h, setChildren } from '../util.js';
+import { art } from '../art.js';
 import { t } from '../i18n.js';
 import { onlineOn, cachedForecast, fetchForecast, getLoc } from '../weatherApi.js';
 import { skyAt } from '../forecast.js';
@@ -15,6 +16,15 @@ export function skyNow(size = 64, now = Date.now()) {
 /** A place for the sky row that fills itself: at once from the cache, else after the forecast arrives (one cached request an hour, only with online weather on and a known position). */
 export function skySlot(size = 64, now = Date.now()) {
   const slot = h('div', { class: 'skyslot' }), fill = () => { const e = skyNow(size, now); if (e) setChildren(slot, e); return !!e; };
-  if (!fill() && onlineOn() && getLoc()) fetchForecast({ now }).then(() => { if (slot.isConnected) fill(); }).catch(() => {});
+  if (!fill()) { // until the sky is known (or when it never will be: weather off, no position yet) the slot is still a clear door to the weather screen
+    setChildren(slot, h('a', { class: 'skynow wxfallback', href: '#/weather' }, art('weather', 'clear', 'wxfb-img'), h('div', null, h('b', null, t('wxTitle')), h('span', { class: 'skytext' }, t('wxEntryHint')))));
+    // the position may arrive a moment after Home is drawn (first launch): look again a few times, then leave it
+    const attempt = (n) => {
+      if (!slot.isConnected || !onlineOn()) return;
+      const next = () => { if (n < 4 && slot.isConnected && !slot.querySelector('.wxa')) setTimeout(() => attempt(n + 1), 2000 * (n + 1)); };
+      if (getLoc()) fetchForecast({ now: Date.now() }).then(() => { if (slot.isConnected && !fill()) next(); }).catch(next); else next();
+    };
+    setTimeout(() => attempt(0), 50); // (after the slot is on the page)
+  }
   return slot;
 }

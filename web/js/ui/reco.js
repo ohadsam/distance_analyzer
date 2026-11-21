@@ -2,6 +2,7 @@
 // Screen (#/reco), dashboard widget summary and the shared body used by the drill-down. Logic lives in reco.js (pure); the network in weatherApi.js.
 import { weatherBanner } from '../art.js';
 import { skyNow, skySlot } from './skynow.js';
+import { hourDetail, hourLine } from './hourdetail.js';
 import { weatherAt } from '../forecast.js';
 import { h, setChildren } from '../util.js';
 import { t } from '../i18n.js';
@@ -72,10 +73,21 @@ async function weatherPart(c, day, box, redraw) {
   const dayBtn = (d, k) => h('button', { type: 'button', class: 'chip', 'aria-pressed': String(day === d), onclick: () => { box.dataset.day = String(d); redraw?.(); } }, t(k));
   const good = items.filter((i) => i.type !== 'avoid'), bad = items.filter((i) => i.type === 'avoid');
   return [h('div', { class: 'chips', role: 'group' }, dayBtn(0, 'recoToday'), dayBtn(1, 'recoTomorrow')),
-    hours.length ? barChart(hours.map((x) => ({ v: x.comfort, label: x.hour % 3 === 0 ? String(x.hour) : '', cls: mark(x) })), { h: 100 }) : null,
+    hours.length ? hoursChart(hours, res.list, mark) : null,
     good.length ? h('div', { class: 'rlist' }, h('h2', null, t('recoGeneral')), good.map(card)) : h('p', { class: 'note' }, day ? t('recoNone') : t('recoNoWindow')),
     bad.length ? h('div', { class: 'rlist' }, bad.map(card)) : null,
     res.stale ? h('p', { class: 'note' }, t('recoStale')) : null, h('p', { class: 'note' }, t('recoAttr'))];
+}
+
+/** The comfort-by-hour bars: tap (or Tab + Enter) a bar to see that hour's weather - temperature, humidity, rain - right under the chart. */
+function hoursChart(hours, list, mark) {
+  const rows = hours.map((x) => list.find((z) => z.t === x.t)), holder = h('div', { class: 'wxholder', id: 'reco-hour' }), now = Date.now();
+  const labels = hours.map((x, i) => (rows[i] ? hourLine(rows[i]) : `${x.hour}:00`));
+  const show = (i) => { setChildren(holder, rows[i] ? hourDetail(rows[i]) : null); };
+  const cur = Math.max(0, hours.findIndex((x) => now >= x.t && now < x.t + 3600000));
+  const chart = barChart(hours.map((x) => ({ v: x.comfort, label: x.hour % 3 === 0 ? String(x.hour) : '', cls: mark(x) })), { h: 100, onPick: show, labels, title: t('recoTitle'), sel: cur });
+  show(cur);
+  return h('div', { class: 'recohours' }, chart, h('p', { class: 'note' }, t('wxChartHint')), holder);
 }
 
 function consentCard(redraw) {

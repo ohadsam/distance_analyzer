@@ -109,3 +109,5 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 92 | After Start: location, distance and route are automatic and measuring begins only when the activity really starts (by pace and movement, especially for a run) | ✅ 0.27.0 (needs a real walk / run to tune the thresholds) |
 | 93 | A ChatGPT prompt for the remaining 8 weather animations (drizzle, rain, heavy rain, freezing rain, snow, hail, fog, overcast) | ✅ docs/prompts/ROUND13_WEATHER_MOTION_PROMPT.md (waiting for the owner to run it) |
 | 94 | The reworked precipitation animations integrated; fix prompt for snow, hail, fog | ✅ 0.27.3 (5 of 8) + docs/prompts/ROUND14_WEATHER_FIX_PROMPT.md |
+| 95 | The weather animations must be visible in the app (a Weather card on Home); tapping the weather chart bars shows that hour's precipitation, humidity and temperature | ✅ 0.28.0 |
+| 95 | The weather animations must be visible in the app (a Weather card on Home); tapping the weather chart bars shows that hour's precipitation, humidity and temperature | ✅ 0.28.0 |

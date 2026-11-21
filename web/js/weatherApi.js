@@ -5,6 +5,7 @@ import { getPref, setPref, flag } from './store.js';
 
 const TTL = 60 * 60000, STALE = 6 * 3600000, RETRY = 15 * 60000, MAX_BYTES = 200000, CACHE = 'da.wxc', PLACES = 'da.wxp', MAX_PLACES = 4;
 
+let leaving = false; try { addEventListener('pagehide', () => { leaving = true; }); } catch { /* no window */ } // a request cut off because the page is closing or reloading is not a failure (it must not start the 15 minute pause)
 export const onlineOn = () => flag('onlineWx'); // (the location permission is what decides whether it works)
 export function getLoc() { try { const o = JSON.parse(getPref('loc', 'null')); return o && validCoords(o.lat, o.lon) ? { lat: roundCoord(o.lat), lon: roundCoord(o.lon) } : null; } catch { return null; } }
 export function setLoc({ lat, lon }) { if (validCoords(lat, lon)) setPref('loc', JSON.stringify({ lat: roundCoord(lat), lon: roundCoord(lon) })); }
@@ -47,7 +48,7 @@ export async function fetchForecast({ now = Date.now(), fetchFn = (...a) => fetc
     const list = normalizeForecast(JSON.parse(text)); if (!list.length) throw new Error('empty');
     try { localStorage.setItem(CACHE, JSON.stringify({ k: `${loc.lat},${loc.lon}`, at: now, data: list })); } catch { /* storage blocked: no cache */ }
     setPref('wxfail', '0'); return { list, stale: false };
-  } catch { setPref('wxfail', String(now)); const old = cachedForecast(now); return old?.length ? { list: old, stale: true } : null; }
+  } catch { if (!leaving) setPref('wxfail', String(now)); const old = cachedForecast(now); return old?.length ? { list: old, stale: true } : null; }
   finally { clearTimeout(timer); }
 }
 

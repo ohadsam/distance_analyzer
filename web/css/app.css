@@ -311,3 +311,9 @@ a.skynow { color: inherit; text-decoration: none; }
 .meter > span { animation: meter-fill .9s cubic-bezier(.2, .8, .2, 1) both; transform-origin: inline-start; } @keyframes meter-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 html[data-calm="1"] .chart *, html[data-calm="1"] .meter > span { animation: none !important; } html[data-calm="1"] .chart .line { stroke-dasharray: none; stroke-dashoffset: 0; }
 @media (prefers-reduced-motion: reduce) { .chart *, .meter > span { animation: none !important; } .chart .line { stroke-dasharray: none; stroke-dashoffset: 0; } }
+
+/* tapping a chart: a transparent column over each bar / point picks it; the picked one is marked */
+.chart .hit { fill: transparent; cursor: pointer; } .chart .hit:hover { fill: color-mix(in srgb, var(--primary) 10%, transparent); } .chart .hit:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.chart .bar.sel { fill: var(--primary); stroke: var(--text); stroke-width: 1.5; } .chart .dot.sel { r: 6.5; stroke: var(--text); stroke-width: 1.5; } .chart .selline { stroke: var(--primary); stroke-width: 1.5; opacity: .55; }
+
+.wxentry { padding-block: 8px; margin-block: 10px; } .wxentry .skyslot { inline-size: 100%; } .wxfallback .wxfb-img { inline-size: 56px; block-size: 56px; flex: none; } .wxpick { margin: 6px 0 0; padding: 8px 10px; border: 1px solid var(--outline); border-radius: var(--radius); font-weight: 700; min-block-size: 1.4em; }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.28.0
+- **The weather is always one tap away on Home**: a *Weather* card under the Start buttons (also before your first workout) shows the animated sky with the temperature once the forecast is known, and until then (or when online weather is off / no position yet) a clear door "Weather - hour by hour: temperature, rain, humidity" that opens the weather screen. It looks again a few times for the position on a first launch. The animated sky is no longer inside the day card.
+- **Tap a chart to see that hour.** On the weather screen the temperature line and the rain bars, and on Recommendations the comfort-by-hour bars: tap (or Tab + Enter) a bar or point and the numbers of that hour appear - sky picture, temperature, feels like, **humidity**, chance and amount of **rain**, wind, UV. The picked bar / point is marked; picking never rebuilds the charts (no re-growing). Screen readers get one labelled button per bar.
+- Fix: a forecast request cut off because the page was reloading or closing no longer starts the 15-minute pause before the next try.
+
 ## 0.27.3
 - **Five more weather pictures come alive**: drizzle, rain, heavy rain, freezing rain and overcast now use the illustrator's new loops (falling drops in two sizes, ice crystals mixed into the freezing rain, two clouds drifting in the overcast). Checked: clean magenta borders in every frame, 12 distinct frames, loops that close, motion of 4-9 per frame (it was under 1).
 - **Not replaced yet** (they failed the check, the earlier pictures stay): *snow* (the flakes are broken fragments and nearly invisible on the light theme), *hail* (the stones are cut in half, D-shaped) and *fog* (dark smears on the bands in the dark theme). A correction prompt is in `docs/prompts/ROUND14_WEATHER_FIX_PROMPT.md`.

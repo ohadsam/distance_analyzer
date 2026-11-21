@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.28.0',
+    en: ['A Weather card on Home is always one tap away and shows the animated sky.', 'Tap a bar or a point on the weather charts (and the Recommendations chart) to see that hour: temperature, humidity, rain, wind and UV.'],
+    he: ['כרטיס מזג אוויר במסך הבית, תמיד במרחק לחיצה, מציג את השמיים המונפשים.', 'לחצו על עמודה או נקודה בגרפי מזג האוויר (ובגרף ההמלצות) כדי לראות את השעה: טמפרטורה, לחות, גשם, רוח ו-UV.'] },
   { v: '0.27.3',
     en: ['Drizzle, rain, heavy rain, freezing rain and overcast pictures now animate: falling drops, ice crystals and drifting clouds.'],
     he: ['תמונות הטפטוף, הגשם, הגשם הכבד, הגשם הקפוא והמעונן מונפשות עכשיו: טיפות נופלות, גבישי קרח ועננים נעים.'] },
