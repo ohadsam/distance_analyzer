@@ -647,6 +647,23 @@ await step('navigation: a followed route shows the next turn, the distance to it
   await page.click('#wk-navvoice'); assert.equal(await page.getAttribute('#wk-navvoice', 'aria-pressed'), 'false'); assert.equal(await page.evaluate(() => localStorage.getItem('da.navVoice')), '0');
   await ctx.setGeolocation({ latitude: 32.0013, longitude: 34.8009, accuracy: 5 }); await page.waitForTimeout(1300); assert.deepEqual(errors, []);
 });
+await step('exercises: the warm-up from the ready screen, the guided session counts and moves on, the cool-down card after a run, the hub in Recommendations; axe clean in he and en', async () => {
+  for (const lang of ['en', 'he']) {
+    const { page, errors, ctx } = await newPage({ lang }); await page.goto(base + '#/workout/run'); await page.waitForSelector('#wk-warmup'); await page.click('#wk-warmup'); await page.waitForSelector('.exercises[data-session=warmup]');
+    assert.equal(await page.locator('.exitem').count(), 8); assert.equal(await page.locator('.exitem img').count(), 8, 'the character pose stands in until the animations are delivered'); assert.deepEqual(await axeViolations(page), [], `${lang} warm-up list`); await shot(page, `exercises-list-${lang}`);
+    await page.click('#ex-start'); await page.waitForSelector('#ex-now'); assert.equal(await page.getAttribute('#ex-now', 'data-ex'), 'wu_march'); assert.equal(await page.getAttribute('.pbar', 'aria-valuenow'), '0'); assert.deepEqual(await axeViolations(page), [], `${lang} guided`); await shot(page, `exercises-guided-${lang}`);
+    await page.click('#ex-next'); assert.equal(await page.getAttribute('#ex-now', 'data-ex'), 'wu_leg_swing'); await page.click('#ex-pause'); const c1 = await page.textContent('#ex-count'); await page.waitForTimeout(1500); assert.equal(await page.textContent('#ex-count'), c1, 'paused: the count stands still'); await page.click('#ex-prev'); assert.equal(await page.getAttribute('#ex-now', 'data-ex'), 'wu_march');
+    for (let i = 0; i < 8; i++) await page.click('#ex-next'); await page.waitForSelector('#ex-done'); assert.deepEqual(await axeViolations(page), [], `${lang} done`);
+    await page.goto(base + '#/exercises/cooldown/walk'); await page.waitForSelector('.exercises[data-session=cooldown]'); assert.equal(await page.locator('.exitem').count(), 4); await page.goto(base + '#/exercises/nonsense'); await page.waitForSelector('.start-card, h1'); 
+    assert.deepEqual(errors, []);
+  }
+  const run = await newPage({ lang: 'en' }); await run.page.goto(base + '#/workout/run'); await run.page.waitForSelector('.gps-card[data-gps="good"]'); await run.page.click('.big-btn');
+  for (let i = 1; i <= 5; i++) { await run.ctx.setGeolocation({ latitude: 32 + i * 0.0001, longitude: 34.8, accuracy: 5 }); await run.page.waitForTimeout(1100); }
+  await run.page.evaluate(() => { const a = JSON.parse(localStorage.getItem('da.active') || 'null'); }); await run.page.click('.controls .btn.ghost'); await run.page.click('.confirm .btn >> nth=0'); await run.page.waitForSelector('.summary');
+  assert.equal(await run.page.locator('#cool-card').count(), 0, 'a 50 m jog needs no cool-down');
+  await run.page.evaluate(async () => { const S = await import('./js/store.js'); await S.saveWorkout({ kind: 'run', startedAt: Date.now() - 3600000, endedAt: Date.now() - 1800000, pausedMs: 0, pausedAt: 0, distanceM: 6000, movingMs: 1800000, elapsedMs: 1800000, splits: [], points: [[32, 34.8, 1], [32.05, 34.8, 2]] }); });
+  const rec = await newPage({ lang: 'en' }); await rec.page.goto(base + '#/reco'); await rec.page.waitForSelector('#ex-hub'); await rec.page.click('#ex-hub-cool'); await rec.page.waitForSelector('.exercises[data-session=cooldown]'); assert.equal(await rec.page.locator('.exitem').count(), 8);
+});
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {
     const { page } = await newPage({ lang }); await page.emulateMedia({ colorScheme: scheme });

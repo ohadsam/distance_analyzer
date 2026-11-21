@@ -30,6 +30,7 @@ import { native } from '../native.js';
 import { syncNative } from '../syncNative.js';
 import { marksTable } from './marks.js';
 import { createNav, turnsOf, cueOf, newSaid } from '../nav.js';
+import { coolDownMinutes } from '../exercises.js';
 import { turnIcon, distText, turnText } from './directions.js';
 
 const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not worth a history entry
@@ -240,7 +241,7 @@ export function renderWorkout(kind, go, routeId) {
   const paintGps = () => {
     gpsChip.dataset.gps = gps;
     const label = gps === 'good' ? t('gpsGood') : gps === 'weak' ? t('gpsWeak') : gps === 'denied' ? t('gpsDenied') : gps === 'missing' ? t('gpsMissing') : t('gpsSearching');
-    setChildren(gpsChip, icon('gps', 18), label); gpsCard.dataset.gps = gps; setChildren(gpsCard, icon('gps', 40), h('b', null, label), phase === 'ready' && (gps === 'good' || gps === 'searching') ? h('small', { class: 'note' }, t('wkReadyHint')) : null);
+    setChildren(gpsChip, icon('gps', 18), label); gpsCard.dataset.gps = gps; setChildren(gpsCard, icon('gps', 40), h('b', null, label), phase === 'ready' && (gps === 'good' || gps === 'searching') ? h('small', { class: 'note' }, t('wkReadyHint')) : null, phase === 'ready' ? h('a', { class: 'btn ghost', id: 'wk-warmup', href: `#/exercises/warmup/${kind}` }, t('exWarmFirst'), ' · ', t('exWarmFirstHint', { min: kind === 'run' ? 5 : 3 })) : null);
   };
   function paint() {
     const n = Date.now();
@@ -264,12 +265,18 @@ export function renderWorkout(kind, go, routeId) {
       phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn, navBtn),
       phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, phase === 'running' ? markBtn : null));
   }
+  /** After a run: how long to walk it off and a link to the stretches (after a long walk: the stretches). */
+  function coolCard(x) {
+    const min = coolDownMinutes(x.distanceM, x.kind, avgPaceSec(x)); if (!min && !(x.distanceM >= 2000)) return null;
+    return h('div', { class: 'card coolcard', id: 'cool-card' }, h('h2', null, t('exCoolTitle')), h('p', null, min ? t('exCoolText', { min }) : t('exCoolStretch')),
+      h('a', { class: 'btn', id: 'cool-go', href: `#/exercises/cooldown/${x.kind}`, onclick: () => { if (min) setPref('coolWalkMin', String(min)); } }, t('exCoolLink')));
+  }
   function summary() {
     const n = w.endedAt, mins = elapsedMs(w, n);
     const row = (k, v) => h('div', { class: 'row' }, h('span', null, k), h('b', null, v));
     return h('div', { class: 'summary' }, pose('cheer', 120), h('h2', null, t('summary')), trackPicture(w.points, 300, 180, { marks: w.marks, title: t('summary') }), marksTable(w.marks),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(w.distanceM)), row(t('time'), fmtClock(mins)), row(t('movingTime'), fmtClock(w.movingMs)), row(t('avgPace'), fmtPaceUnit(avgPaceSec(w))), row(t('kcal'), `${kcal(w, getNum('weight', 70, 30, 250))} ${t('kcalUnit')}`)),
-      workoutShareBox(w), recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
+      coolCard(w), workoutShareBox(w), recordEl, planEl, routeEl, headsUp ? h('div', null, h('h2', null, t('headsUp')), alertCard(headsUp)) : null,
       h('a', { class: 'btn', href: '#/' }, t('done')));
   }
 

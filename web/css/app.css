@@ -343,3 +343,7 @@ html[data-calm="1"] .pbar.indeterminate .pbtrack i, html[data-calm="1"] .pbar .p
 .dirlist { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; } .dirlist li { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-block-end: 1px solid var(--outline); } .dirlist small { display: block; color: var(--muted); } .turnicon { flex: none; color: var(--primary); }
 .navbar { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-block-end: 6px; border-radius: var(--radius); background: var(--primary); color: var(--on-primary, #fff); } .navbar .turnicon { color: inherit; } .navbar .navd { font-size: 1.6rem; font-weight: 800; display: block; line-height: 1.1; } .navbar .navt { font-size: 1.05rem; font-weight: 700; } .navbar .navsub { display: block; font-size: .85rem; opacity: .92; } .navbar .navleft { margin-inline-start: auto; text-align: end; font-weight: 700; white-space: nowrap; }
 .navbar[data-state="off"] { background: #b3261e; } .navbar[data-state="arrived"] { background: #2b7a3b; }
+
+/* exercises */
+.exlist { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 10px; } .exitem { display: flex; gap: 12px; align-items: center; } .exitem small { color: var(--muted); display: block; } .exitem p { margin: 4px 0 0; }
+.exnow { display: grid; justify-items: center; text-align: center; gap: 6px; } .excount { font-size: 3rem; line-height: 1; } .coolcard { margin-block: 10px; } .exhub { margin-block: 10px; } .exhub .maptools { margin-block-end: 0; }

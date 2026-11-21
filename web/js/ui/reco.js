@@ -106,7 +106,9 @@ export function renderReco() {
   const bar = h('div', { class: 'chips', role: 'group', 'aria-label': t('recoTitle') });
   const chips = () => setChildren(bar, AREAS.map((a) => h('button', { type: 'button', class: 'chip', 'data-area': a, 'aria-pressed': String(a === area), onclick: () => { area = a; draw(); } }, t(AREA_KEY[a]))));
   const f = onlineOn() ? cachedForecast(Date.now()) : null, banner = f?.length ? skyNow(96) || weatherBanner(weatherAt(f, Date.now())) : onlineOn() ? skySlot(96) : null; // the animated sky when the forecast knows it, else the picture of the kit
-  setChildren(el, h('h1', null, t('recoTitle')), banner, bar, box); draw();
+  const hub = h('div', { class: 'card exhub', id: 'ex-hub' }, h('h2', null, t('exHubTitle')), h('p', { class: 'note' }, t('exHubText')),
+    h('div', { class: 'maptools' }, h('a', { class: 'btn', id: 'ex-hub-warm', href: '#/exercises/warmup/run' }, t('exWarmLink')), h('a', { class: 'btn ghost', id: 'ex-hub-cool', href: '#/exercises/cooldown/run' }, t('exCoolLink'))));
+  setChildren(el, h('h1', null, t('recoTitle')), banner, bar, box, hub); draw();
   el.cleanup = () => { box.alive = false; };
   return el;
 }
