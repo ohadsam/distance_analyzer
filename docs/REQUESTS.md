@@ -121,3 +121,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 103 | Effort bar as a chart with recommendations by the person's training | ✅ 0.29.0 |
 | 104 | Fix the planner's horizontal scrolling | ✅ 0.29.0 |
 | 105 | Global search over capabilities and things saved by the user | ✅ 0.29.0 |
+| 106 | Rewrite the exercise-animation production prompt as a hybrid rig + deterministic rendering pipeline (after ChatGPT's feedback) | ✅ docs/prompts/ROUND16_EXERCISES_RIG_PROMPT.md (ROUND15 superseded) |
