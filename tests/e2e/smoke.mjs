@@ -609,7 +609,7 @@ await step('weather screen: hour by hour for the day (temperature, feels like, h
 await step('mark points: a coloured button marks where you are and keeps measuring; the summary and the history show the points and their numbers; the full map opens during the workout', async () => {
   const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.goto(base + '#/workout/run'); await page.waitForSelector('.big-btn'); await page.waitForSelector('.gps-card[data-gps="good"]');
   assert.equal(await page.locator('#wk-mark').count(), 0, 'not before Start'); await page.click('.big-btn'); await page.waitForSelector('#wk-mark');
-  assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('wk-mark')).backgroundColor), 'rgb(217, 72, 15)', 'a colour nothing else on the screen has');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.getElementById('wk-mark')).backgroundColor), 'rgb(194, 65, 12)', 'a colour nothing else on the screen has');
   for (let i = 1; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.00007, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
   await page.click('#wk-mark'); await page.waitForFunction(() => /Point 1:/.test(document.querySelector('.cue')?.textContent || '')); assert.deepEqual(await axeViolations(page), [], 'mark button axe');
   await page.click('#wk-openmap'); await page.waitForSelector('#mapviewer[open] svg.imapsvg'); assert.equal(await page.locator('#mapviewer .markdot').count(), 1, 'the marked point is on the full map'); assert.deepEqual(await axeViolations(page), [], 'viewer axe'); await page.click('#mv-close'); await page.waitForSelector('#mapviewer', { state: 'detached' });
@@ -632,6 +632,20 @@ await step('interactive map: wheel and pinch zoom, drag, find an address, measur
   await page.click('#mv-measure'); const vb = await page.locator('#mapviewer svg.imapsvg').boundingBox(); await page.mouse.click(vb.x + 80, vb.y + 80); await page.mouse.click(vb.x + 200, vb.y + 200); assert.match(await page.textContent('#mv-info'), /Measured: \d/); assert.deepEqual(await axeViolations(page), [], 'full map axe');
   await page.fill('#mv-q', 'herzl'); await page.click('#mv-find'); await page.waitForSelector('#mv-results .wxres'); await shot(page, 'map-viewer-en'); await page.click('#mv-close');
   assert.deepEqual(errors.filter((e) => !/Failed to load resource/.test(e)), []);
+});
+await step('navigation: a followed route shows the next turn, the distance to it and what is left, speaks the directions (when on), the written directions list the turns', async () => {
+  const { page, errors, ctx } = await newPage({ lang: 'en' }); await page.addInitScript(() => { window.__spoken = []; window.SpeechSynthesisUtterance = function (t) { this.text = t; }; Object.defineProperty(window, 'speechSynthesis', { value: { speak(u) { window.__spoken.push(u.text); }, cancel() {}, pending: false }, configurable: true }); });
+  await page.goto(base); await page.evaluate(async () => { const S = await import('./js/store.js'), R = await import('./js/route.js'); await S.saveRoute(R.makeRoute([[32, 34.8], [32.00117, 34.8], [32.00117, 34.8025]], { id: 'rnav1', name: 'L route' })); });
+  await page.goto(base + '#/r/rnav1'); await page.waitForSelector('#route-dirs'); await page.click('#route-dirs summary'); assert.deepEqual(await page.locator('#route-dirs li').evaluateAll((l) => l.map((x) => x.dataset.step + (x.dataset.dir ? `:${x.dataset.dir}` : ''))), ['start', 'turn:right', 'arrive'], 'the written directions'); assert.deepEqual(await axeViolations(page), [], 'directions axe');
+  await page.goto(base + '#/workout/run/r/rnav1'); await page.waitForSelector('#wk-nav:not([hidden])'); assert.match(await page.textContent('#wk-nav'), /Follow the route/); assert.equal(await page.getAttribute('#wk-navvoice', 'aria-pressed'), 'true');
+  await page.waitForSelector('.gps-card[data-gps="good"]'); await page.click('.big-btn');
+  for (let i = 1; i <= 4; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.0001, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  await page.waitForFunction(() => /Turn right/.test(document.getElementById('wk-nav').textContent)); assert.match(await page.textContent('#wk-nav'), /\d+ m/); assert.match(await page.textContent('#wk-nav'), /left/); assert.deepEqual(await axeViolations(page), [], 'banner axe'); await shot(page, 'nav-banner-en');
+  assert.ok((await page.evaluate(() => window.__spoken)).some((x) => /^In \d+ metres, turn right$/.test(x)), 'the early cue is spoken');
+  for (let i = 5; i <= 10; i++) { await ctx.setGeolocation({ latitude: 32 + i * 0.0001, longitude: 34.8, accuracy: 5 }); await page.waitForTimeout(1100); }
+  await page.waitForFunction(() => window.__spoken.some((x) => /turn right now/i.test(x)), null, { timeout: 8000 }); assert.equal(await page.locator('.mapbox .turndot').count() >= 1, true, 'the next turn is marked on the map');
+  await page.click('#wk-navvoice'); assert.equal(await page.getAttribute('#wk-navvoice', 'aria-pressed'), 'false'); assert.equal(await page.evaluate(() => localStorage.getItem('da.navVoice')), '0');
+  await ctx.setGeolocation({ latitude: 32.0013, longitude: 34.8009, accuracy: 5 }); await page.waitForTimeout(1300); assert.deepEqual(errors, []);
 });
 await step('axe-core: zero violations on every screen (he light, en dark)', async () => {
   for (const [lang, scheme] of [['he', 'light'], ['en', 'dark']]) {

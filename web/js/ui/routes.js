@@ -1,6 +1,7 @@
 // Routes: save a recorded path as a route, recognise it next time, show progress on it, suggest the best route for now, manage routes
 // (rename, one-time, delete), and the quick-action buttons. Geometry/statistics live in route.js and routeReco.js (pure).
 import { trackPicture } from './maptiles.js';
+import { directionsBox } from './directions.js';
 import { emptyState } from '../art.js';
 import { h, setChildren, median } from '../util.js';
 import { t, getLang } from '../i18n.js';
@@ -118,7 +119,7 @@ export function renderRoute(id) {
     const nameIn = h('input', { type: 'text', id: 'route-rename', maxLength: 40, value: route.name, 'aria-label': t('routeNameLabel') });
     const kind = mk;
     setChildren(el, h('a', { class: 'link back', href: '#/routes' }, icon('back', 20), t('routesTitle')), h('h1', null, route.name, route.oneTime ? h('span', { class: 'tag' }, ` · ${t('routeOneTimeBadge')}`) : null),
-      trackPicture(route.path),
+      trackPicture(route.path, 300, 180, { title: route.name }), directionsBox(route.path),
       h('div', { class: 'rows' }, row(t('distance'), fmtKm(route.lengthM)), row(t('routeAttempts'), String(all.length)), pr.best ? row(t('recFastest'), fmtPaceUnit(paceSec(pr.best))) : null, pr.n ? row(t('avgPace'), fmtPaceUnit(pr.avgPaceSec)) : null),
       h('h2', null, t('routeProgressTitle')), at.length >= 2 ? lineChart(at.map(paceSec)) : null, h('p', null, verdict),
       ctx.band || ctx.weather ? h('p', { class: 'note' }, `${ctx.band ? t('routeBestAt', { band: t(BAND_KEY[ctx.band]) }) : ''} ${ctx.weather ? t('routeBestIn', { weather: bucketLabel(ctx.weather) }) : ''}`.trim()) : null,

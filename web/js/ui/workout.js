@@ -29,6 +29,8 @@ import { createRhythm } from './rhythm.js';
 import { native } from '../native.js';
 import { syncNative } from '../syncNative.js';
 import { marksTable } from './marks.js';
+import { createNav, turnsOf, cueOf, newSaid } from '../nav.js';
+import { turnIcon, distText, turnText } from './directions.js';
 
 const HOLD_MS = 900, MIN_SAVE_M = 10; // a workout shorter than this is not worth a history entry
 
@@ -75,12 +77,34 @@ export function renderWorkout(kind, go, routeId) {
   const holdBtn = h('button', { type: 'button', class: 'btn' }, t('unlock')); lockLayer.append(holdBtn);
   const body = h('div', { class: 'wk' }), cdEl = h('div', { class: 'countdown', hidden: true, role: 'status' });
   // Live map (no tiles) and, when following a saved route, the route line, its name and a "ghost" of the best earlier attempt.
-  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), openMapBtn = h('button', { type: 'button', class: 'mapexpand', id: 'wk-openmap', 'aria-label': t('mvOpen'), onclick: () => import('./mapviewer.js').then((m) => m.openMapViewer({ title: t(kind), path: w ? w.points : [], route: follow ? follow.route.path : [], marks: w ? w.marks : [], live: () => (w ? w.points : []) })) }, icon('plus', 22)), mapBox = h('div', { class: 'mapbox' }, stopEl, lm.el, openMapBtn, followEl, ghostEl);
+  let nav = null, navSaid = newSaid(), navDist = -1; // turn-by-turn guidance while following a route (nav.js): a banner, spoken cues (when switched on) and the next turn on the map
+  const navVoiceOn = () => getPref('navVoice', '1') !== '0';
+  const navEl = h('div', { class: 'navbar', id: 'wk-nav', role: 'group', 'aria-label': t('navOn'), hidden: true });
+  const navBtn = h('button', { type: 'button', class: 'tool', id: 'wk-navvoice', hidden: true, 'aria-pressed': String(navVoiceOn()), onclick: () => { const on = !navVoiceOn(); setPref('navVoice', on ? '1' : '0'); navBtn.setAttribute('aria-pressed', String(on)); navBtn.classList.toggle('on', on); } }, icon('route', 22), t('navVoice'));
+  navBtn.classList.toggle('on', navVoiceOn());
+  function paintNav(st) {
+    if (!nav) return; const n = st?.next;
+    if (!st || (w && isWaiting(w))) { navEl.dataset.state = 'ok'; setChildren(navEl, turnIcon('straight', 44), h('div', null, h('span', { class: 'navt' }, t('navFollow')), h('span', { class: 'navsub' }, `${t('navTotal', { d: distText(nav.total) })}`))); return; }
+    const key = st.arrived ? 'arrived' : st.off ? 'off' : 'ok'; navEl.dataset.state = key;
+    if (st.arrived) setChildren(navEl, turnIcon('arrive', 44), h('div', null, h('span', { class: 'navt' }, t('navArrived'))));
+    else if (st.off) setChildren(navEl, turnIcon('uturn', 44), h('div', null, h('span', { class: 'navt' }, t('navOff', { m: st.offM }))));
+    else setChildren(navEl, turnIcon(n ? n.turn.dir : 'straight', 44), h('div', null, h('span', { class: 'navd' }, distText(n ? n.distM : st.remainingM)), h('span', { class: 'navt' }, n ? turnText(n.turn.dir) : t('navFollow')),
+      st.after ? h('span', { class: 'navsub' }, t('navThen', { turn: turnText(st.after.turn.dir).toLowerCase(), d: distText(st.after.distM - st.next.distM) })) : null), h('span', { class: 'navleft' }, t('navLeft', { d: distText(st.remainingM) })));
+  }
+  const dText = (m) => { const d = m < 1000 ? { n: Math.round(m / 10) * 10, k: 'navSayM' } : { n: Math.round(m / 100) / 10, k: 'navSayKm' }; return t(d.k, { n: d.n }); };
+  function navTick() {
+    if (!nav || phase !== 'running' || !w?.last || isWaiting(w)) return;
+    const st = nav.update({ lat: w.last.lat, lon: w.last.lon }); paintNav(st);
+    const focus = st.next && !st.off ? st.next.turn : null; if (focus && Math.round(st.next.distM / 5) !== navDist) { navDist = Math.round(st.next.distM / 5); paintMap(focus); }
+    const cue = cueOf(st, navSaid, Date.now()); if (!cue) return;
+    const text = t(`navSay_${cue.key}`, { d: cue.distM ? dText(cue.distM) : '', turn: cue.dir ? turnText(cue.dir).toLowerCase() : '' }); sr.textContent = text; if (navVoiceOn()) speak(text, getLang()); // the navigation voice has its own switch (the kilometre voice does not decide it)
+  }
+  const lm = liveMap(), ghostEl = h('p', { class: 'ghost', hidden: true }), followEl = h('p', { class: 'note', hidden: true }), openMapBtn = h('button', { type: 'button', class: 'mapexpand', id: 'wk-openmap', 'aria-label': t('mvOpen'), onclick: () => import('./mapviewer.js').then((m) => m.openMapViewer({ title: t(kind), path: w ? w.points : [], route: follow ? follow.route.path : [], marks: w ? w.marks : [], live: () => (w ? w.points : []) })) }, icon('plus', 22)), mapBox = h('div', { class: 'mapbox' }, navEl, stopEl, lm.el, openMapBtn, followEl, ghostEl);
   let follow = null, ghost = null, ghostSide = ''; // follow = { route, best }; ghost = (moving ms) -> metres of the best attempt
   if (routeId) (async () => {
     const route = (await listRoutes()).find((r) => r.id === routeId); if (!route) return;
     const bestLight = attemptsOf(route, await listWorkouts({ points: false }), kind).sort((a, b) => paceSec(a) - paceSec(b))[0], best = bestLight ? await getWorkout(bestLight.startedAt) : null; // only the best attempt's points are read
-    follow = { route, best: best && best.points.length > 5 ? best : null }; ghost = follow.best ? makeGhost(follow.best.points, follow.best.distanceM) : null; followEl.hidden = false; followEl.textContent = t('followingRoute', { name: route.name }); paintMap();
+    follow = { route, best: best && best.points.length > 5 ? best : null }; nav = createNav(route.path, route.turns?.length ? route.turns : turnsOf(route.path)); navSaid = newSaid(); navBtn.hidden = false; navEl.hidden = false; paintNav(null); ghost = follow.best ? makeGhost(follow.best.points, follow.best.distanceM) : null; followEl.hidden = false; followEl.textContent = t('followingRoute', { name: route.name }); paintMap();
   })();
   // Live indications and the "last time" ghost: compared with the person's own earlier workouts of this kind (cues can be switched off in Settings).
   const cuesOn = () => getPref('cues', '1') !== '0', cueEl = h('p', { class: 'cue', role: 'status', hidden: true }); mapBox.prepend(cueEl);
@@ -105,7 +129,7 @@ export function renderWorkout(kind, go, routeId) {
     pumpCues();
   }
   let mapAt = 0;
-  function paintMap() { lm.update(w ? w.points : [], follow ? follow.route.path : [], w ? w.marks : []); mapAt = Date.now(); }
+  function paintMap(focus = null) { lm.update(w ? w.points : [], follow ? follow.route.path : [], w ? w.marks : [], focus); mapAt = Date.now(); }
   function paintGhost() {
     if (!ghost || !w || phase !== 'running' || (ghostIsLast && !cuesOn())) { ghostEl.hidden = true; return; }
     const d = Math.round(w.distanceM - ghost(elapsedMs(w, Date.now()))), m = Math.abs(d), side = m < 10 ? 'on' : d > 0 ? 'ahead' : 'behind';
@@ -237,7 +261,7 @@ export function renderWorkout(kind, go, routeId) {
     setChildren(mainBtn, main); mainBtn.classList.toggle('is-pause', phase === 'running');
     const stats = h('div', { class: 'wk-stats' }, h('div', { class: 'metric hero' }, h('div', { class: 'cap' }, `${t('distance')} (${t('km')})`), vDist), h('div', { class: 'wk-two' }, cardA, cardB));
     setChildren(body, phase === 'ready' ? gpsCard : stats, waitEl, mapBox, rhythm.el,
-      phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn),
+      phase === 'confirm' ? confirmBar : h('div', { class: 'wk-tools' }, metroBtn, voiceBtn, sunBtn, navBtn),
       phase === 'confirm' ? null : h('div', { class: 'controls' }, phase === 'ready' ? h('span') : finishBtn, mainBtn, phase === 'running' ? markBtn : null));
   }
   function summary() {
@@ -261,7 +285,7 @@ export function renderWorkout(kind, go, routeId) {
   let ticks = 0;
   paintMap();
   if (go && phase === 'ready') { history.replaceState(null, '', `#/workout/${kind}${routeId ? `/r/${routeId}` : ''}`); onMain(true); } // "measure now": start at once, and forget the /go address so Back or a reload never starts another one
-  tickId = setInterval(() => { drainNative(); ++ticks; if (phase === 'running' && w && isWaiting(w) && (gps === 'denied' || gps === 'missing')) { startNow(w, Date.now()); paint(); } /* no position to tell the start from: measure from now */ if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); checkStopped(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
+  tickId = setInterval(() => { drainNative(); ++ticks; navTick(); if (phase === 'running' && w && isWaiting(w) && (gps === 'denied' || gps === 'missing')) { startNow(w, Date.now()); paint(); } /* no position to tell the start from: measure from now */ if (phase === 'running' && ticks % 30 === 0) persist(); /* the save heartbeat runs even with the screen off */ if (document.hidden) return; /* nobody is looking: no painting */ paint(); paintGhost(); checkStopped(); if (phase === 'running' && Date.now() - mapAt >= 3000) paintMap(); }, 1000);
   const onHide = () => { keysSent = null; syncKeys(); if (document.hidden) persist(); else if (phase === 'running') { keepAwake(true); drainNative(); } };
   document.addEventListener('visibilitychange', onHide); addEventListener('pagehide', persist);
   el.cleanup = () => { delete document.body.dataset.sun; clearTimeout(cdTimer); removeEventListener('stepup-native', onKey); native.handsFree(false); clearInterval(tickId); clearTimeout(holdT); navigator.geolocation?.clearWatch(watch); document.removeEventListener('visibilitychange', onHide); removeEventListener('pagehide', persist); persist(); rhythm.destroy(); keepAwake(false); };

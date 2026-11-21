@@ -13,6 +13,7 @@ import { fmtKm } from '../format.js';
 import { locate } from '../weatherApi.js';
 import { trackPicture } from './maptiles.js';
 import { progressBar } from './progress.js';
+import { directionsBox } from './directions.js';
 import { newRouteId } from './routes.js';
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -87,8 +88,8 @@ export function renderRoutePlan() {
     return h('article', { class: 'card rpcard', 'data-rank': String(i + 1), 'data-score': String(r.score) },
       h('div', { class: 'rphead' }, h('b', { class: 'rpscore' }, t('planMatch', { pct: r.score })), h('span', { class: 'rpkm' }, fmtKm(r.distanceM)), i === 0 ? h('span', { class: 'badge' }, t('planBest')) : null),
       h('div', { class: 'rpbar', role: 'img', 'aria-label': t('planMatch', { pct: r.score }) }, h('i', { style: { 'inline-size': `${r.score}%` } })),
-      trackPicture(r.path, 300, 160),
-      r.elev ? profileSvg(r.elev) : null,
+      trackPicture(r.path, 300, 160, { title: `${t('planRouteName')} ${fmtKm(r.distanceM)}` }),
+      r.elev ? profileSvg(r.elev) : null, directionsBox(r.path),
       h('div', { class: 'rpstats' }, r.ascentM != null ? stat('up', `${r.ascentM} m`) : null, r.descentM != null ? stat('down', `${r.descentM} m`) : null,
         r.crossings != null ? stat('flag', t('planCrossN', { n: r.crossings })) : null, r.surface ? stat('walk', t('planSidewalkN', { pct: r.surface.sidewalkPct + r.surface.pathPct })) : null, r.surface && r.surface.trailPct ? stat('route', t('planTrailN', { pct: r.surface.trailPct })) : null),
       h('ul', { class: 'plain rpwhy' }, r.why.map(([k, p]) => h('li', null, t(k === 'planWhyDist' ? (p.pct < 2 ? 'planWhyExact' : p.dir ? 'planWhyLonger' : 'planWhyShorter') : k, p)))),

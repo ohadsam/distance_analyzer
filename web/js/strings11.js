@@ -12,6 +12,10 @@ export const EN = {
   wxChartHint: 'Tap a bar or a point to see that hour: temperature, humidity and rain.', wxEntryHint: 'Hour by hour: temperature, rain, humidity', actWeatherNow: 'Weather',
   mvSearch: 'Find an address', mvSearchPh: 'Address or place', mvFit: 'Fit', mvMeasure: 'Measure', mvMeasured: 'Measured', mvTapPoints: 'tap points on the map', mvLength: 'Length', mvOpen: 'Open the map', mvKmNote: 'Numbers on the line are kilometres (metres on a short path).',
   wkMark: 'Mark point', wkMarkNone: 'No position yet - try again in a moment.', wkMarked: 'Point {n}: {km} km, {time}, pace {pace}', marksTitle: 'Marked points', marksPoint: 'Point', marksSince: 'Since the last point',
+  navDir_left: 'Turn left', navDir_right: 'Turn right', 'navDir_slight-left': 'Bear left', 'navDir_slight-right': 'Bear right', 'navDir_sharp-left': 'Sharp left', 'navDir_sharp-right': 'Sharp right', navDir_uturn: 'Make a U-turn',
+  navM: '{n} m', navKm: '{n} km', navDirsTitle: 'Directions ({n} turns)', navHead: 'Start and follow the route', navTotal: 'Total {d}', navNone: 'No turns: follow the line', navAfter: 'after {d}', navArriveTxt: 'Arrive at the end',
+  navLeft: '{d} left', navThen: 'Then: {turn} in {d}', navOff: 'Off the route - {m} m away. Head back to the line.', navArrived: 'You have arrived', navFollow: 'Follow the route', navVoice: 'Voice directions', navNow: 'now', navOn: 'Navigation',
+  navSay_ahead: 'In {d}, {turn}', navSay_now: '{turn} now', navSay_off: 'You are off the route', navSay_back: 'Back on the route', navSay_arrive: 'You have arrived', navSayM: '{n} metres', navSayKm: '{n} kilometres',
   wnTitle: 'What is new in {v}', wnOpen: 'What is new', wnEarlier: 'Earlier versions', wnNone: 'Nothing listed for this version.', actWhatsNew: 'What is new in this version',
 };
 export const HE = {
@@ -27,5 +31,9 @@ export const HE = {
   wxChartHint: 'לחצו על עמודה או נקודה כדי לראות את השעה: טמפרטורה, לחות וגשם.', wxEntryHint: 'שעה אחר שעה: טמפרטורה, גשם, לחות', actWeatherNow: 'מזג אוויר',
   mvSearch: 'חיפוש כתובת', mvSearchPh: 'כתובת או מקום', mvFit: 'התאמה', mvMeasure: 'מדידה', mvMeasured: 'נמדד', mvTapPoints: 'לחצו על נקודות במפה', mvLength: 'אורך', mvOpen: 'פתיחת המפה', mvKmNote: 'המספרים על הקו הם קילומטרים (מטרים במסלול קצר).',
   wkMark: 'סמן נקודה', wkMarkNone: 'עוד אין מיקום - נסו שוב בעוד רגע.', wkMarked: 'נקודה {n}: {km} ק״מ, {time}, קצב {pace}', marksTitle: 'נקודות שסומנו', marksPoint: 'נקודה', marksSince: 'מהנקודה הקודמת',
+  navDir_left: 'פנו שמאלה', navDir_right: 'פנו ימינה', 'navDir_slight-left': 'פנייה קלה שמאלה', 'navDir_slight-right': 'פנייה קלה ימינה', 'navDir_sharp-left': 'פנייה חדה שמאלה', 'navDir_sharp-right': 'פנייה חדה ימינה', navDir_uturn: 'פנו פניית פרסה',
+  navM: '{n} מ׳', navKm: '{n} ק״מ', navDirsTitle: 'הוראות הגעה ({n} פניות)', navHead: 'התחילו ועקבו אחרי המסלול', navTotal: 'סך הכול {d}', navNone: 'אין פניות: עקבו אחרי הקו', navAfter: 'אחרי {d}', navArriveTxt: 'הגעה לסוף המסלול',
+  navLeft: 'נשארו {d}', navThen: 'אחר כך: {turn} בעוד {d}', navOff: 'יצאתם מהמסלול - {m} מ׳ מהקו. חזרו אל הקו.', navArrived: 'הגעתם ליעד', navFollow: 'עקבו אחרי המסלול', navVoice: 'הנחיה קולית', navNow: 'עכשיו', navOn: 'ניווט',
+  navSay_ahead: 'בעוד {d}, {turn}', navSay_now: '{turn} עכשיו', navSay_off: 'יצאתם מהמסלול', navSay_back: 'חזרתם למסלול', navSay_arrive: 'הגעתם ליעד', navSayM: '{n} מטרים', navSayKm: '{n} קילומטרים',
   wnTitle: 'מה חדש בגרסה {v}', wnOpen: 'מה חדש', wnEarlier: 'גרסאות קודמות', wnNone: 'אין פירוט לגרסה הזו.', actWhatsNew: 'מה חדש בגרסה הזו',
 };
