@@ -27,3 +27,5 @@
 | 2 | `docs/prompts/ROUND2_PROMPT.txt` | originality pass on icons, StepUp logo (3 concepts, wordmark, lockups, adaptive icon, splash), rhythm-coach visuals + motion spec, real illustrations/backgrounds/weather, widgets, badges, chart language | polish of every screen, widgets (phase 9), badges (phase 10), name in the logo | **ready - owner to paste into the same ChatGPT conversation** |
 
 Flow: prompt written here → owner pastes it in ChatGPT → owner returns the results → validate, look at the sheets, integrate → update `DESIGN_LANGUAGE.md` and this list.
+
+- #17 (ROUND17_EXERCISES_FIX_PROMPT.md): fixes for the 24 rig-rendered exercises (wrong stretch postures, IK, smoothness, clipping) - pending user send. Round-16 zips received, not yet integrated.
