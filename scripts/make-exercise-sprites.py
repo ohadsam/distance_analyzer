@@ -3,7 +3,7 @@ Usage: python3 scripts/make-exercise-sprites.py <dir containing one folder per e
 Every frame of ALL exercises is cropped to one common box and scaled by one factor (the figure keeps its size and ground line), then one strip per exercise is written:
   web/art/exercises/<id>.webp   12 frames of 128 x 128 side by side
   web/js/exerciseData.js        the list of exercises with a picture and each one's loop time (from design/stepup/exercise-rig/loop_ms.json; generated, do not edit)
-The frames come from design/stepup/exercise-rig/ (the character's parts, the rig and the pose scripts: python3 batch.py) and, for nine stretches, from the illustrator's own renders."""
+The frames are the illustrator's full-figure drawings (6 poses per exercise, each held for 2 frames; design/stepup/exercises-fullpose/ keeps their contact sheets). wu_skips still comes from design/stepup/exercise-rig/ (the parts-and-rig renders, 12 frames) because the drawn version has a pink tint."""
 import sys, json
 from pathlib import Path
 import numpy as np
@@ -13,7 +13,10 @@ OUT = Path('web/art/exercises'); OUT.mkdir(parents=True, exist_ok=True)
 FR, N = 128, 12
 MS = json.loads(Path('design/stepup/exercise-rig/loop_ms.json').read_text())
 src = Path(sys.argv[1]); ids = sorted(p.name for p in src.iterdir() if p.is_dir())
-frames = {i: [np.asarray(Image.open(src / i / f'ex_{i}_{k:02d}_transparent.png').convert('RGBA')) for k in range(1, N + 1)] for i in ids}
+def load(i):                                             # 6 drawn poses are held for 2 frames each, 12 rendered frames are used as they are
+    files = sorted((src / i).glob(f'ex_{i}_[0-9][0-9]_transparent.png')); assert N % len(files) == 0, (i, len(files))
+    return [np.asarray(Image.open(f).convert('RGBA')) for f in files for _ in range(N // len(files))]
+frames = {i: load(i) for i in ids}
 x0 = y0 = 10 ** 9; x1 = y1 = -1
 for fl in frames.values():
     for f in fl:

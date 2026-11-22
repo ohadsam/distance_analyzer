@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.31.0',
+    en: ['New, fully drawn exercise animations: the character is drawn in every pose of every warm-up and cool-down exercise, so the movements look natural.'],
+    he: ['אנימציות חדשות ומצוירות במלואן לתרגילי החימום והשחרור: הדמות מצוירת בכל תנוחה, והתנועות נראות טבעיות.'] },
   { v: '0.30.0',
     en: ['Every warm-up and cool-down exercise now has a looping animation of the character, with its own tempo: brisk for jogging drills, slow for held stretches.', 'The pictures are drawn from one fixed set of the character\'s body parts, so the character looks the same in all of them.'],
     he: ['לכל תרגיל חימום ושחרור יש עכשיו אנימציה מתמשכת של הדמות, עם קצב משלו: מהיר לתרגילי ריצה, איטי למתיחות מוחזקות.', 'האיורים בנויים מאותה מערכת קבועה של חלקי גוף של הדמות, כך שהדמות נראית זהה בכולם.'] },
