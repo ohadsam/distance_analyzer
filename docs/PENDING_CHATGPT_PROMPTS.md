@@ -35,3 +35,4 @@ Flow: prompt written here → owner pastes it in ChatGPT → owner returns the r
 
 - #19 returned (4 zips, 24 exercises) and integrated in 0.31.0. Still to ask ChatGPT to redo (small follow-up prompt, not yet written): wu_skips (pink tint), cd_glute, wu_calf_raises, wu_hip_circles, wu_ankle_rolls, cd_chest.
 - #20 (`docs/prompts/ROUND20_EXERCISES_FIX6_PROMPT.md`): redo wu_skips, cd_glute, wu_calf_raises, wu_hip_circles, wu_ankle_rolls, cd_chest - pending user send; when back, integrate with `scripts/make-exercise-sprites.py` (replace those folders) and bump.
+- #20 partly returned: wu_skips and cd_glute integrated in 0.31.1; still open: wu_calf_raises, wu_hip_circles, wu_ankle_rolls, cd_chest (ask ChatGPT again for these four).

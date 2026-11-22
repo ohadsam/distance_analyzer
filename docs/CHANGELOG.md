@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.31.1
+- `wu_skips` and `cd_glute` replaced by the illustrator's redrawn versions (round 2: clean colours, the figure-4 with the ankle on the knee). The other four requested redraws (`wu_calf_raises`, `wu_hip_circles`, `wu_ankle_rolls`, `cd_chest`) were not delivered yet and keep the 0.31.0 drawings.
+
 ## 0.31.0
 - **Exercise animations redone as full-figure drawings.** The parts-and-rig renders of 0.30.0 looked stiff (distorted shoulders and shorts), so 23 of the 24 exercises now use the illustrator's fully drawn poses (6 poses each, every pose held for 2 of the 12 frames; per-exercise loop times from the illustrator's data, 1.2 s to 4 s). `wu_skips` keeps the rig render (the drawn one has a pink tint). `scripts/make-exercise-sprites.py` takes 6 or 12 frames per exercise; the contact sheets are in `design/stepup/exercises-fullpose/`. Known weaker drawn ones (to redo): `wu_skips` (pink tint), `cd_glute` (figure-4 contact unclear), `wu_calf_raises` (heel barely lifts), `wu_hip_circles` (circle hardly visible), `wu_ankle_rolls`, `cd_chest` (hands not visibly clasped). The ChatGPT output says itself: technical QA only, identity and form not certified.
 
