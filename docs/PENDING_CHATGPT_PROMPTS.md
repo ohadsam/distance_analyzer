@@ -38,3 +38,4 @@ Flow: prompt written here → owner pastes it in ChatGPT → owner returns the r
 - #20 partly returned: wu_skips and cd_glute integrated in 0.31.1; still open: wu_calf_raises, wu_hip_circles, wu_ankle_rolls, cd_chest (ask ChatGPT again for these four).
 - #20 round 3: cd_chest, wu_ankle_rolls, wu_calf_raises integrated in 0.31.2; wu_hip_circles rejected (white arrows drawn inside the frames) - ask again for a clean one with a visible hip circle and no annotations.
 - #21 (`docs/prompts/ROUND21_HIP_CIRCLES_PROMPT.md`): a clean wu_hip_circles (no arrows, a hip shift of at least 40 px) - pending user send; integrate with scripts/make-exercise-sprites.py and bump.
+- #21 returned and integrated in 0.31.3 (clean wu_hip_circles). No exercise prompt is pending; only optional polish of calf raises / chest.

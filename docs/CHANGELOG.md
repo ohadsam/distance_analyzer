@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.31.3
+- `wu_hip_circles` replaced by the illustrator's clean round-5 redraw (no annotation arrows; hips left, down, right, back around the circle). All 24 exercises now use full-figure drawings.
+
 ## 0.31.2
 - `cd_chest`, `wu_ankle_rolls` and `wu_calf_raises` replaced by the illustrator's round-3 redraws (arms behind the back, a clear lifted foot with a hand on the wall, heels rising). `wu_hip_circles` was NOT taken: the redraw has white annotation arrows inside the frames, so the 0.31.0 drawing stays until a clean one arrives. Calf raises and chest are better but still modest (the heel lift is small, the clasped hands are not clearly visible).
 
