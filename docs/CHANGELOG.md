@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.31.2
+- `cd_chest`, `wu_ankle_rolls` and `wu_calf_raises` replaced by the illustrator's round-3 redraws (arms behind the back, a clear lifted foot with a hand on the wall, heels rising). `wu_hip_circles` was NOT taken: the redraw has white annotation arrows inside the frames, so the 0.31.0 drawing stays until a clean one arrives. Calf raises and chest are better but still modest (the heel lift is small, the clasped hands are not clearly visible).
+
 ## 0.31.1
 - `wu_skips` and `cd_glute` replaced by the illustrator's redrawn versions (round 2: clean colours, the figure-4 with the ankle on the knee). The other four requested redraws (`wu_calf_raises`, `wu_hip_circles`, `wu_ankle_rolls`, `cd_chest`) were not delivered yet and keep the 0.31.0 drawings.
 

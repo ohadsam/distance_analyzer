@@ -1,5 +1,8 @@
 // "What is new", in the app's two languages: user-facing bullets only, newest first. docs/CHANGELOG.md is the developer copy (a unit test keeps the two in step).
 export const CHANGES = [
+  { v: '0.31.2',
+    en: ['Redrawn animations for the chest opener, ankle rolls and calf raises.'],
+    he: ['אנימציות מחודשות לפתיחת החזה, לסיבובי קרסול ולהרמות תאומים.'] },
   { v: '0.31.1',
     en: ['Redrawn animations for the figure-4 glute stretch and the skipping drill.'],
     he: ['אנימציות מחודשות למתיחת הישבן (figure-4) ולתרגיל הדילוגים.'] },
