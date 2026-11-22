@@ -28,4 +28,5 @@
 
 Flow: prompt written here → owner pastes it in ChatGPT → owner returns the results → validate, look at the sheets, integrate → update `DESIGN_LANGUAGE.md` and this list.
 
-- #17 (ROUND17_EXERCISES_FIX_PROMPT.md): fixes for the 24 rig-rendered exercises (wrong stretch postures, IK, smoothness, clipping) - pending user send. Round-16 zips received, not yet integrated.
+- #17 (ROUND17_EXERCISES_FIX_PROMPT.md): sent; ChatGPT's consolidated zips (24 exercises + source) received and integrated in 0.30.0 (9 as delivered, 15 re-rendered with our own pose scripts in `design/stepup/exercise-rig/`).
+- #18 (`docs/prompts/ROUND18_EXERCISES_REMAINING_PROMPT.md`): the 8 exercises still weak (cd_quad, cd_hamstring, cd_chest, cd_it_band, cd_glute, wu_torso_twist, wu_hip_circles, wu_ankle_rolls) - attach `design/stepup/exercise-rig-source.zip`; pending user send.

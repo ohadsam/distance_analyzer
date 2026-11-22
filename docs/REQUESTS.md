@@ -122,3 +122,4 @@ Status: ✅ shipped (version) · 🟡 partly (what is missing) · ⛔ not possib
 | 104 | Fix the planner's horizontal scrolling | ✅ 0.29.0 |
 | 105 | Global search over capabilities and things saved by the user | ✅ 0.29.0 |
 | 106 | Rewrite the exercise-animation production prompt as a hybrid rig + deterministic rendering pipeline (after ChatGPT's feedback) | ✅ docs/prompts/ROUND16_EXERCISES_RIG_PROMPT.md (ROUND15 superseded) |
+| 107 | Integrate ChatGPT's exercise renders, improve what we can ourselves with the rig scripts, prompt for the rest | ✅ 0.30.0 (all 24 animated; docs/prompts/ROUND18_EXERCISES_REMAINING_PROMPT.md for the 8 weak ones) |

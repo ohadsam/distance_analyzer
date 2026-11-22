@@ -6,13 +6,13 @@ import { speak } from '../voice.js';
 import { getLang } from '../i18n.js';
 import { pose } from './character.js';
 import { sessionOf, totalSeconds, isExercise } from '../exercises.js';
-import { ANIMATED, EXERCISE_ANIM } from '../exerciseData.js';
+import { ANIMATED, EXERCISE_ANIM, EXERCISE_MS } from '../exerciseData.js';
 import { progressBar } from './progress.js';
 
 /** The picture of an exercise: the looping animation when it exists, else the character's stretch pose. */
 export function exerciseFigure(id, size = 120) {
   if (!ANIMATED.includes(id)) return pose('stretch', size);
-  return h('span', { class: 'wxa anim-on', 'data-ex': id, 'aria-hidden': 'true', style: { 'inline-size': `${size}px`, 'block-size': `${size}px`, '--ms': `${EXERCISE_ANIM.ms}ms`, '--n': String(EXERCISE_ANIM.frames) } },
+  return h('span', { class: 'wxa anim-on', 'data-ex': id, 'aria-hidden': 'true', style: { 'inline-size': `${size}px`, 'block-size': `${size}px`, '--ms': `${EXERCISE_MS[id] || EXERCISE_ANIM.ms}ms`, '--n': String(EXERCISE_ANIM.frames) } },
     h('img', { src: `art/exercises/${id}.webp`, alt: '', draggable: false, width: EXERCISE_ANIM.size * EXERCISE_ANIM.frames, height: EXERCISE_ANIM.size }));
 }
 const secText = (s) => (s >= 90 ? t('exTotal', { min: Math.round(s / 60) }) : t('exSeconds', { s }));

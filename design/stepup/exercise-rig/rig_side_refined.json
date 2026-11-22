@@ -1,0 +1,364 @@
+{
+  "status": "experimental three-quarter rig; manual joint adjustments; not anatomical validation",
+  "view": "side_draft",
+  "root": [
+    256,
+    284
+  ],
+  "ground_line_y": 470,
+  "parts": [
+    {
+      "id": "far_upper",
+      "file": "parts/upper_arm_2.png",
+      "size": [
+        33,
+        65
+      ],
+      "width": 33,
+      "height": 65,
+      "pivot": [
+        11,
+        14
+      ],
+      "attachment": [
+        23,
+        -60
+      ],
+      "parent_id": "torso",
+      "base_angle": 0,
+      "z_order": 1,
+      "sha256": "257fc6d57460771e36e72899191ca2b0dd940ca49a8b5d7c9114f0d2b0636a6f"
+    },
+    {
+      "id": "far_lower",
+      "file": "parts/forearm_2.png",
+      "size": [
+        29,
+        62
+      ],
+      "width": 29,
+      "height": 62,
+      "pivot": [
+        10,
+        8
+      ],
+      "attachment": [
+        12,
+        38
+      ],
+      "parent_id": "far_upper",
+      "base_angle": 0,
+      "z_order": 0,
+      "sha256": "7271b6203df3ccd9d440335cf2e45d94c30f67bcf722d6fe7ad2b01ac2e20d28"
+    },
+    {
+      "id": "far_hand",
+      "file": "parts/hand_relaxed_2.png",
+      "size": [
+        30,
+        38
+      ],
+      "width": 30,
+      "height": 38,
+      "pivot": [
+        16,
+        5
+      ],
+      "attachment": [
+        7,
+        53
+      ],
+      "parent_id": "far_lower",
+      "base_angle": 0,
+      "z_order": 1,
+      "sha256": "74d7aafd7cbe55a1562a430e060c1a053e536eb02c20bfe8a32ed6e54128d498"
+    },
+    {
+      "id": "far_thigh",
+      "file": "parts/thigh_2.png",
+      "size": [
+        44,
+        96
+      ],
+      "width": 44,
+      "height": 96,
+      "pivot": [
+        22,
+        12
+      ],
+      "attachment": [
+        20,
+        5
+      ],
+      "parent_id": "pelvis",
+      "base_angle": 0,
+      "z_order": 3,
+      "sha256": "45d0231d245014351558d1ace10c60522e550b6835d02f9faebe59cc20486bd9"
+    },
+    {
+      "id": "far_shin",
+      "file": "parts/shin_2.png",
+      "size": [
+        34,
+        87
+      ],
+      "width": 34,
+      "height": 87,
+      "pivot": [
+        18,
+        9
+      ],
+      "attachment": [
+        1,
+        65
+      ],
+      "parent_id": "far_thigh",
+      "base_angle": 0,
+      "z_order": 2,
+      "sha256": "ffe0076731673e12cced09cc635a79bca65ff7a16bbbc3acb706025bba382a7d"
+    },
+    {
+      "id": "far_shoe",
+      "file": "parts/shoe_2.png",
+      "size": [
+        67,
+        51
+      ],
+      "width": 67,
+      "height": 51,
+      "pivot": [
+        22,
+        7
+      ],
+      "attachment": [
+        2,
+        73
+      ],
+      "parent_id": "far_shin",
+      "base_angle": 0,
+      "z_order": 3,
+      "sha256": "ed7bb64d3c17872dfdd53d2911bc0af6561008618350806f15a16e85cbc7d238"
+    },
+    {
+      "id": "near_thigh",
+      "file": "parts/thigh_1.png",
+      "size": [
+        44,
+        96
+      ],
+      "width": 44,
+      "height": 96,
+      "pivot": [
+        22,
+        12
+      ],
+      "attachment": [
+        -20,
+        5
+      ],
+      "parent_id": "pelvis",
+      "base_angle": 0,
+      "z_order": 5,
+      "sha256": "17286d6939d4a069e86c6fe0fe91d04f81ac7cdf46663cb07790bf7eda5b92d9"
+    },
+    {
+      "id": "near_shin",
+      "file": "parts/shin_1.png",
+      "size": [
+        34,
+        87
+      ],
+      "width": 34,
+      "height": 87,
+      "pivot": [
+        18,
+        9
+      ],
+      "attachment": [
+        0,
+        65
+      ],
+      "parent_id": "near_thigh",
+      "base_angle": 0,
+      "z_order": 4,
+      "sha256": "eb94cda6e2bb1085b22ee22967e6ffb050d62d66fa652e3321845bd0c9e3f66d"
+    },
+    {
+      "id": "torso",
+      "file": "parts/torso.png",
+      "size": [
+        101,
+        103
+      ],
+      "width": 101,
+      "height": 103,
+      "pivot": [
+        52,
+        96
+      ],
+      "attachment": [
+        2,
+        -4
+      ],
+      "parent_id": "pelvis",
+      "base_angle": 0,
+      "z_order": 5,
+      "sha256": "75a29cac12839b41431b1517250ef8cf50f653b240e85b7fe9099f38e1199126"
+    },
+    {
+      "id": "near_shoe",
+      "file": "parts/shoe_1.png",
+      "size": [
+        67,
+        51
+      ],
+      "width": 67,
+      "height": 51,
+      "pivot": [
+        22,
+        7
+      ],
+      "attachment": [
+        4,
+        73
+      ],
+      "parent_id": "near_shin",
+      "base_angle": 0,
+      "z_order": 5,
+      "sha256": "4a9c5b2ebeb1f8ef5f8ed9107b81c14e3dfb4bbfe80f8d694e5fd09eed1b2e09"
+    },
+    {
+      "id": "pelvis",
+      "file": "parts/pelvis.png",
+      "size": [
+        87,
+        62
+      ],
+      "width": 87,
+      "height": 62,
+      "pivot": [
+        43,
+        7
+      ],
+      "attachment": [
+        0,
+        0
+      ],
+      "parent_id": null,
+      "base_angle": 0,
+      "z_order": 6,
+      "sha256": "5a21e2316d3c560a91ea1479342f6ca8f27519ce8d879c2262b5be4581265c09"
+    },
+    {
+      "id": "near_upper",
+      "file": "parts/upper_arm_1.png",
+      "size": [
+        33,
+        65
+      ],
+      "width": 33,
+      "height": 65,
+      "pivot": [
+        23,
+        14
+      ],
+      "attachment": [
+        -28,
+        -60
+      ],
+      "parent_id": "torso",
+      "base_angle": 0,
+      "z_order": 8,
+      "sha256": "2043aeadf077156832aa2746c3842ee25372aaa07b1867e3f1119ef81c64d263"
+    },
+    {
+      "id": "tail",
+      "file": "parts/tail.png",
+      "size": [
+        51,
+        41
+      ],
+      "width": 51,
+      "height": 41,
+      "pivot": [
+        47,
+        11
+      ],
+      "attachment": [
+        -37,
+        -64
+      ],
+      "parent_id": "head",
+      "base_angle": 0,
+      "z_order": 8,
+      "sha256": "149dfc016e86c044fb99c8c35a49eae7d090b438aa3f90511df3933a754db1ed"
+    },
+    {
+      "id": "near_lower",
+      "file": "parts/forearm_1.png",
+      "size": [
+        29,
+        62
+      ],
+      "width": 29,
+      "height": 62,
+      "pivot": [
+        19,
+        8
+      ],
+      "attachment": [
+        -11,
+        38
+      ],
+      "parent_id": "near_upper",
+      "base_angle": 0,
+      "z_order": 7,
+      "sha256": "30d8447b4c45fea54b20f99f3433a04ffe3852b28c7a74453b858332a6ee9d48"
+    },
+    {
+      "id": "near_hand",
+      "file": "parts/hand_relaxed_1.png",
+      "size": [
+        30,
+        38
+      ],
+      "width": 30,
+      "height": 38,
+      "pivot": [
+        16,
+        5
+      ],
+      "attachment": [
+        -5,
+        53
+      ],
+      "parent_id": "near_lower",
+      "base_angle": 0,
+      "z_order": 9,
+      "sha256": "a0f3172bbdc5aef103e1c7aa8a128723a7516910661d84c2893f7aec4de8e9fa"
+    },
+    {
+      "id": "head",
+      "file": "parts/head_calm.png",
+      "size": [
+        121,
+        121
+      ],
+      "width": 121,
+      "height": 121,
+      "pivot": [
+        73,
+        115
+      ],
+      "attachment": [
+        10,
+        -94
+      ],
+      "parent_id": "torso",
+      "base_angle": 0,
+      "z_order": 10,
+      "sha256": "ae605e5624b5f69c65dd3ec373206c4ba4b90c94b34fd73dc96b11b12b8265a1"
+    }
+  ],
+  "neutral_height_px": 400
+}

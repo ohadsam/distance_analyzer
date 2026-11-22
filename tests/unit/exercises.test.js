@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { IDS, SECONDS, sessionOf, totalSeconds, coolDownMinutes, isExercise } from '../../web/js/exercises.js';
-import { ANIMATED, EXERCISE_ANIM } from '../../web/js/exerciseData.js';
+import { ANIMATED, EXERCISE_ANIM, EXERCISE_MS } from '../../web/js/exerciseData.js';
 import { STR } from '../../web/js/i18n.js';
 
 test('every exercise has a name and how-to in both languages, and a sensible duration', () => {
@@ -22,4 +22,6 @@ test('cool-down walk: by distance, longer after a hard run, none after a walk or
 });
 test('the list of animated exercises matches the files', () => {
   for (const id of ANIMATED) { assert.ok(isExercise(id), id); assert.ok(existsSync(`web/art/exercises/${id}.webp`), `web/art/exercises/${id}.webp`); } assert.equal(EXERCISE_ANIM.frames, 12);
+  for (const id of ANIMATED) assert.ok(EXERCISE_MS[id] >= 1000 && EXERCISE_MS[id] <= 5000, `loop time of ${id}`);
+  assert.equal(ANIMATED.length, IDS.length, 'every exercise has a picture');
 });

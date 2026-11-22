@@ -1,0 +1,279 @@
+{
+  "root": [
+    256,
+    304
+  ],
+  "parts": [
+    {
+      "id": "pelvis",
+      "file": "parts/front_pelvis.png",
+      "size": [
+        81,
+        57
+      ],
+      "pivot": [
+        40,
+        9
+      ],
+      "parent_id": null,
+      "attachment": [
+        0,
+        0
+      ],
+      "z_order": 8
+    },
+    {
+      "id": "torso",
+      "file": "parts/front_torso.png",
+      "size": [
+        96,
+        96
+      ],
+      "pivot": [
+        48,
+        89
+      ],
+      "parent_id": "pelvis",
+      "attachment": [
+        0,
+        -3
+      ],
+      "z_order": 10
+    },
+    {
+      "id": "head",
+      "file": "parts/front_head.png",
+      "size": [
+        116,
+        154
+      ],
+      "pivot": [
+        57,
+        148
+      ],
+      "parent_id": "torso",
+      "attachment": [
+        0,
+        -83
+      ],
+      "z_order": 12
+    },
+    {
+      "id": "thigh_l",
+      "file": "parts/front_thigh_l.png",
+      "size": [
+        40,
+        73
+      ],
+      "pivot": [
+        21,
+        9
+      ],
+      "parent_id": "pelvis",
+      "attachment": [
+        -19,
+        15
+      ],
+      "z_order": 5
+    },
+    {
+      "id": "shin_l",
+      "file": "parts/front_shin.png",
+      "size": [
+        31,
+        75
+      ],
+      "pivot": [
+        15,
+        9
+      ],
+      "parent_id": "thigh_l",
+      "attachment": [
+        0,
+        56
+      ],
+      "z_order": 3
+    },
+    {
+      "id": "shoe_l",
+      "file": "parts/front_shoe.png",
+      "size": [
+        39,
+        44
+      ],
+      "pivot": [
+        20,
+        8
+      ],
+      "parent_id": "shin_l",
+      "attachment": [
+        0,
+        60
+      ],
+      "z_order": 4
+    },
+    {
+      "id": "upper_l",
+      "file": "parts/front_upper_l.png",
+      "size": [
+        36,
+        65
+      ],
+      "pivot": [
+        21,
+        11
+      ],
+      "parent_id": "torso",
+      "attachment": [
+        -34,
+        -70
+      ],
+      "z_order": 6
+    },
+    {
+      "id": "lower_l",
+      "file": "parts/front_lower_l.png",
+      "size": [
+        34,
+        67
+      ],
+      "pivot": [
+        24,
+        9
+      ],
+      "parent_id": "upper_l",
+      "attachment": [
+        -10,
+        45
+      ],
+      "z_order": 7
+    },
+    {
+      "id": "hand_l",
+      "file": "parts/hand_relaxed_1.png",
+      "size": [
+        25,
+        33
+      ],
+      "pivot": [
+        13,
+        4
+      ],
+      "parent_id": "lower_l",
+      "attachment": [
+        -13,
+        51
+      ],
+      "z_order": 9
+    },
+    {
+      "id": "thigh_r",
+      "file": "parts/front_thigh_r.png",
+      "size": [
+        40,
+        73
+      ],
+      "pivot": [
+        21,
+        9
+      ],
+      "parent_id": "pelvis",
+      "attachment": [
+        19,
+        15
+      ],
+      "z_order": 5
+    },
+    {
+      "id": "shin_r",
+      "file": "parts/front_shin.png",
+      "size": [
+        31,
+        75
+      ],
+      "pivot": [
+        15,
+        9
+      ],
+      "parent_id": "thigh_r",
+      "attachment": [
+        0,
+        56
+      ],
+      "z_order": 3
+    },
+    {
+      "id": "shoe_r",
+      "file": "parts/front_shoe.png",
+      "size": [
+        39,
+        44
+      ],
+      "pivot": [
+        20,
+        8
+      ],
+      "parent_id": "shin_r",
+      "attachment": [
+        0,
+        60
+      ],
+      "z_order": 4
+    },
+    {
+      "id": "upper_r",
+      "file": "parts/front_upper_r.png",
+      "size": [
+        36,
+        65
+      ],
+      "pivot": [
+        15,
+        11
+      ],
+      "parent_id": "torso",
+      "attachment": [
+        34,
+        -70
+      ],
+      "z_order": 6
+    },
+    {
+      "id": "lower_r",
+      "file": "parts/front_lower_r.png",
+      "size": [
+        34,
+        67
+      ],
+      "pivot": [
+        10,
+        9
+      ],
+      "parent_id": "upper_r",
+      "attachment": [
+        10,
+        45
+      ],
+      "z_order": 7
+    },
+    {
+      "id": "hand_r",
+      "file": "parts/hand_relaxed_2.png",
+      "size": [
+        25,
+        33
+      ],
+      "pivot": [
+        13,
+        4
+      ],
+      "parent_id": "lower_r",
+      "attachment": [
+        13,
+        51
+      ],
+      "z_order": 9
+    }
+  ],
+  "view": "front"
+}
