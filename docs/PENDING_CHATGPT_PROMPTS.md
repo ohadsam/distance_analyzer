@@ -34,3 +34,4 @@ Flow: prompt written here → owner pastes it in ChatGPT → owner returns the r
 - #19 (`docs/prompts/ROUND19_EXERCISES_FULL_DRAWN_PROMPT.md`): the parts-and-rig look was judged odd by the owner; back to FULL-FIGURE drawn poses (6 per exercise, 3x2 grid, like the approved walk/run sheets). Supersedes #18; pending user send. The app plays 6 frames by repeating each (script change needed when they arrive).
 
 - #19 returned (4 zips, 24 exercises) and integrated in 0.31.0. Still to ask ChatGPT to redo (small follow-up prompt, not yet written): wu_skips (pink tint), cd_glute, wu_calf_raises, wu_hip_circles, wu_ankle_rolls, cd_chest.
+- #20 (`docs/prompts/ROUND20_EXERCISES_FIX6_PROMPT.md`): redo wu_skips, cd_glute, wu_calf_raises, wu_hip_circles, wu_ankle_rolls, cd_chest - pending user send; when back, integrate with `scripts/make-exercise-sprites.py` (replace those folders) and bump.
