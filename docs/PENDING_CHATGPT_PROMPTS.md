@@ -30,3 +30,5 @@ Flow: prompt written here → owner pastes it in ChatGPT → owner returns the r
 
 - #17 (ROUND17_EXERCISES_FIX_PROMPT.md): sent; ChatGPT's consolidated zips (24 exercises + source) received and integrated in 0.30.0 (9 as delivered, 15 re-rendered with our own pose scripts in `design/stepup/exercise-rig/`).
 - #18 (`docs/prompts/ROUND18_EXERCISES_REMAINING_PROMPT.md`): the 8 exercises still weak (cd_quad, cd_hamstring, cd_chest, cd_it_band, cd_glute, wu_torso_twist, wu_hip_circles, wu_ankle_rolls) - attach `design/stepup/exercise-rig-source.zip`; pending user send.
+
+- #19 (`docs/prompts/ROUND19_EXERCISES_FULL_DRAWN_PROMPT.md`): the parts-and-rig look was judged odd by the owner; back to FULL-FIGURE drawn poses (6 per exercise, 3x2 grid, like the approved walk/run sheets). Supersedes #18; pending user send. The app plays 6 frames by repeating each (script change needed when they arrive).
